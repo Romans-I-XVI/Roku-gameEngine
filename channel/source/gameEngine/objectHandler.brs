@@ -55,7 +55,7 @@ function gameEngine_newObjectHandler()
 
 		for i = depths.Count()-1 to 0 step -1
 			object = depths[i]
-			print object.depth
+			' print object.depth
 			object.onDrawBegin()
 			for each image in object.images
 				if image.enabled then
@@ -65,7 +65,7 @@ function gameEngine_newObjectHandler()
 			object.onDrawEnd()
 			' if GetGlobalAA().debug then love.graphics.print(tostring(image.depth), object.x-100, object.y-100) end
 		end for
-		print "--------------------"
+		' print "--------------------"
 	end function
 
 	objectHandler.DrawColliders = function()
@@ -92,46 +92,49 @@ function gameEngine_newObjectHandler()
 		end for
 	end function
 
-	' objectHandler.CheckCollisions = function()
-	' 	for key, object in pairs(objectHolder) do
-	' 		for collider_key, collider in pairs(object.colliders) do
-	' 			for other_key, other_object in pairs(objectHolder) do
-	' 				if other_object ~= object then 
-	' 					for other_collider_key, other_collider in pairs(other_object.colliders) do
-	' 					    in_collision = false
-	' 						if collider.type = "rectangle" and other_collider.type = "rectangle" then
-	' 							in_collision = collisionFunction:RectRect(object.x+collider.offset_x, object.y+collider.offset_y, collider.width, collider.height, other_object.x+other_collider.offset_x, other_object.y+other_collider.offset_y, other_collider.width, other_collider.height)
-	' 						end
-	' 						if collider.type = "circle" and other_collider.type = "circle" then
-	' 							in_collision = collisionFunction:CircleCircle(object.x+collider.offset_x, object.y+collider.offset_y, collider.radius, other_object.x+other_collider.offset_x, other_object.y+other_collider.offset_y, other_collider.radius)
-	' 						end
-	' 						if (collider.type = "rectangle" and other_collider.type = "circle") or (collider.type = "circle" and other_collider.type = "rectangle") then
-	' 							circle, circle_x, circle_y, rectangle, rectangle_x, rectangle_y
-	' 							if collider.type = "circle" then 
-	' 								circle_x = object.x
-	' 								circle_y = object.y
-	' 								circle = collider 
-	' 								rectangle_x = other_object.x
-	' 								rectangle_y = other_object.y
-	' 								rectangle = other_collider
-	' 							else 
-	' 								circle_x = other_object.x
-	' 								circle_y = other_object.y
-	' 								circle = other_collider 
-	' 								rectangle_x = object.x
-	' 								rectangle_y = object.y
-	' 								rectangle = collider
-	' 							end
-	' 							in_collision = collisionFunction:CircleRect(circle_x+circle.offset_x, circle_y+circle.offset_y, circle.radius, rectangle_x+rectangle.offset_x, rectangle_y+rectangle.offset_y, rectangle.width, rectangle.height)
-	' 						end
-	' 						' if in_collision and GetGlobalAA().debug then print("Collision Detected: ",key, other_key, love.timer.getTime()) end
-	' 						if in_collision and collider.enabled then object:onCollision(collider_key, other_collider_key, other_object) end
-	' 					end
-	' 				end
-	' 			end
-	' 		end
-	' 	end
-	' end
+	objectHandler.CheckCollisions = function()
+		for each object_key in m.objectHolder
+			object = m.objectHolder[object_key]
+			for each collider_key in object.colliders
+				collider = object.colliders[collider_key]
+				for each other_key in m.objectHolder
+					other_object = m.objectHolder[other_key]
+					if other_object.id <> object.id then 
+						for each other_collider_key in other_object.colliders
+							other_collider = other_object.colliders[other_collider_key]
+						    in_collision = false
+							if collider.type = "rectangle" and other_collider.type = "rectangle" then
+								in_collision = gameEngine_collisionRectRect(object.x+collider.offset_x, object.y+collider.offset_y, collider.width, collider.height, other_object.x+other_collider.offset_x, other_object.y+other_collider.offset_y, other_collider.width, other_collider.height)
+							end if
+							if collider.type = "circle" and other_collider.type = "circle" then
+								in_collision = gameEngine_collisionCircleCircle(object.x+collider.offset_x, object.y+collider.offset_y, collider.radius, other_object.x+other_collider.offset_x, other_object.y+other_collider.offset_y, other_collider.radius)
+							end if
+							if (collider.type = "rectangle" and other_collider.type = "circle") or (collider.type = "circle" and other_collider.type = "rectangle") then
+								if collider.type = "circle" then 
+									circle_x = object.x
+									circle_y = object.y
+									circle = collider 
+									rectangle_x = other_object.x
+									rectangle_y = other_object.y
+									rectangle = other_collider
+								else 
+									circle_x = other_object.x
+									circle_y = other_object.y
+									circle = other_collider 
+									rectangle_x = object.x
+									rectangle_y = object.y
+									rectangle = collider
+								end if
+								in_collision = gameEngine_collisionCircleRect(circle_x+circle.offset_x, circle_y+circle.offset_y, circle.radius, rectangle_x+rectangle.offset_x, rectangle_y+rectangle.offset_y, rectangle.width, rectangle.height)
+							end if
+							' if in_collision and GetGlobalAA().debug then print("Collision Detected: ",key, other_key, love.timer.getTime()) end
+							if in_collision and collider.enabled then : object.onCollision(collider_key, other_collider_key, other_object) : end if
+						end for
+					end if
+				end for
+			end for
+		end for
+	end function
 
 	' Give a unique identifier to the object
 	objectHandler.setID = function()

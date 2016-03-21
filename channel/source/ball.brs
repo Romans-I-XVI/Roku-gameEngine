@@ -16,7 +16,7 @@ function new_ball(x, y, xspeed, yspeed, radius, depth = 0)
 
 	' Detect collision with other object
 	ball.onCollision = function(collider, other_collider, other_object)
-		print "In collision with - " ; other_object.name
+		' print "My " ; collider ; " is in a collision with " ; other_object.name ; " " ; other_object.id ; "'s " ; other_collider
 	end function
 
 	' Run if a button is pressed, released, or held
