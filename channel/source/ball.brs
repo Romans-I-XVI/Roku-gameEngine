@@ -1,5 +1,6 @@
-function new_ball(x, y, xspeed, yspeed, radius)
+function new_ball(x, y, xspeed, yspeed, radius, depth = 0)
 	ball = gameEngine_newObject(m.objectHandler, "ball")
+	ball.depth = depth
 	ball.x = x
 	ball.y = y
 	ball.data = {

@@ -31,39 +31,42 @@ function gameEngine_newObjectHandler()
 		screen.Clear(&h000000FF)
 	end function
 
-	' objectHandler.Draw = function()
-	' 	local depths = {}
-	' 	for key,object in pairs(objectHolder) do
-	' 		for image_key,image in pairs(object.images) do
-	' 			if #depths > 0 then
-	' 				local inserted = false
-	' 				for i=#depths,1,-1 do
-	' 					if not inserted and image.depth > depths[i].image.depth then
-	' 						table.insert(depths, i+1, {object = object, image = image})
-	' 						inserted = true
-	' 						break
-	' 					end
-	' 				end
-	' 				if not inserted then
-	' 				    table.insert(depths, 1, {object = object, image = image})
-	' 				end
-	' 			else
-	' 			    table.insert(depths, 1, {object = object, image = image})
-	' 			end
-	' 		end
-	' 	end
+	objectHandler.Draw = function()
+		screen = GetGlobalAA().screen
+		depths = []
+		for each object_key in m.objectHolder
+			object = m.objectHolder[object_key]
+			if depths.Count() > 0 then
+				inserted = false
+				for i = depths.Count()-1 to 0 step -1
+					if not inserted and object.depth > depths[i].depth then
+						arrayInsert(depths, i+1, object)
+						inserted = true
+						exit for
+					end if
+				end for
+				if not inserted then
+					depths.Unshift(object)
+				end if
+			else
+				depths.Unshift(object)
+			end if
+		end for
 
-	' 	for i=#depths,1,-1 do
-	' 		local object = depths[i].object
-	' 		local image = depths[i].image
-	' 		object:onDrawBegin()
-	' 		if image.enabled then
-	' 			love.graphics.draw(image.image, object.x+image.offset_x, object.y+image.offset_y, image.rotation, image.scale_x, image.scale_y, image.origin_x, image.origin_y)
-	' 		end
-	' 		object:onDrawEnd()
-	' 		if GetGlobalAA().debug then love.graphics.print(tostring(image.depth), object.x-100, object.y-100) end
-	' 	end
-	' end
+		for i = depths.Count()-1 to 0 step -1
+			object = depths[i]
+			print object.depth
+			object.onDrawBegin()
+			for each image in object.images
+				if image.enabled then
+					screen.DrawScaledObject(object.x+image.offset_x-(image.origin_x*image.scale_x), object.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.image, image.rgba)
+				end if
+			end for
+			object.onDrawEnd()
+			' if GetGlobalAA().debug then love.graphics.print(tostring(image.depth), object.x-100, object.y-100) end
+		end for
+		print "--------------------"
+	end function
 
 	objectHandler.DrawColliders = function()
 		screen = GetGlobalAA().screen
@@ -95,7 +98,7 @@ function gameEngine_newObjectHandler()
 	' 			for other_key, other_object in pairs(objectHolder) do
 	' 				if other_object ~= object then 
 	' 					for other_collider_key, other_collider in pairs(other_object.colliders) do
-	' 					    local in_collision = false
+	' 					    in_collision = false
 	' 						if collider.type = "rectangle" and other_collider.type = "rectangle" then
 	' 							in_collision = collisionFunction:RectRect(object.x+collider.offset_x, object.y+collider.offset_y, collider.width, collider.height, other_object.x+other_collider.offset_x, other_object.y+other_collider.offset_y, other_collider.width, other_collider.height)
 	' 						end
@@ -103,7 +106,7 @@ function gameEngine_newObjectHandler()
 	' 							in_collision = collisionFunction:CircleCircle(object.x+collider.offset_x, object.y+collider.offset_y, collider.radius, other_object.x+other_collider.offset_x, other_object.y+other_collider.offset_y, other_collider.radius)
 	' 						end
 	' 						if (collider.type = "rectangle" and other_collider.type = "circle") or (collider.type = "circle" and other_collider.type = "rectangle") then
-	' 							local circle, circle_x, circle_y, rectangle, rectangle_x, rectangle_y
+	' 							circle, circle_x, circle_y, rectangle, rectangle_x, rectangle_y
 	' 							if collider.type = "circle" then 
 	' 								circle_x = object.x
 	' 								circle_y = object.y

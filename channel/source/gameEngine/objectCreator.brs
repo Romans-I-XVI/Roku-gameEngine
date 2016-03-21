@@ -70,7 +70,7 @@ function gameEngine_newObject(objectHandler, name = "")
 		if m.colliders[name] <> invalid then : m.colliders[name] = invalid : else : print "Collider Doesn't Exist" : end if
 	end function
 
-	new_object.addImage = function(image, depth = 0, scale_x = 1, scale_y = 1, offset_x = 0, offset_y = 0, origin_x = 0, origin_y = 0, enabled = true)
+	new_object.addImage = function(image, scale_x = 1, scale_y = 1, offset_x = 0, offset_y = 0, origin_x = 0, origin_y = 0, rgba = &hFFFFFFFF, enabled = true)
 		image = {
 			image: image,
 			offset_x: offset_x,
@@ -79,7 +79,7 @@ function gameEngine_newObject(objectHandler, name = "")
 			origin_y: origin_y,
 			scale_x: scale_x,
 			scale_y: scale_y,
-			depth: depth,
+			rgba: rgba,
 			enabled: enabled
 		}
 		m.images.push(image)
