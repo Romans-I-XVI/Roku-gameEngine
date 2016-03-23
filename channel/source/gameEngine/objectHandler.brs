@@ -5,14 +5,13 @@ function gameEngine_newObjectHandler()
 	objectHandler.currentID = 0
 	objectHandler.objectHolder = {}
 
-	objectHandler.Update = function()
-		port = GetGlobalAA().port
+	objectHandler.Update = function(port)
         msg = port.GetMessage() 
 		dt = m.dtTimer.TotalMilliseconds()/1000
 		m.dtTimer.Mark()
 		for each key in m.objectHolder
 	        if type(msg) = "roUniversalControlEvent"
-	        	m.objectHolder[key].onButton(msg.GetInt())
+	        	if m.objectHolder.DoesExist(key) then : m.objectHolder[key].onButton(msg.GetInt()) : end if
 	        	if msg.GetInt() < 100
 	        		m.buttonHeld = msg.GetInt()
 	        	else
@@ -22,17 +21,13 @@ function gameEngine_newObjectHandler()
 	        if m.buttonHeld <> -1
 	        	' Button release codes are 100 plus the button press code
 	        	' This shows a button held code as 1000 plus the button press code
-	        	m.objectHolder[key].onButton(1000+m.buttonHeld)
+	        	if m.objectHolder.DoesExist(key) then : m.objectHolder[key].onButton(1000+m.buttonHeld) : end if
 	        end if
-			m.objectHolder[key].onUpdate(dt)
+			if m.objectHolder.DoesExist(key) then : m.objectHolder[key].onUpdate(dt) : end if
 		end for
-		screen = GetGlobalAA().screen
-		screen.SwapBuffers()
-		screen.Clear(&h000000FF)
 	end function
 
-	objectHandler.Draw = function()
-		screen = GetGlobalAA().screen
+	objectHandler.Draw = function(screen)
 		depths = []
 		for each object_key in m.objectHolder
 			object = m.objectHolder[object_key]
@@ -65,21 +60,23 @@ function gameEngine_newObjectHandler()
 			object.onDrawEnd()
 			' if GetGlobalAA().debug then love.graphics.print(tostring(image.depth), object.x-100, object.y-100) end
 		end for
+
+		if GetGlobalAA().debug then : m.DrawColliders(screen) : end if
+		screen.SwapBuffers()
+		screen.Clear(&h000000FF)
 		' print "--------------------"
 	end function
 
-	objectHandler.DrawColliders = function()
-		screen = GetGlobalAA().screen
+	objectHandler.DrawColliders = function(screen)
 		for each object_key in m.objectHolder
 			object = m.objectHolder[object_key]
 			for each collider_key in object.colliders
 				collider = object.colliders[collider_key]
 				if collider.enabled then
 					if collider.type = "circle" then
-						screen.DrawRect(object.x+collider.offset_x+collider.radius-2, object.y+collider.offset_y-2, 4, 4, &hFF0000FF)
-						screen.DrawRect(object.x+collider.offset_x-collider.radius-2, object.y+collider.offset_y-2, 4, 4, &hFF0000FF)
-						screen.DrawRect(object.x+collider.offset_x-2, object.y+collider.offset_y+collider.radius-2, 4, 4, &hFF0000FF)
-						screen.DrawRect(object.x+collider.offset_x-2, object.y+collider.offset_y-collider.radius-2, 4, 4, &hFF0000FF)
+						' This function is slow as I'm making draw calls for every section of the line.
+						' It's for debugging purposes only!
+						DrawCircle(screen, 100, object.x+collider.offset_x, object.y+collider.offset_y, collider.radius, &hFF0000FF)
 					end if
 					if collider.type = "rectangle" then
 						screen.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
@@ -149,10 +146,10 @@ function gameEngine_newObjectHandler()
 	end function
 
 	' Remove an object from the objectHandler
-	objectHandler.Remove = function(object)
-		if GetGlobalAA().debug then : print "Removing Object: "+object.id : end if
-		m.objectHolder[object.id].onDestroy()
-		m.objectHolder.Delete(object.id)
+	objectHandler.Remove = function(object_id)
+		if GetGlobalAA().debug then : print "Removing Object: "+object_id : end if
+		m.objectHolder[object_id].onDestroy()
+		m.objectHolder.Delete(object_id)
 	end function
 
 	return objectHandler

@@ -1,5 +1,5 @@
 function new_ball(x, y, xspeed, yspeed, radius, depth = 0)
-	ball = gameEngine_newObject(m.objectHandler, "ball")
+	ball = gameEngine_newObject("ball")
 	ball.depth = depth
 	ball.x = x
 	ball.y = y
@@ -10,13 +10,13 @@ function new_ball(x, y, xspeed, yspeed, radius, depth = 0)
 	}
 
 	ball.addColliderCircle("main_collider", radius, 0, 0)
-	ball.addColliderRectangle("left_arm", 30, 10, -radius-30, -5)
-	ball.addColliderRectangle("right_arm", 30, 10, radius, -5)
-	ball.addImage(m.bm_ball, rnd(1000)-1000, 1*(radius/32), 1*(radius/32), 0, 0, 100, 100)
+	' ball.addColliderRectangle("left_arm", 30, 10, -radius-30, -5)
+	' ball.addColliderRectangle("right_arm", 30, 10, radius, -5)
+	ball.addImage(m.bm_ball, 1*(radius/32), 1*(radius/32), 0, 0, 100, 100)
 
 	' Detect collision with other object
 	ball.onCollision = function(collider, other_collider, other_object)
-		' print "My " ; collider ; " is in a collision with " ; other_object.name ; " " ; other_object.id ; "'s " ; other_collider
+		print "My " ; collider ; " is in a collision with " ; other_object.name ; " " ; other_object.id ; "'s " ; other_collider
 	end function
 
 	' Run if a button is pressed, released, or held
@@ -35,6 +35,23 @@ function new_ball(x, y, xspeed, yspeed, radius, depth = 0)
 		end if
 		if button = 2 or button = 1002 then
 			m.data.yspeed = m.data.yspeed - 0.1*60
+		end if
+		if button = 9 or button = 1009 then
+			m.data.radius = m.data.radius+1
+			m.colliders.main_collider.radius = m.data.radius
+			m.images[0].scale_x = 1*(m.data.radius/32)
+			m.images[0].scale_y = 1*(m.data.radius/32)
+		end if
+		if (button = 8 or button = 1008) and m.data.radius > 1 then
+			m.data.radius = m.data.radius-1
+			m.colliders.main_collider.radius = m.data.radius
+			m.images[0].scale_x = 1*(m.data.radius/32)
+			m.images[0].scale_y = 1*(m.data.radius/32)
+		end if
+
+
+		if button = 13 then
+			m.objectHandler.Remove(m.id)
 		end if
 
 	end function
@@ -56,6 +73,11 @@ function new_ball(x, y, xspeed, yspeed, radius, depth = 0)
 		if m.y+m.colliders["main_collider"].radius >= 720 then
 			m.data.yspeed = abs(m.data.yspeed)*-1
 		end if
+	end function
+
+	' This function is called when I get destroyed
+	ball.onDestroy = function()
+		print "I've been destroyed!"
 	end function
 
 	return ball

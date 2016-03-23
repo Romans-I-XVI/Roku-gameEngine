@@ -1,7 +1,9 @@
-function gameEngine_newObject(objectHandler, name = "")
+function gameEngine_newObject(name = "")
+	objectHandler = GetGlobalAA().gameEngine.objectHandler
 	new_object = {
 		name: name,
 		id: objectHandler.setID(),
+		objectHandler: objectHandler,
 		x: 0,
 		y: 0,
         colliders: {},

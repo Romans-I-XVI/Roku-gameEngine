@@ -1,17 +1,17 @@
 sub Main()
-	m.screen = CreateObject("roScreen", true, 1280, 720)
-	m.port = CreateObject("roMessagePort")
-	m.screen.SetMessagePort(m.port)
-	m.screen.SetAlphaEnable(true)
-	m.debug = true
-	m.objectHandler = gameEngine_newObjectHandler()
+	' ------- These two lines are required --------
+	gameEngine_init() ' This initializes the game engine
+	m.debug = true ' Set debug to false before creating final channel build.
+	' ------- These two lines are required --------
+
+	' ------- Other game specific initializations --------
 	m.bm_ball = CreateObject("roBitmap", "pkg:/sprites/example.png")
-	ball = new_ball(100, 100, 10*60, 0, 32)
 	ball = new_ball(100, 100, 0, 0, 32, 5)
+	' ------- Other game specific initializations --------
+
+	' You should really only need m.gameEngine.process() in your while loop. 
+	' Everything else should be attached to objects.
 	while true
-		m.objectHandler.Update()
-		m.objectHandler.CheckCollisions()
-		m.objectHandler.Draw()
-		m.objectHandler.DrawColliders()
+		m.gameEngine.process() ' This must be in the main while loop, it's what makes the game engine tick.
 	end while
 end sub
