@@ -1,5 +1,6 @@
-function new_ball(x, y, xspeed, yspeed, radius, depth = 0)
-	ball = gameEngine_newObject("ball")
+function new_ball(new_object, x, y, xspeed, yspeed, radius, depth = 0)
+	ball = new_object
+	ball.name = "ball"
 	ball.depth = depth
 	ball.x = x
 	ball.y = y
@@ -12,11 +13,16 @@ function new_ball(x, y, xspeed, yspeed, radius, depth = 0)
 	ball.addColliderCircle("main_collider", radius, 0, 0)
 	' ball.addColliderRectangle("left_arm", 30, 10, -radius-30, -5)
 	' ball.addColliderRectangle("right_arm", 30, 10, radius, -5)
-	ball.addImage(m.bm_ball, 1*(radius/32), 1*(radius/32), 0, 0, 100, 100)
+	ball.addImage(ball.gameEngine.Bitmaps.bm_ball, 1*(radius/32), 1*(radius/32), 0, 0, 100, 100)
 
 	' Detect collision with other object
 	ball.onCollision = function(collider, other_collider, other_object)
 		print "My " ; collider ; " is in a collision with " ; other_object.name ; " " ; other_object.id ; "'s " ; other_collider
+	end function
+
+	ball.onDrawEnd = function(screen)
+		' Uncomment if you want to view the object depth
+		if GetGlobalAA().debug then : screen.DrawText(m.depth.ToStr(), m.x+m.data.radius+5, m.y-m.data.radius-10, &hFFFFFFFF, m.gameEngine.Fonts.default) : end if
 	end function
 
 	' Run if a button is pressed, released, or held
