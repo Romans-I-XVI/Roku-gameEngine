@@ -1,6 +1,5 @@
-function new_ball(new_object, x, y, xspeed, yspeed, radius, depth = 0)
-	ball = new_object
-	ball.name = "ball"
+function new_ball(x, y, xspeed, yspeed, radius, depth = 0)
+	ball = m.gameEngine.newObject("ball")
 	ball.depth = depth
 	ball.x = x
 	ball.y = y
@@ -11,9 +10,9 @@ function new_ball(new_object, x, y, xspeed, yspeed, radius, depth = 0)
 	}
 
 	ball.addColliderCircle("main_collider", radius, 0, 0)
-	' ball.addColliderRectangle("left_arm", 30, 10, -radius-30, -5)
-	' ball.addColliderRectangle("right_arm", 30, 10, radius, -5)
-	ball.addImage(ball.gameEngine.Bitmaps.bm_ball, 1*(radius/32), 1*(radius/32), 0, 0, 100, 100)
+	ball.addColliderRectangle("left_arm", 30, 10, -radius-30, -5)
+	ball.addColliderRectangle("right_arm", 30, 10, radius, -5)
+	ball.addImage(m.gameEngine.getBitmap("bm_ball"), 1*(radius/32), 1*(radius/32), 0, 0, 100, 100)
 
 	' Detect collision with other object
 	ball.onCollision = function(collider, other_collider, other_object)

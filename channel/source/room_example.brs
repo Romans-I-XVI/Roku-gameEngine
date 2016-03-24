@@ -1,6 +1,6 @@
 function room_example()
 	return function(room)
-		room.data.ball = new_ball(room.gameEngine.newObject(), 640, 360, 0, 0, 32)
+		room.data.ball = new_ball(640, 360, 0, 0, 32)
 
 		room.onDrawBegin = function(screen)
 			if GetGlobalAA().debug then : screen.DrawText("room: room_example", 10, 720-10-m.gameEngine.Fonts.default.GetOneLineHeight(), &hFFFFFFFF, m.gameEngine.Fonts.default) : end if

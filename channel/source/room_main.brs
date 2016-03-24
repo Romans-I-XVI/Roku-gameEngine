@@ -3,7 +3,7 @@ function room_main()
 		room.data.balls = []
 
 		for i = 1 to 10
-			room.data.balls.Push(new_ball(room.gameEngine.newObject(), rnd(1280), rnd(720), (rnd(10)-5)*60, (rnd(10)-5)*60, 10+rnd(60), rnd(1000)))
+			room.data.balls.Push(new_ball(rnd(1280), rnd(720), (rnd(10)-5)*60, (rnd(10)-5)*60, 10+rnd(60), rnd(1000)))
 		end for
 
 		room.onDrawBegin = function(screen)

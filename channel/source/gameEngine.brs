@@ -20,7 +20,7 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		' ****END - For Internal Use, Do Not Manually Alter****
 
 		' ****Variables****
-		current_room: invalid
+		currentRoom: invalid
 		objectHolder: {}
 		Bitmaps: {}
 		Rooms: {}
@@ -57,14 +57,14 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 
 	gameEngine.Update = function()
 
-        msg = m.port.GetMessage() 
 		dt = m.dtTimer.TotalMilliseconds()/1000
+		m.dtTimer.Mark()
+        msg = m.port.GetMessage() 
 		draw_depths = []
 		game_objects = []
 		for each key in m.objectHolder
 			game_objects.Push(m.objectHolder[key])
 		end for
-		m.dtTimer.Mark()
 		m.fpsTicker = m.fpsTicker + 1
 		if m.fpsTimer.TotalMilliseconds() > 1000 then
 			m.FPS = m.fpsTicker
@@ -328,11 +328,11 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 	' ############### changeRoom() function - Begin ###############
 	gameEngine.changeRoom = function(room)
 		if m.Rooms[room] <> invalid then
-			if m.current_room <> invalid then 
-				m.removeObject(m.current_room.id)
+			if m.currentRoom <> invalid then 
+				m.removeObject(m.currentRoom.id)
 			end if
 			empty_room = m.newObject("room")
-			m.current_room = m.Rooms[room](empty_room)
+			m.currentRoom = m.Rooms[room](empty_room)
 		end if
 	end function
 	' ############### changeRoom() function - End ###############
