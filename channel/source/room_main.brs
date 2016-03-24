@@ -17,8 +17,8 @@ function room_main()
 		end function
 
 		room.onDestroy = function()
-			for each key in m.data.balls
-				m.gameEngine.removeObject(m.data.balls[key].id)
+			for i = 0 to m.data.balls.Count()-1
+				m.gameEngine.removeObject(m.data.balls[i].id)
 			end for
 		end function
 

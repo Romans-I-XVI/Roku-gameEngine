@@ -8,12 +8,12 @@ function room_example()
 
 		room.onButton = function(button)
 			if button = 10
-				gameEngine_changeRoom("room_main")
+				m.gameEngine.changeRoom("room_main")
 			end if
 		end function
 
 		room.onDestroy = function()
-			m.objectHandler.Remove(m.data.ball.id)
+			m.gameEngine.removeObject(m.data.ball.id)
 		end function
 
 		return room

@@ -17,7 +17,7 @@ function new_ball(new_object, x, y, xspeed, yspeed, radius, depth = 0)
 
 	' Detect collision with other object
 	ball.onCollision = function(collider, other_collider, other_object)
-		print "My " ; collider ; " is in a collision with " ; other_object.name ; " " ; other_object.id ; "'s " ; other_collider
+		if GetGlobalAA().debug then : print m.name; " " ; m.id; "'s "; collider ; " is in a collision with " ; other_object.name ; " " ; other_object.id ; "'s " ; other_collider : end if
 	end function
 
 	ball.onDrawEnd = function(screen)
@@ -57,7 +57,7 @@ function new_ball(new_object, x, y, xspeed, yspeed, radius, depth = 0)
 
 
 		if button = 13 then
-			m.objectHandler.Remove(m.id)
+			if rnd(5) = 1 then : m.gameEngine.removeObject(m.id) : end if
 		end if
 
 	end function
