@@ -1,6 +1,11 @@
 function room_example()
 	return function(room)
-		room.data.ball = new_ball(640, 360, 0, 0, 32)
+
+		room.onCreate = function(args)
+			ball_data = {xspeed: 0, yspeed: 0,  radius: 32}
+			m.data.ball = m.gameEngine.spawnObject("ball", {x: 640, y: 360, depth: 0, data: ball_data})
+		end function
+
 
 		room.onDrawBegin = function(screen)
 			if GetGlobalAA().debug then : screen.DrawText("room: room_example", 10, 720-10-m.gameEngine.Fonts.default.GetOneLineHeight(), &hFFFFFFFF, m.gameEngine.Fonts.default) : end if

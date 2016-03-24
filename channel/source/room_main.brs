@@ -1,10 +1,12 @@
 function room_main()
 	return function(room)
-		room.data.balls = []
 
-		for i = 1 to 10
-			room.data.balls.Push(new_ball(rnd(1280), rnd(720), (rnd(10)-5)*60, (rnd(10)-5)*60, 10+rnd(60), rnd(1000)))
-		end for
+		room.onCreate = function(args)
+			m.data.balls = []
+			for i = 1 to 10
+				m.data.balls.Push(m.gameEngine.spawnObject("ball"))
+			end for
+		end function
 
 		room.onDrawBegin = function(screen)
 			if GetGlobalAA().debug then : screen.DrawText("room: room_main", 10, 720-10-m.gameEngine.Fonts.default.GetOneLineHeight(), &hFFFFFFFF, m.gameEngine.Fonts.default) : end if
@@ -23,5 +25,6 @@ function room_main()
 		end function
 
 		return room
+
 	end function
 end function

@@ -21,9 +21,10 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 
 		' ****Variables****
 		currentRoom: invalid
-		objectHolder: {}
-		Bitmaps: {}
+		objectHandler: {}
+		Objects: {}
 		Rooms: {}
+		Bitmaps: {}
 		Fonts: {}
 
 		' These are just placeholder reminders of what functions get added to the gameEngine
@@ -62,8 +63,8 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
         msg = m.port.GetMessage() 
 		draw_depths = []
 		game_objects = []
-		for each key in m.objectHolder
-			game_objects.Push(m.objectHolder[key])
+		for each key in m.objectHandler
+			game_objects.Push(m.objectHandler[key])
 		end for
 		m.fpsTicker = m.fpsTicker + 1
 		if m.fpsTimer.TotalMilliseconds() > 1000 then
@@ -74,6 +75,14 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 
 		' --------------------Begin giant loop for processing all game objects----------------
 		for each object in game_objects
+			if type(object.creation_args) = "roAssociativeArray"
+				if object.creation_args.DoesExist("x") then : object.x = object.creation_args.x : end if
+				if object.creation_args.DoesExist("y") then : object.y = object.creation_args.y : end if
+				if object.creation_args.DoesExist("depth") then : object.depth = object.creation_args.depth : end if
+				if object.creation_args.DoesExist("data") then : object.data = object.creation_args.data : end if
+				object.onCreate(object.creation_args)
+				object.creation_args = invalid
+			end if
 
 			' --------------------First process the onButton() function--------------------
 	        if type(msg) = "roUniversalControlEvent"
@@ -98,9 +107,9 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 			' -------------------Then process all collisions and call onCollision() function-------------
 			for each collider_key in object.colliders
 				collider = object.colliders[collider_key]
-				for each other_key in m.objectHolder
-					if m.objectHolder.DoesExist(other_key) then
-						other_object = m.objectHolder[other_key]
+				for each other_key in m.objectHandler
+					if m.objectHandler.DoesExist(other_key) then
+						other_object = m.objectHandler[other_key]
 						if other_object.id <> object.id then 
 							for each other_collider_key in other_object.colliders
 								if other_object.colliders.DoesExist(other_collider_key) then
@@ -207,11 +216,12 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 
 	' ############### newObject() function - Begin ###############
 
-	gameEngine.newObject = function(name = "")
+	gameEngine.newObject = function(name = "", args = {})
 		m.currentID = m.currentID + 1
 		new_object = {
 			name: name,
 			id: m.currentID.ToStr(),
+			creation_args: args
 			' -----This line is so every game object can easily access the gameEngine component
 			gameEngine: m
 			' -----
@@ -224,6 +234,9 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		}
 
 		' These empty functions are placeholders, they are to be overwritten by the user
+		new_object.onCreate = function(args)
+		end function
+
 		new_object.onCollision = function(collider_name, other_collider_name, other_object)
 		end function
 
@@ -304,7 +317,7 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		end function
 
 		if GetGlobalAA().debug then : print "Adding Object: "+new_object.id : end if
-		m.objectHolder[new_object.id] = new_object
+		m.objectHandler[new_object.id] = new_object
 
 		return new_object
 	end function
@@ -312,27 +325,58 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 	' ############### newObject() function - End ###############
 
 
+	' ############### addObject() function - Begin ###############
+	gameEngine.addObject = function(object_name, object_creation_function)
+		m.Objects[object_name] = object_creation_function
+	end function
+	' ############### addObject() function - End ###############
+
+
+	' ############### spawnObject() function - Begin ###############
+	gameEngine.spawnObject = function(object_name, args = {})
+		if m.Objects.DoesExist(object_name)
+			empty_object = m.newObject(object_name, args)
+			return m.Objects[object_name](empty_object)
+		else
+			print "No objects registered with the name - " ; object_name
+		end if
+	end function
+	' ############### spawnObject() function - End ###############
+
 
 	' ############### removeObject() function - Begin ###############
 	gameEngine.removeObject = function(object_id)
 		if GetGlobalAA().debug then : print "Removing Object: "+object_id : end if
-		if m.objectHolder.DoesExist(object_id) then
-			m.objectHolder[object_id].onDestroy()
-			m.objectHolder.Delete(object_id)
+		if m.objectHandler.DoesExist(object_id) then
+			m.objectHandler[object_id].onDestroy()
+			m.objectHandler.Delete(object_id)
 		end if
 	end function
 	' ############### removeObject() function - End ###############
 
 
+	' ############### listObjects() function - Begin ###############
+	gameEngine.listObjects = function()
+		objects_list = []
+		for each key in m.Objects
+			objects_list.Push(key)
+		end for
+		return objects_list	
+	end function
+	' ############### listObjects() function - End ###############
+
+
+
 
 	' ############### changeRoom() function - Begin ###############
-	gameEngine.changeRoom = function(room)
-		if m.Rooms[room] <> invalid then
+	gameEngine.changeRoom = function(room_name, args = {})
+		if m.Rooms[room_name] <> invalid then
 			if m.currentRoom <> invalid then 
 				m.removeObject(m.currentRoom.id)
 			end if
-			empty_room = m.newObject("room")
-			m.currentRoom = m.Rooms[room](empty_room)
+			empty_room = m.newObject("room", args)
+			m.currentRoom = m.Rooms[room_name](empty_room)
+			return m.currentRoom
 		end if
 	end function
 	' ############### changeRoom() function - End ###############
