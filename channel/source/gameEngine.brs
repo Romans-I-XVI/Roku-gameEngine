@@ -14,6 +14,8 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		fpsTicker: 0
 		FPS: 0
 		currentID: 0
+		empty_bitmap: CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
+		compositor: CreateObject("roCompositor")
 		screen: CreateObject("roScreen", true, screen_width, screen_height)
 		port: CreateObject("roMessagePort")
 		font_registry: CreateObject("roFontRegistry")
@@ -41,6 +43,8 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		removeFont: invalid
 
 	}
+	gameEngine.compositor.SetDrawTo(gameEngine.screen, &h00000000)
+
 	' Set up the screen
 	gameEngine.screen.SetMessagePort(gameEngine.port)
 	gameEngine.screen.SetAlphaEnable(true)
@@ -57,15 +61,14 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 	' ############### Update() function - Begin ###############
 
 	gameEngine.Update = function()
+		m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor *shrug*
+		m.screen.Clear(&h000000FF) 
+
 
 		dt = m.dtTimer.TotalMilliseconds()/1000
 		m.dtTimer.Mark()
         msg = m.port.GetMessage() 
 		draw_depths = []
-		game_objects = []
-		for each key in m.objectHandler
-			game_objects.Push(m.objectHandler[key])
-		end for
 		m.fpsTicker = m.fpsTicker + 1
 		if m.fpsTimer.TotalMilliseconds() > 1000 then
 			m.FPS = m.fpsTicker
@@ -74,8 +77,9 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		end if
 
 		' --------------------Begin giant loop for processing all game objects----------------
-		for each object in game_objects
-			if type(object.creation_args) = "roAssociativeArray"
+		for each object_key in m.objectHandler
+			object = m.objectHandler[object_key]
+			if object.creation_args <> invalid and type(object.creation_args) = "roAssociativeArray"
 				if object.creation_args.DoesExist("x") then : object.x = object.creation_args.x : end if
 				if object.creation_args.DoesExist("y") then : object.y = object.creation_args.y : end if
 				if object.creation_args.DoesExist("depth") then : object.depth = object.creation_args.depth : end if
@@ -83,6 +87,7 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 				object.onCreate(object.creation_args)
 				object.creation_args = invalid
 			end if
+
 
 			' --------------------First process the onButton() function--------------------
 	        if type(msg) = "roUniversalControlEvent"
@@ -104,49 +109,33 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 			object.onUpdate(dt)
 
 
-			' -------------------Then process all collisions and call onCollision() function-------------
+			' -------------------Then handle collisions and call onCollision() for each collision---------------------------
 			for each collider_key in object.colliders
 				collider = object.colliders[collider_key]
-				for each other_key in m.objectHandler
-					if m.objectHandler.DoesExist(other_key) then
-						other_object = m.objectHandler[other_key]
-						if other_object.id <> object.id then 
-							for each other_collider_key in other_object.colliders
-								if other_object.colliders.DoesExist(other_collider_key) then
-									other_collider = other_object.colliders[other_collider_key]
-								    in_collision = false
-									if collider.type = "rectangle" and other_collider.type = "rectangle" then
-										in_collision = gameEngine_collisionRectRect(object.x+collider.offset_x, object.y+collider.offset_y, collider.width, collider.height, other_object.x+other_collider.offset_x, other_object.y+other_collider.offset_y, other_collider.width, other_collider.height)
-									end if
-									if collider.type = "circle" and other_collider.type = "circle" then
-										in_collision = gameEngine_collisionCircleCircle(object.x+collider.offset_x, object.y+collider.offset_y, collider.radius, other_object.x+other_collider.offset_x, other_object.y+other_collider.offset_y, other_collider.radius)
-									end if
-									if (collider.type = "rectangle" and other_collider.type = "circle") or (collider.type = "circle" and other_collider.type = "rectangle") then
-										if collider.type = "circle" then 
-											circle_x = object.x
-											circle_y = object.y
-											circle = collider 
-											rectangle_x = other_object.x
-											rectangle_y = other_object.y
-											rectangle = other_collider
-										else 
-											circle_x = other_object.x
-											circle_y = other_object.y
-											circle = other_collider 
-											rectangle_x = object.x
-											rectangle_y = object.y
-											rectangle = collider
-										end if
-										in_collision = gameEngine_collisionCircleRect(circle_x+circle.offset_x, circle_y+circle.offset_y, circle.radius, rectangle_x+rectangle.offset_x, rectangle_y+rectangle.offset_y, rectangle.width, rectangle.height)
-									end if
-									' if in_collision and GetGlobalAA().debug then print("Collision Detected: ",key, other_key, love.timer.getTime()) end
-									if in_collision and collider.enabled then : object.onCollision(collider_key, other_collider_key, other_object) : end if
-								end if
-							end for
-						end if
+				if collider.enabled then
+					collider.compositor_object.SetMemberFlags(1)
+					collider.compositor_object.SetCollidableFlags(1)
+					if collider.type = "circle" then
+						collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
+					else if collider.type = "rectangle" then
+						collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
 					end if
-				end for
+					collider.compositor_object.MoveTo(object.x, object.y)
+					multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
+					if multiple_collisions <> invalid
+						for each other_collider in multiple_collisions
+							other_collider_data = other_collider.GetData()
+							if m.objectHandler.DoesExist(other_collider_data.object_id)
+								object.onCollision(collider_key, other_collider_data.collider_name, m.objectHandler[other_collider_data.object_id])
+							end if
+						end for
+					end if
+				else
+					collider.compositor_object.SetMemberFlags(99)
+					collider.compositor_object.SetCollidableFlags(99)
+				end if
 			end for
+
 
 			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
 			if draw_depths.Count() > 0 then
@@ -156,6 +145,7 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 						ArrayInsert(draw_depths, i+1, object)
 						inserted = true
 					end if
+					exit for
 				end for
 				if not inserted then
 					draw_depths.Unshift(object)
@@ -176,13 +166,13 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 				end if
 			end for
 			object.onDrawEnd(m.screen)
-			if GetGlobalAA().debug then : m.DrawColliders(object) : end if
-			' if GetGlobalAA().debug then love.graphics.print(tostring(image.depth), object.x-100, object.y-100) end
+			' if GetGlobalAA().debug then : m.DrawColliders(object) : end if
 		end for
 
 		if GetGlobalAA().debug then : m.screen.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default) : end if
 		m.screen.SwapBuffers()
-		m.screen.Clear(&h000000FF)
+
+
 	end function
 
 	' ############### Update() function - End ###############
@@ -237,7 +227,7 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		new_object.onCreate = function(args)
 		end function
 
-		new_object.onCollision = function(collider_name, other_collider_name, other_object)
+		new_object.onCollision = function(collider, other_collider, other_object)
 		end function
 
 		new_object.onUpdate = function(dt)
@@ -277,7 +267,14 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 				radius: radius,
 				offset_x: offset_x,
 				offset_y: offset_y,
+				compositor_object: invalid
 			}
+			region = CreateObject("roRegion", m.gameEngine.empty_bitmap, 0, 0, 1, 1)
+			region.SetCollisionType(2)
+			region.SetCollisionCircle(offset_x, offset_y, radius)
+			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
+			collider.compositor_object.SetDrawableFlag(false)
+			collider.compositor_object.SetData({collider_name: name, object_id: m.id})
 			if m.colliders[name] = invalid then : m.colliders[name] = collider : else : print "Collider Name Already Exists" : end if
 		end function
 
@@ -289,12 +286,24 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 				offset_y: offset_y,
 				width: width,
 				height: height,
+				compositor_object: invalid
 			}
+			region = CreateObject("roRegion", m.gameEngine.empty_bitmap, 0, 0, 1, 1)
+			region.SetCollisionType(1)
+			region.SetCollisionRectangle(offset_x, offset_y, width, height)
+			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
+			collider.compositor_object.SetDrawableFlag(false)
+			collider.compositor_object.SetData({collider_name: name, object_id: m.id})
 			if m.colliders[name] = invalid then : m.colliders[name] = collider : else : print "Collider Name Already Exists" : end if
 		end function
 
 		new_object.removeCollider = function(name)
-			if m.colliders[name] <> invalid then : m.colliders[name] = invalid : else : print "Collider Doesn't Exist" : end if
+			if m.colliders[name] <> invalid then
+				if type(m.colliders[name].compositor_object) = "roSprite" then : m.colliders[name].compositor_object.Remove() : end if
+				m.colliders[name] = invalid
+			else
+				print "Collider Doesn't Exist" 
+			end if
 		end function
 
 		new_object.addImage = function(image, scale_x = 1, scale_y = 1, offset_x = 0, offset_y = 0, origin_x = 0, origin_y = 0, rgba = &hFFFFFFFF, enabled = true)
@@ -335,8 +344,9 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 	' ############### spawnObject() function - Begin ###############
 	gameEngine.spawnObject = function(object_name, args = {})
 		if m.Objects.DoesExist(object_name)
-			empty_object = m.newObject(object_name, args)
-			return m.Objects[object_name](empty_object)
+			new_object = m.newObject(object_name, args)
+			m.Objects[object_name](new_object)
+			return new_object
 		else
 			print "No objects registered with the name - " ; object_name
 		end if
@@ -348,6 +358,13 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 	gameEngine.removeObject = function(object_id)
 		if GetGlobalAA().debug then : print "Removing Object: "+object_id : end if
 		if m.objectHandler.DoesExist(object_id) then
+			for each collider_key in m.objectHandler[object_id].colliders
+				collider = m.objectHandler[object_id].colliders[collider_key]
+				if type(collider.compositor_object) = "roSprite" then 
+					if GetGlobalAA().debug then : print "Removing Collider: "+collider_key : end if
+					collider.compositor_object.Remove()
+				end if
+			end for
 			m.objectHandler[object_id].onDestroy()
 			m.objectHandler.Delete(object_id)
 		end if
@@ -374,9 +391,9 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 			if m.currentRoom <> invalid then 
 				m.removeObject(m.currentRoom.id)
 			end if
-			empty_room = m.newObject("room", args)
-			m.currentRoom = m.Rooms[room_name](empty_room)
-			return m.currentRoom
+			m.currentRoom = invalid
+			m.currentRoom = m.newObject("room", args)
+			m.Rooms[room_name](m.currentRoom)
 		end if
 	end function
 	' ############### changeRoom() function - End ###############
@@ -432,8 +449,8 @@ function gameEngine_collisionRectRect(x1,y1,w1,h1, x2,y2,w2,h2)
 end function
 
 function gameEngine_collisionCircleCircle(x1,y1,r1, x2,y2,r2)
-	dist = Sqr((x1 - x2)^2 + (y1 - y2)^2)
-	return dist <= r1 + r2
+	dist = (x1 - x2)^2 + (y1 - y2)^2
+	return dist <= r1^2 + r2^2
 end function
 
 function gameEngine_collisionCircleRect( cx, cy, cr, rx, ry, rw, rh )

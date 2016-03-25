@@ -3,7 +3,7 @@ function room_main()
 
 		room.onCreate = function(args)
 			m.data.balls = []
-			for i = 1 to 10
+			for i = 1 to 20
 				m.data.balls.Push(m.gameEngine.spawnObject("ball"))
 			end for
 		end function
@@ -23,8 +23,6 @@ function room_main()
 				m.gameEngine.removeObject(m.data.balls[i].id)
 			end for
 		end function
-
-		return room
 
 	end function
 end function

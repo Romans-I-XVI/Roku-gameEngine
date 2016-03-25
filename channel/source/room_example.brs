@@ -21,6 +21,5 @@ function room_example()
 			m.gameEngine.removeObject(m.data.ball.id)
 		end function
 
-		return room
 	end function
 end function

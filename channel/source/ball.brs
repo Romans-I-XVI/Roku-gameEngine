@@ -11,14 +11,14 @@ function ball()
 			if not args.DoesExist("data") then
 				m.data = {
 					radius: 20+rnd(30),
-					xspeed: rnd(5)*60,
-					yspeed: rnd(5)*60,
+					xspeed: (rnd(10)-5)*60,
+					yspeed: (rnd(10)-5)*60,
 				}
 			end if
 
 			m.addColliderCircle("main_collider", m.data.radius, 0, 0)
-			m.addColliderRectangle("left_arm", 30, 10, -m.data.radius-30, -5)
-			m.addColliderRectangle("right_arm", 30, 10, m.data.radius, -5)
+			' m.addColliderRectangle("left_arm", 30, 10, -m.data.radius-30, -5)
+			' m.addColliderRectangle("right_arm", 30, 10, m.data.radius, -5)
 			m.addImage(m.gameEngine.getBitmap("bm_ball"), m.data.radius/32, m.data.radius/32, 0, 0, 100, 100)
 		end function
 
@@ -63,6 +63,13 @@ function ball()
 				m.images[0].scale_y = 1*(m.data.radius/32)
 			end if
 
+			if button = 7 then
+				if m.colliders.main_collider.enabled then
+					m.colliders.main_collider.enabled = false
+				else
+					m.colliders.main_collider.enabled = true
+				end if
+			end if
 
 			if button = 13 then
 				if rnd(5) = 1 then : m.gameEngine.removeObject(m.id) : end if
@@ -75,16 +82,16 @@ function ball()
 			' Handle Movement
 			m.x = m.x + (m.data.xspeed*dt)
 			m.y = m.y + (m.data.yspeed*dt)
-			if m.x-m.colliders["main_collider"].radius <= 0 then
+			if m.x-m.data.radius <= 0 then
 			    m.data.xspeed = abs(m.data.xspeed)
 			end if
-			if m.x+m.colliders["main_collider"].radius >= 1280 then
+			if m.x+m.data.radius >= 1280 then
 				m.data.xspeed = abs(m.data.xspeed)*-1
 			end if
-			if m.y-m.colliders["main_collider"].radius <= 0 then
+			if m.y-m.data.radius <= 0 then
 			    m.data.yspeed = abs(m.data.yspeed)
 			end if
-			if m.y+m.colliders["main_collider"].radius >= 720 then
+			if m.y+m.data.radius >= 720 then
 				m.data.yspeed = abs(m.data.yspeed)*-1
 			end if
 		end function
@@ -93,7 +100,5 @@ function ball()
 		ball.onDestroy = function()
 			print "I've been destroyed!"
 		end function
-
-		return ball
 	end function
 end function
