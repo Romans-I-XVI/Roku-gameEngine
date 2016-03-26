@@ -5,8 +5,8 @@ function ball()
 
 		ball.onCreate = function(args)
 			' This is just for if not all of the required arguments are passed, do random stuff
-			if not args.DoesExist("x") then : m.x = rnd(1280) : end if
-			if not args.DoesExist("y") then : m.y = rnd(720) : end if
+			if not args.DoesExist("x") then : m.x = rnd(m.gameEngine.frame.GetWidth()) : end if
+			if not args.DoesExist("y") then : m.y = rnd(m.gameEngine.frame.GetHeight()) : end if
 			if not args.DoesExist("depth") then : m.depth = rnd(1000)-1000 : end if
 			if not args.DoesExist("data") then
 				m.data = {
@@ -20,12 +20,13 @@ function ball()
 			' m.addColliderRectangle("left_arm", 30, 10, -m.data.radius-30, -5)
 			' m.addColliderRectangle("right_arm", 30, 10, m.data.radius, -5)
 			m.addImage(m.gameEngine.getBitmap("bm_ball"), m.data.radius/32, m.data.radius/32, 0, 0, 100, 100)
+			m.gameEngine.cameraSetFollow(m, 0)
 		end function
 
 
 		' Detect collision with other object
 		ball.onCollision = function(collider, other_collider, other_object)
-			if GetGlobalAA().debug then : print m.name; " " ; m.id; "'s "; collider ; " is in a collision with " ; other_object.name ; " " ; other_object.id ; "'s " ; other_collider : end if
+			' if GetGlobalAA().debug then : print m.name; " " ; m.id; "'s "; collider ; " is in a collision with " ; other_object.name ; " " ; other_object.id ; "'s " ; other_collider : end if
 		end function
 
 		ball.onDrawEnd = function(screen)
@@ -39,37 +40,37 @@ function ball()
 
 			' I've made it so 1000 plus the button press code means the button is held
 			if button = 5 or button = 1005 then
-				m.data.xspeed = m.data.xspeed + 0.1*60
+				m.x = m.x + 5
 			end if
 			if button = 4 or button = 1004 then
-				m.data.xspeed = m.data.xspeed - 0.1*60
+				m.x = m.x - 5
 			end if
 			if button = 3 or button = 1003 then
-				m.data.yspeed = m.data.yspeed + 0.1*60
+				m.y = m.y + 5
 			end if
 			if button = 2 or button = 1002 then
-				m.data.yspeed = m.data.yspeed - 0.1*60
+				m.y = m.y - 5
 			end if
-			if button = 9 or button = 1009 then
-				m.data.radius = m.data.radius+1
-				m.colliders.main_collider.radius = m.data.radius
-				m.images[0].scale_x = 1*(m.data.radius/32)
-				m.images[0].scale_y = 1*(m.data.radius/32)
-			end if
-			if (button = 8 or button = 1008) and m.data.radius > 1 then
-				m.data.radius = m.data.radius-1
-				m.colliders.main_collider.radius = m.data.radius
-				m.images[0].scale_x = 1*(m.data.radius/32)
-				m.images[0].scale_y = 1*(m.data.radius/32)
-			end if
+			' if button = 9 or button = 1009 then
+			' 	m.data.radius = m.data.radius+1
+			' 	m.colliders.main_collider.radius = m.data.radius
+			' 	m.images[0].scale_x = 1*(m.data.radius/32)
+			' 	m.images[0].scale_y = 1*(m.data.radius/32)
+			' end if
+			' if (button = 8 or button = 1008) and m.data.radius > 1 then
+			' 	m.data.radius = m.data.radius-1
+			' 	m.colliders.main_collider.radius = m.data.radius
+			' 	m.images[0].scale_x = 1*(m.data.radius/32)
+			' 	m.images[0].scale_y = 1*(m.data.radius/32)
+			' end if
 
-			if button = 7 then
-				if m.colliders.main_collider.enabled then
-					m.colliders.main_collider.enabled = false
-				else
-					m.colliders.main_collider.enabled = true
-				end if
-			end if
+			' if button = 7 then
+			' 	if m.colliders.main_collider.enabled then
+			' 		m.colliders.main_collider.enabled = false
+			' 	else
+			' 		m.colliders.main_collider.enabled = true
+			' 	end if
+			' end if
 
 			if button = 13 then
 				if rnd(5) = 1 then : m.gameEngine.removeObject(m.id) : end if
@@ -85,13 +86,13 @@ function ball()
 			if m.x-m.data.radius <= 0 then
 			    m.data.xspeed = abs(m.data.xspeed)
 			end if
-			if m.x+m.data.radius >= 1280 then
+			if m.x+m.data.radius >= m.gameEngine.frame.GetWidth() then
 				m.data.xspeed = abs(m.data.xspeed)*-1
 			end if
 			if m.y-m.data.radius <= 0 then
 			    m.data.yspeed = abs(m.data.yspeed)
 			end if
-			if m.y+m.data.radius >= 720 then
+			if m.y+m.data.radius >= m.gameEngine.frame.GetHeight() then
 				m.data.yspeed = abs(m.data.yspeed)*-1
 			end if
 		end function

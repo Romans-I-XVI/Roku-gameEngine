@@ -1,6 +1,6 @@
 ' -------------------------Function To Create Main Game Engine Object------------------------
 
-function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false)
+function gameEngine_init(game_width, game_height, debug = false)
 	
 	' ############### Create Initial Object - Begin ###############
 
@@ -15,10 +15,20 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		FPS: 0
 		currentID: 0
 		empty_bitmap: CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
+		device: CreateObject("roDeviceInfo")
 		compositor: CreateObject("roCompositor")
-		screen: CreateObject("roScreen", true, screen_width, screen_height)
+		screen: invalid
 		port: CreateObject("roMessagePort")
 		font_registry: CreateObject("roFontRegistry")
+		frame: CreateObject("roBitmap", {width: game_width, height: game_height, AlphaEnable: true})
+		camera: {
+			offset_x: 0
+			offset_y: 0
+			scale_x: 1.0
+			scale_y: 1.0
+			follow: invalid
+			follow_mode: 0
+		}
 		' ****END - For Internal Use, Do Not Manually Alter****
 
 		' ****Variables****
@@ -43,6 +53,8 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		removeFont: invalid
 
 	}
+	UIResolution = gameEngine.device.getUIResolution()
+	gameEngine.screen = CreateObject("roScreen", true, UIResolution.width, UIResolution.height)
 	gameEngine.compositor.SetDrawTo(gameEngine.screen, &h00000000)
 
 	' Set up the screen
@@ -63,6 +75,7 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 	gameEngine.Update = function()
 		m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor *shrug*
 		m.screen.Clear(&h000000FF) 
+		m.frame.Clear(&h000000FF) 
 
 
 		dt = m.dtTimer.TotalMilliseconds()/1000
@@ -75,6 +88,7 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 			m.fpsTicker = 0
 			m.fpsTimer.Mark()
 		end if
+
 
 		' --------------------Begin giant loop for processing all game objects----------------
 		for each object_key in m.objectHandler
@@ -159,17 +173,29 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		' ----------------------Then draw all of the objects and call onDrawBegin() and onDrawEnd()-------------------------
 		for i = draw_depths.Count()-1 to 0 step -1
 			object = draw_depths[i]
-			object.onDrawBegin(m.screen)
+			object.onDrawBegin(m.frame)
 			for each image in object.images
 				if image.enabled then
-					m.screen.DrawScaledObject(object.x+image.offset_x-(image.origin_x*image.scale_x), object.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.image, image.rgba)
+					m.frame.DrawScaledObject(object.x+image.offset_x-(image.origin_x*image.scale_x), object.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.image, image.rgba)
 				end if
 			end for
-			object.onDrawEnd(m.screen)
+			object.onDrawEnd(m.frame)
 			' if GetGlobalAA().debug then : m.DrawColliders(object) : end if
 		end for
 
-		if GetGlobalAA().debug then : m.screen.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default) : end if
+
+		' --------------------Then do camera magic if it's set to follow and object----------------------------
+		if m.camera.follow <> invalid
+			if type(m.camera.follow) = "roAssociativeArray" and m.objectHandler.DoesExist(m.camera.follow.id)
+				m.cameraCenterToObject(m.camera.follow)
+			else
+				m.camera.follow = invalid
+			end if
+		end if
+
+
+		if true then : m.frame.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default) : end if
+		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.frame)
 		m.screen.SwapBuffers()
 
 
@@ -191,10 +217,10 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 					DrawCircle(m.screen, 100, object.x+collider.offset_x, object.y+collider.offset_y, collider.radius, &hFF0000FF)
 				end if
 				if collider.type = "rectangle" then
-					m.screen.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
-					m.screen.DrawRect(object.x+collider.offset_x+collider.width-1, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
-					m.screen.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, collider.width, 1, &hFF0000FF)
-					m.screen.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y+collider.height-1, collider.width, 1, &hFF0000FF)
+					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
+					m.frame.DrawRect(object.x+collider.offset_x+collider.width-1, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
+					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, collider.width, 1, &hFF0000FF)
+					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y+collider.height-1, collider.width, 1, &hFF0000FF)
 				end if
 			end if
 		end for
@@ -437,6 +463,112 @@ function gameEngine_init(screen_width = 1280, screen_height = 720, debug = false
 		m.Fonts[name] = invalid
 	end function
 	' ############### removeFont() function - End ###############
+
+	gameEngine.cameraIncreaseOffset = function(x, y)
+		m.camera.offset_x = m.camera.offset_x + x
+		m.camera.offset_y = m.camera.offset_y + y
+	end function
+
+	gameEngine.cameraIncreaseZoom = function(scale_x, scale_y = -999)
+		if scale_y = -999
+			scale_y = scale_x
+		end if
+		m.camera.scale_x = m.camera.scale_x + scale_x
+		m.camera.scale_y = m.camera.scale_y + scale_y
+	end function
+
+
+	gameEngine.cameraSetOffset = function(x, y)
+		m.camera.offset_x = x
+		m.camera.offset_y = y
+	end function
+
+	gameEngine.cameraSetZoom = function(scale_x, scale_y = -999)
+		if scale_y = -999
+			scale_y = scale_x
+		end if
+		m.camera.scale_x = scale_x
+		m.camera.scale_y = scale_y
+	end function
+
+	gameEngine.cameraSetFollow = function(game_object, mode = 0)
+		m.camera.follow = game_object
+		m.camera.follow_mode = mode
+	end function
+
+	gameEngine.cameraUnsetFollow = function()
+		m.camera.follow = invalid
+	end function
+
+	gameEngine.cameraFitToScreen = function()
+		frame_width = m.frame.GetWidth()
+		frame_height = m.frame.GetHeight()
+		screen_width = m.screen.GetWidth()
+		screen_height = m.screen.GetHeight()
+		if screen_width/screen_height < frame_width/frame_height then
+			m.camera.scale_x = screen_width/frame_width
+			m.camera.scale_y = m.camera.scale_x
+			m.camera.offset_x = 0
+			m.camera.offset_y = (screen_height-(screen_width/(frame_width/frame_height)))/2
+		else if screen_width/screen_height > frame_width/frame_height then
+			m.camera.scale_x = screen_height/frame_height
+			m.camera.scale_y = m.camera.scale_x
+			m.camera.offset_x = (screen_width-(screen_height*(frame_width/frame_height)))/2
+			m.camera.offset_y = 0
+		else
+			m.camera.offset_x = 0
+			m.camera.offset_y = 0
+			m.camera.scale_x = 1
+			m.camera.scale_y = 1
+		end if
+	end function
+
+	gameEngine.cameraCenterToObject = function(game_object)
+		frame_width = m.frame.GetWidth()
+		frame_height = m.frame.GetHeight()
+		screen_width = m.screen.GetWidth()
+		screen_height = m.screen.GetHeight()
+
+		if frame_width*m.camera.scale_x < screen_width
+			m.camera.scale_x = screen_width/frame_width
+			m.camera.scale_y = m.camera.scale_x
+		end if
+
+		if frame_height*m.camera.scale_y < screen_height
+			m.camera.scale_y = screen_height/frame_height
+			m.camera.scale_x = m.camera.scale_y
+		end if
+
+		offset_x = 0-game_object.x*m.camera.scale_x+m.screen.GetWidth()/2
+		offset_y = 0-game_object.y*m.camera.scale_y+screen_height/2
+
+		if m.camera.follow_mode = 0
+			minimum_offset_x = -((frame_width*m.camera.scale_x)-screen_width)
+			minimum_offset_y = -((frame_height*m.camera.scale_y)-screen_height)
+
+			if offset_x >= minimum_offset_x and offset_x <= 0
+				m.camera.offset_x = offset_x
+			else if not offset_x >= minimum_offset_x
+				m.camera.offset_x = minimum_offset_x
+			else if not offset_x <= 0 
+				m.camera.offset_x = 0
+			end if
+
+			if offset_y >= minimum_offset_y and offset_y <=0
+				m.camera.offset_y = offset_y
+			else if not offset_y >= minimum_offset_y
+				m.camera.offset_y = minimum_offset_y
+			else if not offset_y <= 0
+				m.camera.offset_y = 0
+			end if
+		else if m.camera.follow_mode = 1
+			m.camera.offset_x = offset_x
+			m.camera.offset_y = offset_y
+		end if
+
+	end function
+
+
 
 	return gameEngine
 end function
