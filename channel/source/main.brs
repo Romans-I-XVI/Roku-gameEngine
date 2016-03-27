@@ -3,7 +3,7 @@
 sub Main()
 	' ------- These two lines are required --------
 	gameEngine = gameEngine_init(1280, 720, false) ' This initializes the game engine
-	gameEngine.loadBitmap("bm_ball", "pkg:/sprites/example.png")
+	gameEngine.loadBitmap("ball", "pkg:/sprites/example.png")
 	gameEngine.loadBitmap("background", "pkg:/sprites/background.png")
 	gameEngine.addRoom("room_main", room_main())
 	gameEngine.addRoom("room_example", room_example())

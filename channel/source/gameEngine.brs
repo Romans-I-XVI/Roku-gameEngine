@@ -93,14 +93,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 		' --------------------Begin giant loop for processing all game objects----------------
 		for each object_key in m.objectHandler
 			object = m.objectHandler[object_key]
-			if object.creation_args <> invalid and type(object.creation_args) = "roAssociativeArray"
-				if object.creation_args.DoesExist("x") then : object.x = object.creation_args.x : end if
-				if object.creation_args.DoesExist("y") then : object.y = object.creation_args.y : end if
-				if object.creation_args.DoesExist("depth") then : object.depth = object.creation_args.depth : end if
-				if object.creation_args.DoesExist("data") then : object.data = object.creation_args.data : end if
-				object.onCreate(object.creation_args)
-				object.creation_args = invalid
-			end if
 
 
 			' --------------------First process the onButton() function--------------------
@@ -151,6 +143,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 			end for
 
 
+			' -------------------- Then handle the object movement--------------------
+			object.x = object.x + object.xspeed*dt
+			object.y = object.y + object.yspeed*dt
+
+
 			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
 			if draw_depths.Count() > 0 then
 				inserted = false
@@ -158,8 +155,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 					if not inserted and object.depth > draw_depths[i].depth then
 						ArrayInsert(draw_depths, i+1, object)
 						inserted = true
+						exit for
 					end if
-					exit for
 				end for
 				if not inserted then
 					draw_depths.Unshift(object)
@@ -232,25 +229,25 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 	' ############### newObject() function - Begin ###############
 
-	gameEngine.newObject = function(name = "", args = {})
+	gameEngine.newObject = function(name = "")
 		m.currentID = m.currentID + 1
 		new_object = {
+			' -----These variables should be considered off limits
 			name: name,
 			id: m.currentID.ToStr(),
-			creation_args: args
-			' -----This line is so every game object can easily access the gameEngine component
 			gameEngine: m
 			' -----
 			depth: 0,
 			x: 0,
 			y: 0,
+			xspeed: 0,
+			yspeed: 0,
 	        colliders: {},
 	        images: [],
-			data: {}
 		}
 
 		' These empty functions are placeholders, they are to be overwritten by the user
-		new_object.onCreate = function(args)
+		new_object.onCreate = function()
 		end function
 
 		new_object.onCollision = function(collider, other_collider, other_object)
@@ -370,8 +367,12 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### spawnObject() function - Begin ###############
 	gameEngine.spawnObject = function(object_name, args = {})
 		if m.Objects.DoesExist(object_name)
-			new_object = m.newObject(object_name, args)
+			new_object = m.newObject(object_name)
 			m.Objects[object_name](new_object)
+			for each key in args
+				new_object[key] = args[key]
+			end for
+			new_object.onCreate()
 			return new_object
 		else
 			print "No objects registered with the name - " ; object_name
@@ -418,8 +419,12 @@ function gameEngine_init(game_width, game_height, debug = false)
 				m.removeObject(m.currentRoom.id)
 			end if
 			m.currentRoom = invalid
-			m.currentRoom = m.newObject("room", args)
+			m.currentRoom = m.newObject("room")
 			m.Rooms[room_name](m.currentRoom)
+			for each key in args
+				m.currentRoom[key] = args[key]
+			end for
+			m.currentRoom.onCreate()
 		end if
 	end function
 	' ############### changeRoom() function - End ###############
@@ -475,6 +480,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 		end if
 		m.camera.scale_x = m.camera.scale_x + scale_x
 		m.camera.scale_y = m.camera.scale_y + scale_y
+		if m.camera.scale_x < 0 then : m.camera.scale_x = 0 : end if
+		if m.camera.scale_y < 0 then : m.camera.scale_y = 0 : end if
 	end function
 
 
@@ -529,16 +536,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
 
-		if frame_width*m.camera.scale_x < screen_width
-			m.camera.scale_x = screen_width/frame_width
-			m.camera.scale_y = m.camera.scale_x
-		end if
-
-		if frame_height*m.camera.scale_y < screen_height
-			m.camera.scale_y = screen_height/frame_height
-			m.camera.scale_x = m.camera.scale_y
-		end if
-
 		offset_x = 0-game_object.x*m.camera.scale_x+m.screen.GetWidth()/2
 		offset_y = 0-game_object.y*m.camera.scale_y+screen_height/2
 
@@ -565,6 +562,16 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.camera.offset_x = offset_x
 			m.camera.offset_y = offset_y
 		end if
+
+
+		if frame_width*m.camera.scale_x < screen_width
+			m.camera.offset_x = (screen_width-frame_width*m.camera.scale_x)/2
+		end if
+
+		if frame_height*m.camera.scale_y < screen_height
+			m.camera.offset_y = (screen_height-frame_height*m.camera.scale_y)/2
+		end if
+
 
 	end function
 

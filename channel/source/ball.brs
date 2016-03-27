@@ -3,24 +3,24 @@ function ball()
 
 		' ################ What we are doing here is modifying the empty object with our ball specific function overrides ###################
 
-		ball.onCreate = function(args)
+		ball.onCreate = function()
 			' This is just for if not all of the required arguments are passed, do random stuff
-			if not args.DoesExist("x") then : m.x = rnd(m.gameEngine.frame.GetWidth()) : end if
-			if not args.DoesExist("y") then : m.y = rnd(m.gameEngine.frame.GetHeight()) : end if
-			if not args.DoesExist("depth") then : m.depth = rnd(1000)-1000 : end if
-			if not args.DoesExist("data") then
-				m.data = {
-					radius: 20+rnd(30),
-					xspeed: (rnd(10)-5)*60,
-					yspeed: (rnd(10)-5)*60,
-				}
-			end if
+			m.x = rnd(m.gameEngine.frame.GetWidth())
+			m.y = rnd(m.gameEngine.frame.GetHeight())
+			m.radius = 20+rnd(30)
+			m.xspeed = (rnd(10)-5)*60
+			m.yspeed = (rnd(10)-5)*60
+			m.depth = 0
 
-			m.addColliderCircle("main_collider", m.data.radius, 0, 0)
-			' m.addColliderRectangle("left_arm", 30, 10, -m.data.radius-30, -5)
-			' m.addColliderRectangle("right_arm", 30, 10, m.data.radius, -5)
-			m.addImage(m.gameEngine.getBitmap("bm_ball"), m.data.radius/32, m.data.radius/32, 0, 0, 100, 100)
-			m.gameEngine.cameraSetFollow(m, 0)
+			m.addColliderCircle("main_collider", m.radius, 0, 0)
+			' m.addColliderRectangle("left_arm", 30, 10, -m.radius-30, -5)
+			' m.addColliderRectangle("right_arm", 30, 10, m.radius, -5)
+			m.addImage(m.gameEngine.getBitmap("ball"), m.radius/32, m.radius/32, 0, 0, 100, 100)
+
+
+			if m.player <> invalid
+				print "worked"
+			end if
 		end function
 
 
@@ -31,7 +31,7 @@ function ball()
 
 		ball.onDrawEnd = function(screen)
 			' Uncomment if you want to view the object depth
-			' if GetGlobalAA().debug then : screen.DrawText(m.depth.ToStr(), m.x+m.data.radius+5, m.y-m.data.radius-10, &hFFFFFFFF, m.gameEngine.Fonts.default) : end if
+			' if GetGlobalAA().debug then : screen.DrawText(m.depth.ToStr(), m.x+m.radius+5, m.y-m.radius-10, &hFFFFFFFF, m.gameEngine.Fonts.default) : end if
 		end function
 
 		' Run if a button is pressed, released, or held
@@ -39,29 +39,29 @@ function ball()
 			if GetGlobalAA().debug then : print "Button Code: " ; button : end if
 
 			' I've made it so 1000 plus the button press code means the button is held
-			if button = 5 or button = 1005 then
-				m.x = m.x + 5
-			end if
-			if button = 4 or button = 1004 then
-				m.x = m.x - 5
-			end if
-			if button = 3 or button = 1003 then
-				m.y = m.y + 5
-			end if
-			if button = 2 or button = 1002 then
-				m.y = m.y - 5
-			end if
-			' if button = 9 or button = 1009 then
-			' 	m.data.radius = m.data.radius+1
-			' 	m.colliders.main_collider.radius = m.data.radius
-			' 	m.images[0].scale_x = 1*(m.data.radius/32)
-			' 	m.images[0].scale_y = 1*(m.data.radius/32)
+			' if button = 5 or button = 1005 then
+			' 	m.x = m.x + 5
 			' end if
-			' if (button = 8 or button = 1008) and m.data.radius > 1 then
-			' 	m.data.radius = m.data.radius-1
-			' 	m.colliders.main_collider.radius = m.data.radius
-			' 	m.images[0].scale_x = 1*(m.data.radius/32)
-			' 	m.images[0].scale_y = 1*(m.data.radius/32)
+			' if button = 4 or button = 1004 then
+			' 	m.x = m.x - 5
+			' end if
+			' if button = 3 or button = 1003 then
+			' 	m.y = m.y + 5
+			' end if
+			' if button = 2 or button = 1002 then
+			' 	m.y = m.y - 5
+			' end if
+			' if button = 9 or button = 1009 then
+			' 	m.radius = m.radius+1
+			' 	m.colliders.main_collider.radius = m.radius
+			' 	m.images[0].scale_x = 1*(m.radius/32)
+			' 	m.images[0].scale_y = 1*(m.radius/32)
+			' end if
+			' if (button = 8 or button = 1008) and m.radius > 1 then
+			' 	m.radius = m.radius-1
+			' 	m.colliders.main_collider.radius = m.radius
+			' 	m.images[0].scale_x = 1*(m.radius/32)
+			' 	m.images[0].scale_y = 1*(m.radius/32)
 			' end if
 
 			' if button = 7 then
@@ -72,28 +72,26 @@ function ball()
 			' 	end if
 			' end if
 
-			if button = 13 then
-				if rnd(5) = 1 then : m.gameEngine.removeObject(m.id) : end if
-			end if
+			' if button = 13 then
+			' 	if rnd(5) = 1 then : m.gameEngine.removeObject(m.id) : end if
+			' end if
 
 		end function
 
 		' This is run on every frame
 		ball.onUpdate = function(dt)
 			' Handle Movement
-			m.x = m.x + (m.data.xspeed*dt)
-			m.y = m.y + (m.data.yspeed*dt)
-			if m.x-m.data.radius <= 0 then
-			    m.data.xspeed = abs(m.data.xspeed)
+			if m.x-m.radius <= 0 then
+			    m.xspeed = abs(m.xspeed)
 			end if
-			if m.x+m.data.radius >= m.gameEngine.frame.GetWidth() then
-				m.data.xspeed = abs(m.data.xspeed)*-1
+			if m.x+m.radius >= m.gameEngine.frame.GetWidth() then
+				m.xspeed = abs(m.xspeed)*-1
 			end if
-			if m.y-m.data.radius <= 0 then
-			    m.data.yspeed = abs(m.data.yspeed)
+			if m.y-m.radius <= 0 then
+			    m.yspeed = abs(m.yspeed)
 			end if
-			if m.y+m.data.radius >= m.gameEngine.frame.GetHeight() then
-				m.data.yspeed = abs(m.data.yspeed)*-1
+			if m.y+m.radius >= m.gameEngine.frame.GetHeight() then
+				m.yspeed = abs(m.yspeed)*-1
 			end if
 		end function
 
