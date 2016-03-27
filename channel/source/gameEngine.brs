@@ -70,10 +70,9 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ############### Update() function - Begin ###############
-
+	' ################################################################ Update() function - Begin #####################################################################################################
 	gameEngine.Update = function()
-		m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor *shrug*
+		m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 		m.screen.Clear(&h000000FF) 
 		m.frame.Clear(&h000000FF) 
 
@@ -148,6 +147,29 @@ function gameEngine_init(game_width, game_height, debug = false)
 			object.y = object.y + object.yspeed*dt
 
 
+			' -------------------- Then handle image animation------------------------
+			for each image_object in object.images
+				if image_object.image_count > 1 then
+					image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
+					if image_animation_timing >= 1 then
+						image_object.animation_position = image_object.animation_position+image_animation_timing
+						if image_object.animation_position > image_object.image_count then
+							image_object.animation_position = 0
+							image_object.animation_timer.Mark()
+						end if
+						image_width = image_object.image.GetWidth()
+						region_position = int(image_object.animation_position)
+						region_width = image_object.region.GetWidth()
+						region_height = image_object.region.GetHeight()
+
+						y_offset = region_position*region_width \ image_width
+						x_offset = region_position*region_width-image_width*y_offset
+						image_object.region = CreateObject("roRegion", image_object.image, x_offset, y_offset*region_height, region_width, region_height)
+					end if
+				end if
+			end for
+
+
 			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
 			if draw_depths.Count() > 0 then
 				inserted = false
@@ -173,7 +195,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			object.onDrawBegin(m.frame)
 			for each image in object.images
 				if image.enabled then
-					m.frame.DrawScaledObject(object.x+image.offset_x-(image.origin_x*image.scale_x), object.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.image, image.rgba)
+					m.frame.DrawScaledObject(object.x+image.offset_x-(image.origin_x*image.scale_x), object.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, image.rgba)
 				end if
 			end for
 			object.onDrawEnd(m.frame)
@@ -197,38 +219,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	end function
-
-	' ############### Update() function - End ###############
-
-
-
-	' ############### DrawColliders() function - Begin ###############
-
-	gameEngine.DrawColliders = function(object)
-		for each collider_key in object.colliders
-			collider = object.colliders[collider_key]
-			if collider.enabled then
-				if collider.type = "circle" then
-					' This function is slow as I'm making draw calls for every section of the line.
-					' It's for debugging purposes only!
-					DrawCircle(m.screen, 100, object.x+collider.offset_x, object.y+collider.offset_y, collider.radius, &hFF0000FF)
-				end if
-				if collider.type = "rectangle" then
-					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
-					m.frame.DrawRect(object.x+collider.offset_x+collider.width-1, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
-					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, collider.width, 1, &hFF0000FF)
-					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y+collider.height-1, collider.width, 1, &hFF0000FF)
-				end if
-			end if
-		end for
-	end function
-
-	' ############### DrawColliders() function - End ###############
+	' ################################################################ Update() function - End #####################################################################################################
 
 
 
-	' ############### newObject() function - Begin ###############
-
+	' ################################################################ newObject() function - Begin #####################################################################################################
 	gameEngine.newObject = function(name = "")
 		m.currentID = m.currentID + 1
 		new_object = {
@@ -330,8 +325,9 @@ function gameEngine_init(game_width, game_height, debug = false)
 		end function
 
 		new_object.addImage = function(image, scale_x = 1, scale_y = 1, offset_x = 0, offset_y = 0, origin_x = 0, origin_y = 0, rgba = &hFFFFFFFF, enabled = true)
-			image = {
+			image_object = {
 				image: image,
+				region: invalid
 				offset_x: offset_x,
 				offset_y: offset_y,
 				origin_x: origin_x,
@@ -340,10 +336,38 @@ function gameEngine_init(game_width, game_height, debug = false)
 				scale_y: scale_y,
 				rgba: rgba,
 				enabled: enabled
+				animation_speed: 0
+				animation_timer: CreateObject("roTimespan")
+				animation_position: 0
+				image_count: 1
+			}
+			if type(image) = "roRegion" then 
+				image_object.region = image
+			else
+				image_object.region = CreateObject("roRegion", image, 0, 0, image.GetWidth(), image.GetHeight())
+			end if
+			m.images.push(image_object)
+		end function
+
+		new_object.addAnimatedImage = function(image_sheet, image_width, image_height, image_count, animation_speed, scale_x = 1, scale_y = 1, offset_x = 0, offset_y = 0, origin_x = 0, origin_y = 0, rgba = &hFFFFFFFF, enabled = true)
+			image = {
+				image: image_sheet,
+				region: CreateObject("roRegion", image_sheet, 0, 0, image_width, image_height)
+				offset_x: offset_x,
+				offset_y: offset_y,
+				origin_x: origin_x,
+				origin_y: origin_y,
+				scale_x: scale_x,
+				scale_y: scale_y,
+				rgba: rgba,
+				enabled: enabled
+				animation_speed: animation_speed
+				animation_timer: CreateObject("roTimespan")
+				animation_position: 0
+				image_count: image_count
 			}
 			m.images.push(image)
 		end function
-
 		new_object.removeImage = function(index)
 			if m.images[index] <> invalid then : m.images.Delete(index) : else : print "Position In Image Array Is Invalid" : end if
 		end function
@@ -353,8 +377,31 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		return new_object
 	end function
+	' ################################################################ newObject() function - End #####################################################################################################
 
-	' ############### newObject() function - End ###############
+
+
+	' ############### DrawColliders() function - Begin ###############
+	gameEngine.DrawColliders = function(object)
+		for each collider_key in object.colliders
+			collider = object.colliders[collider_key]
+			if collider.enabled then
+				if collider.type = "circle" then
+					' This function is slow as I'm making draw calls for every section of the line.
+					' It's for debugging purposes only!
+					DrawCircle(m.screen, 100, object.x+collider.offset_x, object.y+collider.offset_y, collider.radius, &hFF0000FF)
+				end if
+				if collider.type = "rectangle" then
+					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
+					m.frame.DrawRect(object.x+collider.offset_x+collider.width-1, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
+					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, collider.width, 1, &hFF0000FF)
+					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y+collider.height-1, collider.width, 1, &hFF0000FF)
+				end if
+			end if
+		end for
+	end function
+	' ############### DrawColliders() function - End ###############
+
 
 
 	' ############### addObject() function - Begin ###############
@@ -362,6 +409,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		m.Objects[object_name] = object_creation_function
 	end function
 	' ############### addObject() function - End ###############
+
 
 
 	' ############### spawnObject() function - Begin ###############
@@ -381,8 +429,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### spawnObject() function - End ###############
 
 
+
 	' ############### removeObject() function - Begin ###############
-	gameEngine.removeObject = function(object_id)
+	gameEngine.removeObject = function(object)
+		object_id = object.id
 		if GetGlobalAA().debug then : print "Removing Object: "+object_id : end if
 		if m.objectHandler.DoesExist(object_id) then
 			for each collider_key in m.objectHandler[object_id].colliders
@@ -397,6 +447,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		end if
 	end function
 	' ############### removeObject() function - End ###############
+
 
 
 	' ############### listObjects() function - Begin ###############
@@ -416,7 +467,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 	gameEngine.changeRoom = function(room_name, args = {})
 		if m.Rooms[room_name] <> invalid then
 			if m.currentRoom <> invalid then 
-				m.removeObject(m.currentRoom.id)
+				m.removeObject(m.currentRoom)
 			end if
 			m.currentRoom = invalid
 			m.currentRoom = m.newObject("room")
@@ -438,6 +489,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 	end function
 	' ############### addRoom() function - Begin ###############
 
+
+
 	' ############### loadBitmap() function - Begin ###############
 	gameEngine.loadBitmap = function(name, path)
 		m.Bitmaps[name] = CreateObject("roBitmap", path)
@@ -445,11 +498,15 @@ function gameEngine_init(game_width, game_height, debug = false)
 	end function
 	' ############### loadBitmap() function - End ###############
 
+
+
 	' ############### getBitmap() function - Begin ###############
 	gameEngine.getBitmap = function(name)
 		return m.Bitmaps[name]
 	end function
 	' ############### getBitmap() function - End ###############
+
+
 
 	' ############### unloadBitmap() function - Begin ###############
 	gameEngine.unloadBitmap = function(name)
@@ -457,11 +514,15 @@ function gameEngine_init(game_width, game_height, debug = false)
 	end function
 	' ############### unloadBitmap() function - End ###############
 
+
+
 	' ############### getFont() function - Begin ###############
 	gameEngine.getFont = function(name)
 		return m.Fonts[name]
 	end function
 	' ############### getFont() function - End ###############
+
+
 
 	' ############### removeFont() function - Begin ###############
 	gameEngine.removeFont = function(name)
@@ -469,11 +530,20 @@ function gameEngine_init(game_width, game_height, debug = false)
 	end function
 	' ############### removeFont() function - End ###############
 
+
+	' --------------------------------Begin Camera Functions----------------------------------------
+
+
+	' ############### cameraIncreaseOffset() function - Begin ###############
 	gameEngine.cameraIncreaseOffset = function(x, y)
 		m.camera.offset_x = m.camera.offset_x + x
 		m.camera.offset_y = m.camera.offset_y + y
 	end function
+	' ############### cameraIncreaseOffset() function - End ###############
 
+
+
+	' ############### cameraIncreaseZoom() function - Begin ###############
 	gameEngine.cameraIncreaseZoom = function(scale_x, scale_y = -999)
 		if scale_y = -999
 			scale_y = scale_x
@@ -483,13 +553,20 @@ function gameEngine_init(game_width, game_height, debug = false)
 		if m.camera.scale_x < 0 then : m.camera.scale_x = 0 : end if
 		if m.camera.scale_y < 0 then : m.camera.scale_y = 0 : end if
 	end function
+	' ############### cameraIncreaseZoom() function - End ###############
 
 
+
+	' ############### cameraSetOffset() function - Begin ###############
 	gameEngine.cameraSetOffset = function(x, y)
 		m.camera.offset_x = x
 		m.camera.offset_y = y
 	end function
+	' ############### cameraSetOffset() function - End ###############
 
+
+
+	' ############### cameraSetZoom() function - Begin ###############
 	gameEngine.cameraSetZoom = function(scale_x, scale_y = -999)
 		if scale_y = -999
 			scale_y = scale_x
@@ -497,16 +574,28 @@ function gameEngine_init(game_width, game_height, debug = false)
 		m.camera.scale_x = scale_x
 		m.camera.scale_y = scale_y
 	end function
+	' ############### cameraSetZoom() function - End ###############
 
+
+
+	' ############### cameraSetFollow() function - Begin ###############
 	gameEngine.cameraSetFollow = function(game_object, mode = 0)
 		m.camera.follow = game_object
 		m.camera.follow_mode = mode
 	end function
+	' ############### cameraSetFollow() function - End ###############
 
+
+
+	' ############### cameraUnsetFollow() function - Begin ###############
 	gameEngine.cameraUnsetFollow = function()
 		m.camera.follow = invalid
 	end function
+	' ############### cameraUnsetFollow() function - End ###############
 
+
+
+	' ############### cameraFitToScreen() function - Begin ###############
 	gameEngine.cameraFitToScreen = function()
 		frame_width = m.frame.GetWidth()
 		frame_height = m.frame.GetHeight()
@@ -529,7 +618,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.camera.scale_y = 1
 		end if
 	end function
+	' ############### cameraFitToScreen() function - End ###############
 
+
+
+	' ############### cameraCenterToObject() function - Begin ###############
 	gameEngine.cameraCenterToObject = function(game_object)
 		frame_width = m.frame.GetWidth()
 		frame_height = m.frame.GetHeight()
@@ -574,6 +667,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	end function
+	' ############### cameraCenterToObject() function - End ###############
 
 
 

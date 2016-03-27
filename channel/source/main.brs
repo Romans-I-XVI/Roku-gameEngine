@@ -7,8 +7,10 @@ sub Main()
 	gameEngine.loadBitmap("background", "pkg:/sprites/background.png")
 	gameEngine.addRoom("room_main", room_main())
 	gameEngine.addRoom("room_example", room_example())
-	gameEngine.addObject("ball", ball())
+	gameEngine.addObject("ball", obj_ball())
+	gameEngine.addObject("player", obj_player())
 	gameEngine.changeRoom("room_main", {depth: -1000})
+	gameEngine.spawnObject("player")
 
 	' You should really only need gameEngine.Update() in your while loop. 
 	' Everything else should be attached to objects.

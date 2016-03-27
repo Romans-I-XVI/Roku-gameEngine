@@ -1,9 +1,9 @@
-function ball()
-	return function(ball)
+function obj_ball()
+	return function(object)
 
 		' ################ What we are doing here is modifying the empty object with our ball specific function overrides ###################
 
-		ball.onCreate = function()
+		object.onCreate = function()
 			' This is just for if not all of the required arguments are passed, do random stuff
 			m.x = rnd(m.gameEngine.frame.GetWidth())
 			m.y = rnd(m.gameEngine.frame.GetHeight())
@@ -15,27 +15,24 @@ function ball()
 			m.addColliderCircle("main_collider", m.radius, 0, 0)
 			' m.addColliderRectangle("left_arm", 30, 10, -m.radius-30, -5)
 			' m.addColliderRectangle("right_arm", 30, 10, m.radius, -5)
-			m.addImage(m.gameEngine.getBitmap("ball"), m.radius/32, m.radius/32, 0, 0, 100, 100)
+			region = CreateObject("roRegion", m.gameEngine.getBitmap("ball"), 0, 0, 200, 200)
+			m.addImage(region, m.radius/32, m.radius/32, 0, 0, 100, 100)
 
-
-			if m.player <> invalid
-				print "worked"
-			end if
 		end function
 
 
 		' Detect collision with other object
-		ball.onCollision = function(collider, other_collider, other_object)
+		object.onCollision = function(collider, other_collider, other_object)
 			' if GetGlobalAA().debug then : print m.name; " " ; m.id; "'s "; collider ; " is in a collision with " ; other_object.name ; " " ; other_object.id ; "'s " ; other_collider : end if
 		end function
 
-		ball.onDrawEnd = function(screen)
+		object.onDrawEnd = function(screen)
 			' Uncomment if you want to view the object depth
 			' if GetGlobalAA().debug then : screen.DrawText(m.depth.ToStr(), m.x+m.radius+5, m.y-m.radius-10, &hFFFFFFFF, m.gameEngine.Fonts.default) : end if
 		end function
 
 		' Run if a button is pressed, released, or held
-		ball.onButton = function(button)
+		object.onButton = function(button)
 			if GetGlobalAA().debug then : print "Button Code: " ; button : end if
 
 			' I've made it so 1000 plus the button press code means the button is held
@@ -72,31 +69,27 @@ function ball()
 			' 	end if
 			' end if
 
-			' if button = 13 then
-			' 	if rnd(5) = 1 then : m.gameEngine.removeObject(m.id) : end if
-			' end if
-
 		end function
 
 		' This is run on every frame
-		ball.onUpdate = function(dt)
+		object.onUpdate = function(dt)
 			' Handle Movement
-			if m.x-m.radius <= 0 then
+			if m.x-m.radius <= 10 then
 			    m.xspeed = abs(m.xspeed)
 			end if
-			if m.x+m.radius >= m.gameEngine.frame.GetWidth() then
+			if m.x+m.radius >= m.gameEngine.frame.GetWidth()-10 then
 				m.xspeed = abs(m.xspeed)*-1
 			end if
-			if m.y-m.radius <= 0 then
+			if m.y-m.radius <= 10 then
 			    m.yspeed = abs(m.yspeed)
 			end if
-			if m.y+m.radius >= m.gameEngine.frame.GetHeight() then
+			if m.y+m.radius >= m.gameEngine.frame.GetHeight()-10 then
 				m.yspeed = abs(m.yspeed)*-1
 			end if
 		end function
 
 		' This function is called when I get destroyed
-		ball.onDestroy = function()
+		object.onDestroy = function()
 			print "I've been destroyed!"
 		end function
 	end function
