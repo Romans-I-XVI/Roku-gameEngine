@@ -4,7 +4,7 @@ function room_example()
 		room.onCreate = function()
 			m.depth = 10000
 			ball_data = {xspeed: 0, yspeed: 0,  radius: 32}
-			' m.ball = m.gameEngine.spawnObject("ball", {x: m.gameEngine.frame.GetWidth()/2, y: m.gameEngine.frame.GetHeight()/2, depth: 0, data: ball_data})
+			' m.ball = m.gameEngine.newInstance("ball", {x: m.gameEngine.frame.GetWidth()/2, y: m.gameEngine.frame.GetHeight()/2, depth: 0, data: ball_data})
 		end function
 
 
@@ -36,7 +36,7 @@ function room_example()
 		end function
 
 		room.onDestroy = function()
-			' m.gameEngine.removeObject(m.ball)
+			' m.gameEngine.removeInstance(m.ball)
 		end function
 
 	end function

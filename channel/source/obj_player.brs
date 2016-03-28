@@ -4,16 +4,21 @@ function obj_player()
 			m.x = m.gameEngine.Frame.GetWidth()/2
 			m.y = m.gameEngine.Frame.GetHeight()/2
 			m.depth = -100
-			m.radius = 12
+			m.radius = 32
 			m.addColliderCircle("main_collider", m.radius, 0, 0)
 			m.addAnimatedImage(m.gameEngine.getBitmap("ball"), 200, 200, 8, 500, m.radius/32, m.radius/32, 0, 0, 100, 100, &hFF0000FF)
 			m.gameEngine.cameraSetFollow(m)
 		end function
 
 		object.onCollision = function(collider, other_collider, other_object)
-			' if other_object.name = "ball" then
-			' 	m.gameEngine.removeObject(other_object)
-			' end if
+			if other_object.name = "ball" then
+				m.gameEngine.removeInstance(other_object.id)
+				if m.gameEngine.currentRoom.name = "room_main" then
+					if m.gameEngine.currentRoom.balls.Count() = 0
+						m.gameEngine.changeRoom("room_example")
+					end if
+				end if
+			end if
 		end function
 
 		object.onButton = function(button)

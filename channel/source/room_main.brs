@@ -5,8 +5,19 @@ function room_main()
 			m.depth = 100
 			m.balls = []
 			for i = 1 to 20
-				m.balls.Push(m.gameEngine.spawnObject("ball"))
+				m.balls.Push(m.gameEngine.newInstance("ball"))
 			end for
+		end function
+
+		room.onUpdate = function(dt)
+			for i = m.balls.Count()-1 to 0 step -1
+				if not m.gameEngine.instanceExists(m.balls[i]) then
+					m.balls.Delete(i)
+				end if
+			end for
+			if m.balls.Count() = 0 then
+				m.gameEngine.changeRoom("room_example")
+			end if
 		end function
 
 		room.onDrawBegin = function(frame)
@@ -50,7 +61,7 @@ function room_main()
 
 		room.onDestroy = function()
 			for i = 0 to m.balls.Count()-1
-				m.gameEngine.removeObject(m.balls[i])
+				m.gameEngine.removeInstance(m.balls[i])
 			end for
 		end function
 

@@ -2,15 +2,15 @@
 
 sub Main()
 	' ------- These two lines are required --------
-	gameEngine = gameEngine_init(128, 72, false) ' This initializes the game engine
+	gameEngine = gameEngine_init(1280, 720, false) ' This initializes the game engine
 	gameEngine.loadBitmap("ball", "pkg:/sprites/example.png")
 	gameEngine.loadBitmap("background", "pkg:/sprites/background.png")
-	gameEngine.addRoom("room_main", room_main())
-	gameEngine.addRoom("room_example", room_example())
-	gameEngine.addObject("ball", obj_ball())
-	gameEngine.addObject("player", obj_player())
-	gameEngine.changeRoom("room_main", {depth: -1000})
-	gameEngine.spawnObject("player")
+	gameEngine.defineRoom("room_main", room_main())
+	gameEngine.defineRoom("room_example", room_example())
+	gameEngine.defineObject("ball", obj_ball())
+	gameEngine.defineObject("player", obj_player())
+	gameEngine.changeRoom("room_main")
+	gameEngine.newInstance("player")
 
 	' You should really only need gameEngine.Update() in your while loop. 
 	' Everything else should be attached to objects.

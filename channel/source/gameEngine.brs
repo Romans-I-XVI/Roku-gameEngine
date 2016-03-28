@@ -46,12 +46,16 @@ function gameEngine_init(game_width, game_height, debug = false)
 		' These are just placeholder reminders of what functions get added to the gameEngine
 		' ****Functions****
 		Update: invalid
-		newObject: invalid
+		newEmptyObject: invalid
 		DrawColliders: invalid
 
-		addObject: invalid
-		spawnObject: invalid
-		removeObject: invalid
+		defineObject: invalid
+		newInstance: invalid
+		instanceExists: invalid
+		instanceCount: invalid
+		getInstance: Invalid
+		removeInstance: invalid
+		removeAllInstances: invalid
 		listObjects: invalid
 
 		addRoom: invalid
@@ -274,8 +278,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ################################################################ newObject() function - Begin #####################################################################################################
-	gameEngine.newObject = function(name = "")
+	' ################################################################ newEmptyObject() function - Begin #####################################################################################################
+	gameEngine.newEmptyObject = function(name)
 		m.currentID = m.currentID + 1
 		new_object = {
 			' -----These variables should be considered off limits
@@ -431,7 +435,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		return new_object
 	end function
-	' ################################################################ newObject() function - End #####################################################################################################
+	' ################################################################ newEmptyObject() function - End #####################################################################################################
 
 
 
@@ -458,35 +462,63 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ############### addObject() function - Begin ###############
-	gameEngine.addObject = function(object_name, object_creation_function)
+	' ############### defineObject() function - Begin ###############
+	gameEngine.defineObject = function(object_name, object_creation_function)
 		m.Objects[object_name] = object_creation_function
 	end function
-	' ############### addObject() function - End ###############
+	' ############### defineObject() function - End ###############
 
 
 
-	' ############### spawnObject() function - Begin ###############
-	gameEngine.spawnObject = function(object_name, args = {})
+	' ############### newInstance() function - Begin ###############
+	gameEngine.newInstance = function(object_name, args = {})
 		if m.Objects.DoesExist(object_name)
-			new_object = m.newObject(object_name)
+			new_object = m.newEmptyObject(object_name)
 			m.Objects[object_name](new_object)
 			for each key in args
 				new_object[key] = args[key]
 			end for
 			new_object.onCreate()
-			return new_object
+			return new_object.id
 		else
 			print "No objects registered with the name - " ; object_name
 		end if
 	end function
-	' ############### spawnObject() function - End ###############
+	' ############### newInstance() function - End ###############
 
 
 
-	' ############### removeObject() function - Begin ###############
-	gameEngine.removeObject = function(object)
-		object_id = object.id
+	' ############### instanceExists() function - Begin ###############
+	gameEngine.instanceExists = function(object_id)
+		if m.objectHandler.DoesExist(object_id)
+			return true
+		else
+			return false
+		end if
+	end function
+	' ############### instanceExists() function - End ###############
+
+
+
+	' ############### getInstance() function - Begin ###############
+	gameEngine.getInstance = function(object_id)
+		return m.objectHandler[object_id]
+	end function
+	' ############### getInstance() function - End ###############
+
+
+
+	' ############### removeInstance() function - Begin ###############
+	gameEngine.removeInstance = function(object_id)
+		' if type(object_id) = "roAssociativeArray" then
+		' 	if object_id.DoesExist("id") then
+		' 		object_id = object_id.id
+		' 	else
+		' 		print "gameEngine.removeInstance() - Invalid object received"
+		' 		return invalid
+		' 	end if
+		' end if
+				
 		if GetGlobalAA().debug then : print "Removing Object: "+object_id : end if
 		if m.objectHandler.DoesExist(object_id) then
 			for each collider_key in m.objectHandler[object_id].colliders
@@ -498,9 +530,24 @@ function gameEngine_init(game_width, game_height, debug = false)
 			end for
 			m.objectHandler[object_id].onDestroy()
 			m.objectHandler.Delete(object_id)
+		else
+			print "gameEngine.removeInstance() - Object not removed, the received ID didn't exist"
 		end if
 	end function
-	' ############### removeObject() function - End ###############
+	' ############### removeInstance() function - End ###############
+
+
+
+	' ############### removeAllInstances() function - Begin ###############
+	gameEngine.removeAllInstances = function(object_name)
+		for each object_key in m.objectHandler
+			object = m.objectHandler[object_key]
+			if object.name = object_name then
+				m.removeInstance(object.id)
+			end if
+		end for
+	end function
+	' ############### removeAllInstances() function - End ###############
 
 
 
@@ -511,8 +558,24 @@ function gameEngine_init(game_width, game_height, debug = false)
 			objects_list.Push(key)
 		end for
 		return objects_list	
-	end function
+	end function 
 	' ############### listObjects() function - End ###############
+
+
+
+	' ############### instanceCount() function - Begin ###############
+	gameEngine.instanceCount = function(object_name)
+		timer = CreateObject("roTimespan")
+		instance_count = 0
+		for each object_key in m.objectHandler
+			object = m.objectHandler[object_key]
+			if object.name = object_name then
+				instance_count = instance_count + 1
+			end if
+		end for
+		return instance_count
+	end function 
+	' ############### instanceCount() function - End ###############
 
 
 
@@ -521,10 +584,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 	gameEngine.changeRoom = function(room_name, args = {})
 		if m.Rooms[room_name] <> invalid then
 			if m.currentRoom <> invalid then 
-				m.removeObject(m.currentRoom)
+				m.removeInstance(m.currentRoom.id)
 			end if
 			m.currentRoom = invalid
-			m.currentRoom = m.newObject("room")
+			m.currentRoom = m.newEmptyObject("room")
 			m.Rooms[room_name](m.currentRoom)
 			for each key in args
 				m.currentRoom[key] = args[key]
@@ -536,12 +599,12 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ############### addRoom() function - Begin ###############
-	gameEngine.addRoom = function(room_name, room_creation_function)
+	' ############### defineRoom() function - Begin ###############
+	gameEngine.defineRoom = function(room_name, room_creation_function)
 		m.Rooms[room_name] = room_creation_function
 		print "Room function has been added"
 	end function
-	' ############### addRoom() function - Begin ###############
+	' ############### defineRoom() function - Begin ###############
 
 
 
