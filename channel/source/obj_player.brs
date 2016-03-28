@@ -1,10 +1,10 @@
 function obj_player()
 	return function(object)
 		object.onCreate = function()
-			m.x = 100
-			m.y = 100
+			m.x = m.gameEngine.Frame.GetWidth()/2
+			m.y = m.gameEngine.Frame.GetHeight()/2
 			m.depth = -100
-			m.radius = 32
+			m.radius = 12
 			m.addColliderCircle("main_collider", m.radius, 0, 0)
 			m.addAnimatedImage(m.gameEngine.getBitmap("ball"), 200, 200, 8, 500, m.radius/32, m.radius/32, 0, 0, 100, 100, &hFF0000FF)
 			m.gameEngine.cameraSetFollow(m)

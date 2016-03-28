@@ -18,7 +18,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 		device: CreateObject("roDeviceInfo")
 		compositor: CreateObject("roCompositor")
 		screen: invalid
-		port: CreateObject("roMessagePort")
+		filesystem: CreateObject("roFileSystem")
+		screen_port: CreateObject("roMessagePort")
+		audioplayer: CreateObject("roAudioPlayer")
+		music_port: CreateObject("roMessagePort")
 		font_registry: CreateObject("roFontRegistry")
 		frame: CreateObject("roBitmap", {width: game_width, height: game_height, AlphaEnable: true})
 		camera: {
@@ -33,24 +36,52 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		' ****Variables****
 		currentRoom: invalid
-		objectHandler: {}
-		Objects: {}
-		Rooms: {}
-		Bitmaps: {}
-		Fonts: {}
+		objectHandler: {} ' This holds all of the game object instances
+		Objects: {} ' This holds the object definitions by name (the object creation functions)
+		Rooms: {} ' This holds the room definitions by name (the room creation functions)
+		Bitmaps: {} ' This holds the loaded bitmaps by name
+		Sounds: {} ' This holds the loaded sounds by name
+		Fonts: {} ' This holds the loaded fonts by name
 
 		' These are just placeholder reminders of what functions get added to the gameEngine
 		' ****Functions****
 		Update: invalid
 		newObject: invalid
+		DrawColliders: invalid
+
+		addObject: invalid
+		spawnObject: invalid
 		removeObject: invalid
+		listObjects: invalid
+
 		addRoom: invalid
 		changeRoom: invalid
+
 		loadBitmap: invalid
 		getBitmap: invalid
 		unloadBitmap: invalid
+
+		registerFont: invalid
+		loadFont: invalid
+		unloadFont: invalid
 		getFont: invalid
-		removeFont: invalid
+
+		cameraIncreaseOffset: invalid
+		cameraIncreaseZoom: invalid
+		cameraSetOffset: invalid
+		cameraSetZoom: invalid
+		cameraSetFollow: invalid
+		cameraUnsetFollow: invalid
+		cameraFitToScreen: invalid
+		cameraCenterToObject: Invalid
+
+		musicPlay: invalid
+		musicStop: invalid
+		musicPause: invalid
+		musicResume: invalid
+
+		addSound: invalid
+		playSound: invalid
 
 	}
 	UIResolution = gameEngine.device.getUIResolution()
@@ -58,8 +89,21 @@ function gameEngine_init(game_width, game_height, debug = false)
 	gameEngine.compositor.SetDrawTo(gameEngine.screen, &h00000000)
 
 	' Set up the screen
-	gameEngine.screen.SetMessagePort(gameEngine.port)
+	gameEngine.screen.SetMessagePort(gameEngine.screen_port)
 	gameEngine.screen.SetAlphaEnable(true)
+
+	' Set up the audioplayer
+	gameEngine.audioplayer.SetMessagePort(gameEngine.music_port)
+
+	' Register all fonts in package
+	ttfs_in_package = gameEngine.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
+	otfs_in_package = gameEngine.filesystem.FindRecurse("pkg:/fonts/", ".otf")
+	for each font_path in ttfs_in_package
+		gameEngine.font_registry.Register(font_path)
+	end for
+	for each font_path in otfs_in_package
+		gameEngine.font_registry.Register(font_path)
+	end for
 
 	' Create the default font
 	gameEngine.Fonts["default"] = gameEngine.font_registry.GetDefaultFont(28, false, false)
@@ -79,7 +123,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		dt = m.dtTimer.TotalMilliseconds()/1000
 		m.dtTimer.Mark()
-        msg = m.port.GetMessage() 
+        screen_msg = m.screen_port.GetMessage() 
+        music_msg = m.music_port.GetMessage()
 		draw_depths = []
 		m.fpsTicker = m.fpsTicker + 1
 		if m.fpsTimer.TotalMilliseconds() > 1000 then
@@ -95,18 +140,24 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 			' --------------------First process the onButton() function--------------------
-	        if type(msg) = "roUniversalControlEvent"
-	        	object.onButton(msg.GetInt())
-	        	if msg.GetInt() < 100
-	        		m.buttonHeld = msg.GetInt()
+	        if type(screen_msg) = "roUniversalControlEvent" then
+	        	object.onButton(screen_msg.GetInt())
+	        	if screen_msg.GetInt() < 100
+	        		m.buttonHeld = screen_msg.GetInt()
 	        	else
 	        		m.buttonHeld = -1
 	        	end if
 	        end if
-	        if m.buttonHeld <> -1
+	        if m.buttonHeld <> -1 then
 	        	' Button release codes are 100 plus the button press code
 	        	' This shows a button held code as 1000 plus the button press code
 	        	object.onButton(1000+m.buttonHeld)
+	        end if
+
+
+	        ' -------------------Then send the audioplayer event msg if applicable-------------------
+	        if type(music_msg) = "roAudioPlayerEvent" then
+	        	object.onAudioEvent(music_msg)
 	        end if
 
 
@@ -272,6 +323,9 @@ function gameEngine_init(game_width, game_height, debug = false)
 			' Fast  Forward  9  109
 			' Info  10  110
 			' Play  13  113
+		end function
+
+		new_object.onAudioEvent = function(msg)
 		end function
 
 		new_object.onDestroy = function()
@@ -516,19 +570,35 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
+	' ############### registerFont() function - Begin ###############
+	gameEngine.registerFont = function(path)
+		m.font_registry.register(path)
+	end function
+	' ############### registerFont() function - End ###############
+
+
+
+	' ############### loadFont() function - Begin ###############
+	gameEngine.loadFont = function(name, size, italic, bold)
+		m.Fonts[name] = m.font_registry.GetFont(name, size, italic, bold)
+	end function
+	' ############### loadFont() function - End ###############
+
+
+
+	' ############### unloadFont() function - Begin ###############
+	gameEngine.unloadFont = function(name)
+		m.Fonts[name] = invalid
+	end function
+	' ############### unloadFont() function - End ###############
+
+
+
 	' ############### getFont() function - Begin ###############
 	gameEngine.getFont = function(name)
 		return m.Fonts[name]
 	end function
 	' ############### getFont() function - End ###############
-
-
-
-	' ############### removeFont() function - Begin ###############
-	gameEngine.removeFont = function(name)
-		m.Fonts[name] = invalid
-	end function
-	' ############### removeFont() function - End ###############
 
 
 	' --------------------------------Begin Camera Functions----------------------------------------
@@ -614,8 +684,9 @@ function gameEngine_init(game_width, game_height, debug = false)
 		else
 			m.camera.offset_x = 0
 			m.camera.offset_y = 0
-			m.camera.scale_x = 1
-			m.camera.scale_y = 1
+			scale_difference = screen_width/frame_width
+			m.camera.scale_x = 1*scale_difference
+			m.camera.scale_y = 1*scale_difference
 		end if
 	end function
 	' ############### cameraFitToScreen() function - End ###############
@@ -671,35 +742,49 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
+	' ################### Basic Audioplayer Functions - Begin #################
+	gameEngine.musicPlay = function(audio_path, loop = false)
+		m.audioplayer.stop()
+		m.audioplayer.ClearContent()
+	    song = {}
+	    song.url = path
+	    audioplayer.AddContent(song)
+	    audioplayer.SetLoop(loop)
+	    audioPlayer.play()
+	end function
+
+	gameEngine.musicStop = function()
+		m.audioplayer.stop()
+	end function
+
+	gameEngine.musicPause = function()
+		m.audioplayer.pause()
+	end function
+
+	gameEngine.musicResume = function()
+		m.audioplayer.resume()
+	end function
+	' ################### Basic Audioplayer Functions - End #################
+
+
+
+	' ############### addSound() function - Begin ###############
+	gameEngine.addSound = function(sound_name, sound_path)
+		m.Sounds[sound_name] = CreateObject("roAudioResource", sound_path)
+	end function
+	' ############### addSound() function - End ###############
+
+
+
+	' ############### playSound() function - Begin ###############
+	gameEngine.playSound = function(sound_name, volume = 100)
+		m.Sounds[sound_name].trigger(volume)
+	end function
+	' ############### playSound() function - End ###############
+
+
 	return gameEngine
 end function
-
-
-' ------------------------Collision Functions------------------------
-
-function gameEngine_collisionRectRect(x1,y1,w1,h1, x2,y2,w2,h2)
-	return x1 < x2+w2 and x2 < x1+w1 and y1 < y2+h2 and y2 < y1+h1
-end function
-
-function gameEngine_collisionCircleCircle(x1,y1,r1, x2,y2,r2)
-	dist = (x1 - x2)^2 + (y1 - y2)^2
-	return dist <= r1^2 + r2^2
-end function
-
-function gameEngine_collisionCircleRect( cx, cy, cr, rx, ry, rw, rh )
-	circle_distance_x = Abs(cx - rx - rw/2)
-	circle_distance_y = Abs(cy - ry - rh/2)
-
-	if circle_distance_x > (rw/2 + cr) or circle_distance_y > (rh/2 + cr) then
-		return false
-	elseif circle_distance_x <= (rw/2) or circle_distance_y <= (rh/2) then
-		return true
-	end if
-
-	return ((circle_distance_x - rw/2)^2 + (circle_distance_y - rh/2)^2) <= cr^2
-end function
-
-
 
 
 ' -----------------------Other Utilities---------------------------
