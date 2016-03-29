@@ -51,7 +51,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		defineObject: invalid
 		newInstance: invalid
-		getInstance: invalid
+		getInstanceByID: invalid
+		getInstanceByName: invalid
 		getAllInstances: invalid
 		removeInstance: invalid
 		removeAllInstances: invalid
@@ -485,17 +486,37 @@ function gameEngine_init(game_width, game_height, debug = false)
 			return new_object.id
 		else
 			print "No objects registered with the name - " ; object_name
+			return invalid
 		end if
 	end function
 	' ############### newInstance() function - End ###############
 
 
 
-	' ############### getInstance() function - Begin ###############
-	gameEngine.getInstance = function(object_id)
-		return m.objectHandler[object_id]
+	' ############### getInstanceByID() function - Begin ###############
+	gameEngine.getInstanceByID = function(object_id)
+		if m.objectHandler.DoesExist(object_id) then
+			return m.objectHandler[object_id]
+		else
+			print "No instance exists with id - " ; object_id
+			return invalid
+		end if
 	end function
-	' ############### getInstance() function - End ###############
+	' ############### getInstanceByID() function - End ###############
+
+
+
+	' ############### getInstanceByName() function - Begin ###############
+	gameEngine.getInstanceByName = function(object_name)
+		for each object_key in m.objectHandler
+			if m.objectHandler[object_key].name = object_name then
+				return m.objectHandler[object_key]
+			end if
+		end for
+		print "No instance exists with name - " ; object_name
+		return invalid
+	end function
+	' ############### getInstanceByName() function - End ###############
 
 
 
