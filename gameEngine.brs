@@ -356,7 +356,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.colliders[name] = invalid then : m.colliders[name] = collider : else : print "Collider Name Already Exists" : end if
 		end function
 
-		new_object.addColliderRectangle = function(name, offset_x = 0, offset_y = 0, width, height, enabled = true)
+		new_object.addColliderRectangle = function(name, offset_x, offset_y, width, height, enabled = true)
 			collider = {
 				type: "rectangle",
 				enabled: enabled,
