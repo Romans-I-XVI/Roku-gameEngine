@@ -51,11 +51,12 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		defineObject: invalid
 		newInstance: invalid
-		instanceExists: invalid
-		instanceCount: invalid
-		getInstance: Invalid
+		getInstance: invalid
+		getAllInstances: invalid
 		removeInstance: invalid
 		removeAllInstances: invalid
+		instanceExists: invalid
+		instanceCount: invalid
 		listObjects: invalid
 
 		addRoom: invalid
@@ -88,11 +89,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 		playSound: invalid
 
 	}
+
+	' Set up the screen
 	UIResolution = gameEngine.device.getUIResolution()
 	gameEngine.screen = CreateObject("roScreen", true, UIResolution.width, UIResolution.height)
 	gameEngine.compositor.SetDrawTo(gameEngine.screen, &h00000000)
-
-	' Set up the screen
 	gameEngine.screen.SetMessagePort(gameEngine.screen_port)
 	gameEngine.screen.SetAlphaEnable(true)
 
@@ -354,7 +355,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.colliders[name] = invalid then : m.colliders[name] = collider : else : print "Collider Name Already Exists" : end if
 		end function
 
-		new_object.addColliderRectangle = function(name, width, height, offset_x = 0, offset_y = 0, enabled = true)
+		new_object.addColliderRectangle = function(name, offset_x = 0, offset_y = 0, width, height, enabled = true)
 			collider = {
 				type: "rectangle",
 				enabled: enabled,
@@ -382,7 +383,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			end if
 		end function
 
-		new_object.addImage = function(image, scale_x = 1, scale_y = 1, offset_x = 0, offset_y = 0, origin_x = 0, origin_y = 0, rgba = &hFFFFFFFF, enabled = true)
+		new_object.addImage = function(image, offset_x = 0, offset_y = 0, origin_x = 0, origin_y = 0, scale_x = 1, scale_y = 1, rgba = &hFFFFFFFF, enabled = true)
 			image_object = {
 				image: image,
 				region: invalid
@@ -461,6 +462,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### DrawColliders() function - End ###############
 
 
+	' --------------------------------Begin Object Functions----------------------------------------
+
 
 	' ############### defineObject() function - Begin ###############
 	gameEngine.defineObject = function(object_name, object_creation_function)
@@ -488,23 +491,26 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ############### instanceExists() function - Begin ###############
-	gameEngine.instanceExists = function(object_id)
-		if m.objectHandler.DoesExist(object_id)
-			return true
-		else
-			return false
-		end if
-	end function
-	' ############### instanceExists() function - End ###############
-
-
-
 	' ############### getInstance() function - Begin ###############
 	gameEngine.getInstance = function(object_id)
 		return m.objectHandler[object_id]
 	end function
 	' ############### getInstance() function - End ###############
+
+
+
+	' ############### getAllInstances() function - Begin ###############
+	gameEngine.getAllInstances = function(object_name)
+		array = []
+		for each object_key in m.objectHandler
+			object = m.objectHandler[object_key]
+			if object.name = object_name then
+				array.Push(object)
+			end if
+		end for
+		return array
+	end function
+	' ############### getAllInstances() function - Begin ###############
 
 
 
@@ -551,6 +557,32 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
+	' ############### instanceExists() function - Begin ###############
+	gameEngine.instanceExists = function(object_id)
+		if m.objectHandler.DoesExist(object_id)
+			return true
+		else
+			return false
+		end if
+	end function
+	' ############### instanceExists() function - End ###############
+
+
+
+	' ############### instanceCount() function - Begin ###############
+	gameEngine.instanceCount = function(object_name)
+		instance_count = 0
+		for each object_key in m.objectHandler
+			if m.objectHandler[object_key].name = object_name then
+				instance_count = instance_count + 1
+			end if
+		end for
+		return instance_count
+	end function 
+	' ############### instanceCount() function - End ###############
+
+
+
 	' ############### listObjects() function - Begin ###############
 	gameEngine.listObjects = function()
 		objects_list = []
@@ -562,22 +594,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### listObjects() function - End ###############
 
 
-
-	' ############### instanceCount() function - Begin ###############
-	gameEngine.instanceCount = function(object_name)
-		timer = CreateObject("roTimespan")
-		instance_count = 0
-		for each object_key in m.objectHandler
-			object = m.objectHandler[object_key]
-			if object.name = object_name then
-				instance_count = instance_count + 1
-			end if
-		end for
-		return instance_count
-	end function 
-	' ############### instanceCount() function - End ###############
-
-
+	' --------------------------------Begin Room Functions----------------------------------------
 
 
 	' ############### changeRoom() function - Begin ###############
@@ -607,6 +624,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### defineRoom() function - Begin ###############
 
 
+	' --------------------------------Begin Bitmap Functions----------------------------------------
+
 
 	' ############### loadBitmap() function - Begin ###############
 	gameEngine.loadBitmap = function(name, path)
@@ -631,6 +650,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 	end function
 	' ############### unloadBitmap() function - End ###############
 
+
+	' --------------------------------Begin Font Functions----------------------------------------
 
 
 	' ############### registerFont() function - Begin ###############
@@ -804,8 +825,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### cameraCenterToObject() function - End ###############
 
 
+	' --------------------------------Begin Audio Functions----------------------------------------
 
-	' ################### Basic Audioplayer Functions - Begin #################
+
+	' ############### musicPlay() function - Begin ###############
 	gameEngine.musicPlay = function(audio_path, loop = false)
 		m.audioplayer.stop()
 		m.audioplayer.ClearContent()
@@ -815,19 +838,31 @@ function gameEngine_init(game_width, game_height, debug = false)
 	    audioplayer.SetLoop(loop)
 	    audioPlayer.play()
 	end function
+	' ############### musicPlay() function - End ###############
 
+
+
+	' ############### musicStop() function - Begin ###############
 	gameEngine.musicStop = function()
 		m.audioplayer.stop()
 	end function
+	' ############### musicStop() function - End ###############
 
+
+
+	' ############### musicPause() function - Begin ###############
 	gameEngine.musicPause = function()
 		m.audioplayer.pause()
 	end function
+	' ############### musicPause() function - End ###############
 
+
+
+	' ############### musicResume() function - Begin ###############
 	gameEngine.musicResume = function()
 		m.audioplayer.resume()
 	end function
-	' ################### Basic Audioplayer Functions - End #################
+	' ############### musicResume() function - End ###############
 
 
 
