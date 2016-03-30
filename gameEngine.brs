@@ -144,6 +144,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 		for each instance_key in m.Instances
 			instance = m.Instances[instance_key]
 
+			
+			' -------------------- Then handle the object movement--------------------
+			instance.x = instance.x + instance.xspeed*dt
+			instance.y = instance.y + instance.yspeed*dt
+
 
 			' --------------------First process the onButton() function--------------------
 	        if type(screen_msg) = "roUniversalControlEvent" then
@@ -197,11 +202,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 					collider.compositor_object.SetCollidableFlags(99)
 				end if
 			end for
-
-
-			' -------------------- Then handle the object movement--------------------
-			instance.x = instance.x + instance.xspeed*dt
-			instance.y = instance.y + instance.yspeed*dt
 
 
 			' -------------------- Then handle image animation------------------------
