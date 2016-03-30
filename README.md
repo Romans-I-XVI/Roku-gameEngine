@@ -63,7 +63,7 @@ Returns an array of the the defined game objects.
 ##### cameraSetFollow()
 ##### cameraUnsetFollow()
 ##### cameraFitToScreen()
-##### cameraCenterToObject()
+##### cameraCenterToInstance()
 
 ##### musicPlay()
 ##### musicStop()

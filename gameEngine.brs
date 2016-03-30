@@ -36,7 +36,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		' ****Variables****
 		currentRoom: invalid
-		objectHandler: {} ' This holds all of the game object instances
+		Instances: {} ' This holds all of the game object instances
 		Objects: {} ' This holds the object definitions by name (the object creation functions)
 		Rooms: {} ' This holds the room definitions by name (the room creation functions)
 		Bitmaps: {} ' This holds the loaded bitmaps by name
@@ -79,7 +79,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		cameraSetFollow: invalid
 		cameraUnsetFollow: invalid
 		cameraFitToScreen: invalid
-		cameraCenterToObject: Invalid
+		cameraCenterToInstance: Invalid
 
 		musicPlay: invalid
 		musicStop: invalid
@@ -141,13 +141,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 		' --------------------Begin giant loop for processing all game objects----------------
-		for each object_key in m.objectHandler
-			object = m.objectHandler[object_key]
+		for each instance_key in m.Instances
+			instance = m.Instances[instance_key]
 
 
 			' --------------------First process the onButton() function--------------------
 	        if type(screen_msg) = "roUniversalControlEvent" then
-	        	object.onButton(screen_msg.GetInt())
+	        	instance.onButton(screen_msg.GetInt())
 	        	if screen_msg.GetInt() < 100
 	        		m.buttonHeld = screen_msg.GetInt()
 	        	else
@@ -157,23 +157,23 @@ function gameEngine_init(game_width, game_height, debug = false)
 	        if m.buttonHeld <> -1 then
 	        	' Button release codes are 100 plus the button press code
 	        	' This shows a button held code as 1000 plus the button press code
-	        	object.onButton(1000+m.buttonHeld)
+	        	instance.onButton(1000+m.buttonHeld)
 	        end if
 
 
 	        ' -------------------Then send the audioplayer event msg if applicable-------------------
 	        if type(music_msg) = "roAudioPlayerEvent" then
-	        	object.onAudioEvent(music_msg)
+	        	instance.onAudioEvent(music_msg)
 	        end if
 
 
 	        ' -------------------Then process the onUpdate() function----------------------
-			object.onUpdate(dt)
+			instance.onUpdate(dt)
 
 
 			' -------------------Then handle collisions and call onCollision() for each collision---------------------------
-			for each collider_key in object.colliders
-				collider = object.colliders[collider_key]
+			for each collider_key in instance.colliders
+				collider = instance.colliders[collider_key]
 				if collider.enabled then
 					collider.compositor_object.SetMemberFlags(1)
 					collider.compositor_object.SetCollidableFlags(1)
@@ -182,13 +182,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 					else if collider.type = "rectangle" then
 						collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
 					end if
-					collider.compositor_object.MoveTo(object.x, object.y)
+					collider.compositor_object.MoveTo(instance.x, instance.y)
 					multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
 					if multiple_collisions <> invalid
 						for each other_collider in multiple_collisions
 							other_collider_data = other_collider.GetData()
-							if m.objectHandler.DoesExist(other_collider_data.object_id)
-								object.onCollision(collider_key, other_collider_data.collider_name, m.objectHandler[other_collider_data.object_id])
+							if m.Instances.DoesExist(other_collider_data.instance_id)
+								instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.instance_id])
 							end if
 						end for
 					end if
@@ -200,12 +200,12 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 			' -------------------- Then handle the object movement--------------------
-			object.x = object.x + object.xspeed*dt
-			object.y = object.y + object.yspeed*dt
+			instance.x = instance.x + instance.xspeed*dt
+			instance.y = instance.y + instance.yspeed*dt
 
 
 			' -------------------- Then handle image animation------------------------
-			for each image_object in object.images
+			for each image_object in instance.images
 				if image_object.image_count > 1 then
 					image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
 					if image_animation_timing >= 1 then
@@ -231,39 +231,39 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if draw_depths.Count() > 0 then
 				inserted = false
 				for i = draw_depths.Count()-1 to 0 step -1
-					if not inserted and object.depth > draw_depths[i].depth then
-						ArrayInsert(draw_depths, i+1, object)
+					if not inserted and instance.depth > draw_depths[i].depth then
+						ArrayInsert(draw_depths, i+1, instance)
 						inserted = true
 						exit for
 					end if
 				end for
 				if not inserted then
-					draw_depths.Unshift(object)
+					draw_depths.Unshift(instance)
 				end if
 			else
-				draw_depths.Unshift(object)
+				draw_depths.Unshift(instance)
 			end if
 		end for
 
 
-		' ----------------------Then draw all of the objects and call onDrawBegin() and onDrawEnd()-------------------------
+		' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
 		for i = draw_depths.Count()-1 to 0 step -1
-			object = draw_depths[i]
-			object.onDrawBegin(m.frame)
-			for each image in object.images
+			instance = draw_depths[i]
+			instance.onDrawBegin(m.frame)
+			for each image in instance.images
 				if image.enabled then
-					m.frame.DrawScaledObject(object.x+image.offset_x-(image.origin_x*image.scale_x), object.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, image.rgba)
+					m.frame.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, image.rgba)
 				end if
 			end for
-			object.onDrawEnd(m.frame)
-			' if GetGlobalAA().debug then : m.DrawColliders(object) : end if
+			instance.onDrawEnd(m.frame)
+			' if GetGlobalAA().debug then : m.DrawColliders(instance) : end if
 		end for
 
 
-		' --------------------Then do camera magic if it's set to follow and object----------------------------
+		' --------------------Then do camera magic if it's set to follow----------------------------
 		if m.camera.follow <> invalid
-			if type(m.camera.follow) = "roAssociativeArray" and m.objectHandler.DoesExist(m.camera.follow.id)
-				m.cameraCenterToObject(m.camera.follow)
+			if m.Instances.DoesExist(m.camera.follow)
+				m.cameraCenterToInstance(m.camera.follow)
 			else
 				m.camera.follow = invalid
 			end if
@@ -285,17 +285,18 @@ function gameEngine_init(game_width, game_height, debug = false)
 		m.currentID = m.currentID + 1
 		new_object = {
 			' -----These variables should be considered off limits
-			name: name,
-			id: m.currentID.ToStr(),
+			name: name
+			id: m.currentID.ToStr()
+			persistent: false
 			gameEngine: m
 			' -----
-			depth: 0,
-			x: 0,
-			y: 0,
-			xspeed: 0,
-			yspeed: 0,
-	        colliders: {},
-	        images: [],
+			depth: 0
+			x: 0
+			y: 0
+			xspeed: 0
+			yspeed: 0
+	        colliders: {}
+	        images: []
 		}
 
 		' These empty functions are placeholders, they are to be overwritten by the user
@@ -352,7 +353,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			region.SetCollisionCircle(offset_x, offset_y, radius)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
-			collider.compositor_object.SetData({collider_name: name, object_id: m.id})
+			collider.compositor_object.SetData({collider_name: name, instance_id: m.id})
 			if m.colliders[name] = invalid then : m.colliders[name] = collider : else : print "Collider Name Already Exists" : end if
 		end function
 
@@ -371,7 +372,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			region.SetCollisionRectangle(offset_x, offset_y, width, height)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
-			collider.compositor_object.SetData({collider_name: name, object_id: m.id})
+			collider.compositor_object.SetData({collider_name: name, instance_id: m.id})
 			if m.colliders[name] = invalid then : m.colliders[name] = collider : else : print "Collider Name Already Exists" : end if
 		end function
 
@@ -433,7 +434,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		end function
 
 		if GetGlobalAA().debug then : print "Adding Object: "+new_object.id : end if
-		m.objectHandler[new_object.id] = new_object
+		m.Instances[new_object.id] = new_object
 
 		return new_object
 	end function
@@ -442,20 +443,20 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### DrawColliders() function - Begin ###############
-	gameEngine.DrawColliders = function(object)
-		for each collider_key in object.colliders
-			collider = object.colliders[collider_key]
+	gameEngine.DrawColliders = function(instance)
+		for each collider_key in instance.colliders
+			collider = instance.colliders[collider_key]
 			if collider.enabled then
 				if collider.type = "circle" then
 					' This function is slow as I'm making draw calls for every section of the line.
 					' It's for debugging purposes only!
-					DrawCircle(m.screen, 100, object.x+collider.offset_x, object.y+collider.offset_y, collider.radius, &hFF0000FF)
+					DrawCircle(m.screen, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, &hFF0000FF)
 				end if
 				if collider.type = "rectangle" then
-					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
-					m.frame.DrawRect(object.x+collider.offset_x+collider.width-1, object.y+collider.offset_y, 1, collider.height, &hFF0000FF)
-					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y, collider.width, 1, &hFF0000FF)
-					m.frame.DrawRect(object.x+collider.offset_x, object.y+collider.offset_y+collider.height-1, collider.width, 1, &hFF0000FF)
+					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, &hFF0000FF)
+					m.frame.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, &hFF0000FF)
+					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, &hFF0000FF)
+					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, &hFF0000FF)
 				end if
 			end if
 		end for
@@ -477,13 +478,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### newInstance() function - Begin ###############
 	gameEngine.newInstance = function(object_name, args = {})
 		if m.Objects.DoesExist(object_name)
-			new_object = m.newEmptyObject(object_name)
-			m.Objects[object_name](new_object)
+			new_instance = m.newEmptyObject(object_name)
+			m.Objects[object_name](new_instance)
 			for each key in args
-				new_object[key] = args[key]
+				new_instance[key] = args[key]
 			end for
-			new_object.onCreate()
-			return new_object.id
+			new_instance.onCreate()
+			return new_instance.id
 		else
 			print "No objects registered with the name - " ; object_name
 			return invalid
@@ -494,11 +495,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### getInstanceByID() function - Begin ###############
-	gameEngine.getInstanceByID = function(object_id)
-		if m.objectHandler.DoesExist(object_id) then
-			return m.objectHandler[object_id]
+	gameEngine.getInstanceByID = function(instance_id)
+		if m.Instances.DoesExist(instance_id) then
+			return m.Instances[instance_id]
 		else
-			print "No instance exists with id - " ; object_id
+			print "No instance exists with id - " ; instance_id
 			return invalid
 		end if
 	end function
@@ -508,9 +509,9 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 	' ############### getInstanceByName() function - Begin ###############
 	gameEngine.getInstanceByName = function(object_name)
-		for each object_key in m.objectHandler
-			if m.objectHandler[object_key].name = object_name then
-				return m.objectHandler[object_key]
+		for each instance_key in m.Instances
+			if m.Instances[instance_key].name = object_name then
+				return m.Instances[instance_key]
 			end if
 		end for
 		print "No instance exists with name - " ; object_name
@@ -523,10 +524,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### getAllInstances() function - Begin ###############
 	gameEngine.getAllInstances = function(object_name)
 		array = []
-		for each object_key in m.objectHandler
-			object = m.objectHandler[object_key]
-			if object.name = object_name then
-				array.Push(object)
+		for each instance_key in m.Instances
+			instance = m.Instances[instance_key]
+			if instance.name = object_name then
+				array.Push(instance)
 			end if
 		end for
 		return array
@@ -536,27 +537,27 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### removeInstance() function - Begin ###############
-	gameEngine.removeInstance = function(object_id)
-		' if type(object_id) = "roAssociativeArray" then
-		' 	if object_id.DoesExist("id") then
-		' 		object_id = object_id.id
+	gameEngine.removeInstance = function(instance_id)
+		' if type(instance_id) = "roAssociativeArray" then
+		' 	if instance_id.DoesExist("id") then
+		' 		instance_id = instance_id.id
 		' 	else
 		' 		print "gameEngine.removeInstance() - Invalid object received"
 		' 		return invalid
 		' 	end if
 		' end if
 				
-		if GetGlobalAA().debug then : print "Removing Object: "+object_id : end if
-		if m.objectHandler.DoesExist(object_id) then
-			for each collider_key in m.objectHandler[object_id].colliders
-				collider = m.objectHandler[object_id].colliders[collider_key]
+		if GetGlobalAA().debug then : print "Removing Object: "+instance_id : end if
+		if m.Instances.DoesExist(instance_id) then
+			for each collider_key in m.Instances[instance_id].colliders
+				collider = m.Instances[instance_id].colliders[collider_key]
 				if type(collider.compositor_object) = "roSprite" then 
 					if GetGlobalAA().debug then : print "Removing Collider: "+collider_key : end if
 					collider.compositor_object.Remove()
 				end if
 			end for
-			m.objectHandler[object_id].onDestroy()
-			m.objectHandler.Delete(object_id)
+			m.Instances[instance_id].onDestroy()
+			m.Instances.Delete(instance_id)
 		else
 			print "gameEngine.removeInstance() - Object not removed, the received ID didn't exist"
 		end if
@@ -567,10 +568,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 	' ############### removeAllInstances() function - Begin ###############
 	gameEngine.removeAllInstances = function(object_name)
-		for each object_key in m.objectHandler
-			object = m.objectHandler[object_key]
-			if object.name = object_name then
-				m.removeInstance(object.id)
+		for each instance_key in m.Instances
+			instance = m.Instances[instance_key]
+			if instance.name = object_name then
+				m.removeInstance(instance.id)
 			end if
 		end for
 	end function
@@ -579,8 +580,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### instanceExists() function - Begin ###############
-	gameEngine.instanceExists = function(object_id)
-		if m.objectHandler.DoesExist(object_id)
+	gameEngine.instanceExists = function(instance_id)
+		if m.Instances.DoesExist(instance_id)
 			return true
 		else
 			return false
@@ -593,8 +594,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### instanceCount() function - Begin ###############
 	gameEngine.instanceCount = function(object_name)
 		instance_count = 0
-		for each object_key in m.objectHandler
-			if m.objectHandler[object_key].name = object_name then
+		for each instance_key in m.Instances
+			if m.Instances[instance_key].name = object_name then
 				instance_count = instance_count + 1
 			end if
 		end for
@@ -624,6 +625,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.currentRoom <> invalid then 
 				m.removeInstance(m.currentRoom.id)
 			end if
+			for each key in m.Instances
+				if not m.Instances[key].persistent then
+					m.removeInstance(m.Instances[key].id)
+				end if
+			end for
 			m.currentRoom = invalid
 			m.currentRoom = m.newEmptyObject("room")
 			m.Rooms[room_name](m.currentRoom)
@@ -754,8 +760,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraSetFollow() function - Begin ###############
-	gameEngine.cameraSetFollow = function(game_object, mode = 0)
-		m.camera.follow = game_object
+	gameEngine.cameraSetFollow = function(instance_id, mode = 0)
+		m.camera.follow = instance_id
 		m.camera.follow_mode = mode
 	end function
 	' ############### cameraSetFollow() function - End ###############
@@ -798,15 +804,20 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ############### cameraCenterToObject() function - Begin ###############
-	gameEngine.cameraCenterToObject = function(game_object)
+	' ############### cameraCenterToInstance() function - Begin ###############
+	gameEngine.cameraCenterToInstance = function(instance_id)
+		instance = m.getInstanceByID(instance_id)
+		if instance = invalid
+			print "Instance doesn't exist with ID - " ; instance_id
+			return invalid
+		end if
 		frame_width = m.frame.GetWidth()
 		frame_height = m.frame.GetHeight()
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
 
-		offset_x = 0-game_object.x*m.camera.scale_x+m.screen.GetWidth()/2
-		offset_y = 0-game_object.y*m.camera.scale_y+screen_height/2
+		offset_x = 0-instance.x*m.camera.scale_x+m.screen.GetWidth()/2
+		offset_y = 0-instance.y*m.camera.scale_y+screen_height/2
 
 		if m.camera.follow_mode = 0
 			minimum_offset_x = -((frame_width*m.camera.scale_x)-screen_width)
@@ -843,7 +854,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	end function
-	' ############### cameraCenterToObject() function - End ###############
+	' ############### cameraCenterToInstance() function - End ###############
 
 
 	' --------------------------------Begin Audio Functions----------------------------------------
