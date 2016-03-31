@@ -261,7 +261,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		' --------------------Then do camera magic if it's set to follow----------------------------
 		if m.camera.follow <> invalid
 			if m.camera.follow.id <> invalid and m.Instances.DoesExist(m.camera.follow.id)
-				m.cameraCenterToInstance(m.camera.follow)
+				m.cameraCenterToInstance(m.camera.follow, m.camera.follow_mode)
 			else
 				m.camera.follow = invalid
 			end if
@@ -730,12 +730,16 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' --------------------------------Begin Camera Functions----------------------------------------
+	' Note, camera functions can be complicated to use manually, because the "camera" is actually a single
+	' bitmap that is being scaled and positioned. In order to make it easy for the user, I do things that might
+	' seem odd, such as negating the offset so that it feels like you are offsetting the "camera" as opposed to
+	' offsetting the bitmap.
 
 
 	' ############### cameraIncreaseOffset() function - Begin ###############
 	gameEngine.cameraIncreaseOffset = function(x, y)
-		m.camera.offset_x = m.camera.offset_x + x
-		m.camera.offset_y = m.camera.offset_y + y
+		m.camera.offset_x = m.camera.offset_x - x
+		m.camera.offset_y = m.camera.offset_y - y
 	end function
 	' ############### cameraIncreaseOffset() function - End ###############
 
@@ -757,8 +761,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 	' ############### cameraSetOffset() function - Begin ###############
 	gameEngine.cameraSetOffset = function(x, y)
-		m.camera.offset_x = x
-		m.camera.offset_y = y
+		m.camera.offset_x = -x
+		m.camera.offset_y = -y
 	end function
 	' ############### cameraSetOffset() function - End ###############
 
@@ -822,7 +826,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraCenterToInstance() function - Begin ###############
-	gameEngine.cameraCenterToInstance = function(instance)
+	gameEngine.cameraCenterToInstance = function(instance, mode = 0)
 		if instance.id = invalid
 			print "cameraCenterToInstance() - Provided instance doesn't exist"
 			return invalid
@@ -835,7 +839,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		offset_x = 0-instance.x*m.camera.scale_x+m.screen.GetWidth()/2
 		offset_y = 0-instance.y*m.camera.scale_y+screen_height/2
 
-		if m.camera.follow_mode = 0
+		if mode = 0
 			minimum_offset_x = -((frame_width*m.camera.scale_x)-screen_width)
 			minimum_offset_y = -((frame_height*m.camera.scale_y)-screen_height)
 
@@ -854,7 +858,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			else if not offset_y <= 0
 				m.camera.offset_y = 0
 			end if
-		else if m.camera.follow_mode = 1
+		else if mode = 1
 			m.camera.offset_x = offset_x
 			m.camera.offset_y = offset_y
 		end if

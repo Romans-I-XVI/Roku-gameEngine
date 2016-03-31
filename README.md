@@ -67,14 +67,26 @@ Unloads the font associated with the provided name from memory.
 Returns the font associated with the provided name. Font must have been previously loaded using loadFont().
 
 ###### ---Camera Methods---
-##### cameraIncreaseOffset()
-##### cameraIncreaseZoom()
-##### cameraSetOffset()
-##### cameraSetZoom()
-##### cameraSetFollow()
-##### cameraUnsetFollow()
-##### cameraFitToScreen()
-##### cameraCenterToInstance()
+##### cameraIncreaseOffset(x as Integer, y as Integer) as Void
+Increase the camera x and y positions by the given amounts.
+##### cameraIncreaseZoom(zoom as Float) as Void
+Increase the camera zoom by the given amount.
+##### cameraIncreaseZoom(zoom_x as Float, zoom_y as Float) as Void
+When zoom_y is provided, the zoom can be different for x and y, meaning the image will be stretched.
+##### cameraSetOffset(x as Integer, y as Integer) as Void
+Set the camera x and y positions. Note: positions are absolute and not in relation to the current scale, you should take scale into account when manually setting the positions.
+##### cameraSetZoom(zoom as Float) as Void
+Set the camera zoom to the given amount.
+##### cameraSetZoom(zoom_x as Float, zoom_y as Float) as Void
+When zoom_y is provided, the zoom can be different for x and y, meaning the image will be stretched.
+##### cameraSetFollow(instance as Object, [mode as Integer]) as Void
+Sets the camera to follow the provided instance. Mode can be 0 or 1, the default is 0. In mode 0, the camera will not move beyond the frame boundaries. In mode 1, the camera will keep the instance centered no matter what, meaning if the instance is towards the edge of the frame, black will be shown.
+##### cameraUnsetFollow() as Void
+Stops following the instance if one was being followed.
+##### cameraFitToScreen() as Void
+This fits the game to the screen regardless of the screen aspect ratio. This makes it so a game can be made at any size and black bars will be shown on the top/bottom or left/right if the game aspect ratio is not the same as the TV's.
+##### cameraCenterToInstance(instance as Object, [mode as Integer]) as Void
+This function is used internally when the camera is set to follow an instance, however it can be used manually if you want to center to an object only once. See cameraSetFollow() for a description of mode options.
 
 ###### ---Audio Methods---
 ##### musicPlay()
