@@ -47,20 +47,18 @@ function gameEngine_init(game_width, game_height, debug = false)
 		' ****Functions****
 		Update: invalid
 		newEmptyObject: invalid
-		DrawColliders: invalid
+		drawColliders: invalid
 
 		defineObject: invalid
-		newInstance: invalid
+		createInstance: invalid
 		getInstanceByID: invalid
 		getInstanceByName: invalid
 		getAllInstances: invalid
-		removeInstance: invalid
-		removeAllInstances: invalid
-		instanceExists: invalid
+		destroyInstance: invalid
+		destroyAllInstances: invalid
 		instanceCount: invalid
-		listObjects: invalid
 
-		addRoom: invalid
+		defineRoom: invalid
 		changeRoom: invalid
 
 		loadBitmap: invalid
@@ -262,7 +260,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		' --------------------Then do camera magic if it's set to follow----------------------------
 		if m.camera.follow <> invalid
-			if m.Instances.DoesExist(m.camera.follow)
+			if m.camera.follow.id <> invalid and m.Instances.DoesExist(m.camera.follow.id)
 				m.cameraCenterToInstance(m.camera.follow)
 			else
 				m.camera.follow = invalid
@@ -433,7 +431,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.images[index] <> invalid then : m.images.Delete(index) : else : print "Position In Image Array Is Invalid" : end if
 		end function
 
-		if GetGlobalAA().debug then : print "Adding Object: "+new_object.id : end if
+		if GetGlobalAA().debug then : print "Creating instance - "+new_object.id : end if
 		m.Instances[new_object.id] = new_object
 
 		return new_object
@@ -443,7 +441,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### DrawColliders() function - Begin ###############
-	gameEngine.DrawColliders = function(instance)
+	gameEngine.drawColliders = function(instance)
 		for each collider_key in instance.colliders
 			collider = instance.colliders[collider_key]
 			if collider.enabled then
@@ -475,8 +473,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ############### newInstance() function - Begin ###############
-	gameEngine.newInstance = function(object_name, args = {})
+	' ############### createInstance() function - Begin ###############
+	gameEngine.createInstance = function(object_name, args = {})
 		if m.Objects.DoesExist(object_name)
 			new_instance = m.newEmptyObject(object_name)
 			m.Objects[object_name](new_instance)
@@ -484,13 +482,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 				new_instance[key] = args[key]
 			end for
 			new_instance.onCreate()
-			return new_instance.id
+			return new_instance
 		else
 			print "No objects registered with the name - " ; object_name
 			return invalid
 		end if
 	end function
-	' ############### newInstance() function - End ###############
+	' ############### createInstance() function - End ###############
 
 
 
@@ -536,58 +534,40 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ############### removeInstance() function - Begin ###############
-	gameEngine.removeInstance = function(instance_id)
-		' if type(instance_id) = "roAssociativeArray" then
-		' 	if instance_id.DoesExist("id") then
-		' 		instance_id = instance_id.id
-		' 	else
-		' 		print "gameEngine.removeInstance() - Invalid object received"
-		' 		return invalid
-		' 	end if
-		' end if
+	' ############### destroyInstance() function - Begin ###############
+	gameEngine.destroyInstance = function(instance)
 				
-		if GetGlobalAA().debug then : print "Removing Object: "+instance_id : end if
-		if m.Instances.DoesExist(instance_id) then
-			for each collider_key in m.Instances[instance_id].colliders
-				collider = m.Instances[instance_id].colliders[collider_key]
+		if GetGlobalAA().debug then : print "Removing Instance: "+instance.id : end if
+		if instance.id <> invalid and m.Instances.DoesExist(instance.id) then
+			for each collider_key in instance.colliders
+				collider = instance.colliders[collider_key]
 				if type(collider.compositor_object) = "roSprite" then 
 					if GetGlobalAA().debug then : print "Removing Collider: "+collider_key : end if
 					collider.compositor_object.Remove()
 				end if
 			end for
-			m.Instances[instance_id].onDestroy()
-			m.Instances.Delete(instance_id)
+			instance.onDestroy()
+			m.Instances.Delete(instance.id)
+			instance.Clear()
+			instance.id = invalid
 		else
-			print "gameEngine.removeInstance() - Object not removed, the received ID didn't exist"
+			print "gameEngine.destroyInstance() - Object was previously destroyed"
 		end if
 	end function
-	' ############### removeInstance() function - End ###############
+	' ############### destroyInstance() function - End ###############
 
 
 
-	' ############### removeAllInstances() function - Begin ###############
-	gameEngine.removeAllInstances = function(object_name)
+	' ############### destroyAllInstances() function - Begin ###############
+	gameEngine.destroyAllInstances = function(object_name)
 		for each instance_key in m.Instances
 			instance = m.Instances[instance_key]
 			if instance.name = object_name then
-				m.removeInstance(instance.id)
+				m.destroyInstance(instance)
 			end if
 		end for
 	end function
-	' ############### removeAllInstances() function - End ###############
-
-
-
-	' ############### instanceExists() function - Begin ###############
-	gameEngine.instanceExists = function(instance_id)
-		if m.Instances.DoesExist(instance_id)
-			return true
-		else
-			return false
-		end if
-	end function
-	' ############### instanceExists() function - End ###############
+	' ############### destroyAllInstances() function - End ###############
 
 
 
@@ -604,30 +584,27 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### instanceCount() function - End ###############
 
 
-
-	' ############### listObjects() function - Begin ###############
-	gameEngine.listObjects = function()
-		objects_list = []
-		for each key in m.Objects
-			objects_list.Push(key)
-		end for
-		return objects_list	
-	end function 
-	' ############### listObjects() function - End ###############
-
-
 	' --------------------------------Begin Room Functions----------------------------------------
+
+
+	' ############### defineRoom() function - Begin ###############
+	gameEngine.defineRoom = function(room_name, room_creation_function)
+		m.Rooms[room_name] = room_creation_function
+		print "Room function has been added"
+	end function
+	' ############### defineRoom() function - Begin ###############
+
 
 
 	' ############### changeRoom() function - Begin ###############
 	gameEngine.changeRoom = function(room_name, args = {})
 		if m.Rooms[room_name] <> invalid then
 			if m.currentRoom <> invalid then 
-				m.removeInstance(m.currentRoom.id)
+				m.destroyInstance(m.currentRoom)
 			end if
 			for each key in m.Instances
 				if not m.Instances[key].persistent then
-					m.removeInstance(m.Instances[key].id)
+					m.destroyInstance(m.Instances[key])
 				end if
 			end for
 			m.currentRoom = invalid
@@ -637,18 +614,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 				m.currentRoom[key] = args[key]
 			end for
 			m.currentRoom.onCreate()
+			return true
+		else
+			print "changeRoom() - The provided room name hasn't been defined"
+			return false
 		end if
 	end function
 	' ############### changeRoom() function - End ###############
-
-
-
-	' ############### defineRoom() function - Begin ###############
-	gameEngine.defineRoom = function(room_name, room_creation_function)
-		m.Rooms[room_name] = room_creation_function
-		print "Room function has been added"
-	end function
-	' ############### defineRoom() function - Begin ###############
 
 
 	' --------------------------------Begin Bitmap Functions----------------------------------------
@@ -760,8 +732,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraSetFollow() function - Begin ###############
-	gameEngine.cameraSetFollow = function(instance_id, mode = 0)
-		m.camera.follow = instance_id
+	gameEngine.cameraSetFollow = function(instance, mode = 0)
+		m.camera.follow = instance
 		m.camera.follow_mode = mode
 	end function
 	' ############### cameraSetFollow() function - End ###############
@@ -805,10 +777,9 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraCenterToInstance() function - Begin ###############
-	gameEngine.cameraCenterToInstance = function(instance_id)
-		instance = m.getInstanceByID(instance_id)
-		if instance = invalid
-			print "Instance doesn't exist with ID - " ; instance_id
+	gameEngine.cameraCenterToInstance = function(instance)
+		if instance.id = invalid
+			print "cameraCenterToInstance() - Provided instance doesn't exist"
 			return invalid
 		end if
 		frame_width = m.frame.GetWidth()
