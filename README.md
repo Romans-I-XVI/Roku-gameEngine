@@ -13,7 +13,7 @@ There are two objects that provide game specific methods. Let's start with the m
 
 gameEngine
 ------
-
+###### ---General Methods---
 ##### Update() as Void
 This method must be called in your main while loop in order for the game to execute.
 ##### newEmptyObject(name as String) as Object
@@ -21,6 +21,7 @@ This method is primarily for internal use, but may be called manually if desired
 ##### drawColliders(instance as Object) as Void
 This method is for debugging purposes, it will draw the colliders associated with the provided instance.
 
+###### ---Game Object Methods---
 ##### defineObject(object_name as String, object_creation_function as Function) as Void
 Define a new game object. The function provided will be called when an instance of the object is created, the function provided receives an empty object and modifies it as necessary.
 ##### createInstance(object_name as String, [args as AssociativeArray]) as Dynamic
@@ -47,15 +48,18 @@ Switches to a room that has been defined using defineRoom(). The args Associativ
 
 Returns false if the room switch failed.
 
+###### ---Bitmap Methods---
 ##### loadBitmap()
 ##### getBitmap()
 ##### unloadBitmap()
 
+###### ---Font Methods---
 ##### registerFont()
 ##### loadFont()
 ##### unloadFont()
 ##### getFont()
 
+###### ---Camera Methods---
 ##### cameraIncreaseOffset()
 ##### cameraIncreaseZoom()
 ##### cameraSetOffset()
@@ -65,10 +69,10 @@ Returns false if the room switch failed.
 ##### cameraFitToScreen()
 ##### cameraCenterToInstance()
 
+###### ---Audio Methods---
 ##### musicPlay()
 ##### musicStop()
 ##### musicPause()
 ##### musicResume()
-
 ##### addSound()
 ##### playSound()
