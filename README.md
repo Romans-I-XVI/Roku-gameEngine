@@ -13,7 +13,7 @@ There are two objects that provide game specific methods. Let's start with the m
 
 gameEngine
 ------
-###### ---General Methods---
+__---General Methods---__
 ##### Update() as Void
 This method must be called in your main while loop in order for the game to execute.
 ##### newEmptyObject(name as String) as Object
@@ -21,7 +21,7 @@ This method is primarily for internal use, but may be called manually if desired
 ##### drawColliders(instance as Object) as Void
 This method is for debugging purposes, it will draw the colliders associated with the provided instance.
 
-###### ---Game Object Methods---
+__---Game Object Methods---__
 ##### defineObject(object_name as String, object_creation_function as Function) as Void
 Define a new game object. The function provided will be called when an instance of the object is created, the function provided receives an empty object and modifies it as necessary.
 ##### createInstance(object_name as String, [args as AssociativeArray]) as Dynamic
@@ -48,7 +48,7 @@ Switches to a room that has been defined using defineRoom(). The args Associativ
 
 Returns false if the room switch failed.
 
-###### ---Bitmap Methods---
+__---Bitmap Methods---__
 ##### loadBitmap(bitmap_name as String, path as String) as Boolean
 	Loads a bitmap into memory and makes it available by name with the getBitmap() function. The path can also be an associative array structured like so {width: 10, height: 10, AlphaEnable: true}, doing this will create an empty bitmap. Returns true if successful.
 ##### getBitmap(bitmap_name as String) as Dynamic
@@ -56,13 +56,13 @@ Returns false if the room switch failed.
 ##### unloadBitmap(bitmap_name as String) as Boolean
 	Unloads the bitmap associated with the provided name. Returns true if successful.
 
-###### ---Font Methods---
+__---Font Methods---__
 ##### registerFont(path as String)
 ##### loadFont()
 ##### unloadFont()
 ##### getFont()
 
-###### ---Camera Methods---
+__---Camera Methods---__
 ##### cameraIncreaseOffset()
 ##### cameraIncreaseZoom()
 ##### cameraSetOffset()
@@ -72,7 +72,7 @@ Returns false if the room switch failed.
 ##### cameraFitToScreen()
 ##### cameraCenterToInstance()
 
-###### ---Audio Methods---
+__---Audio Methods---__
 ##### musicPlay()
 ##### musicStop()
 ##### musicPause()
