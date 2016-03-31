@@ -49,12 +49,15 @@ Switches to a room that has been defined using defineRoom(). The args Associativ
 Returns false if the room switch failed.
 
 ###### ---Bitmap Methods---
-##### loadBitmap()
-##### getBitmap()
-##### unloadBitmap()
+##### loadBitmap(bitmap_name as String, path as String) as Boolean
+	Loads a bitmap into memory and makes it available by name with the getBitmap() function. The path can also be an associative array structured like so {width: 10, height: 10, AlphaEnable: true}, doing this will create an empty bitmap. Returns true if successful.
+##### getBitmap(bitmap_name as String) as Dynamic
+	Returns the bitmap associated with the provided name. Returns invalid if a bitmap with the provided name hasn't been loaded.
+##### unloadBitmap(bitmap_name as String) as Boolean
+	Unloads the bitmap associated with the provided name. Returns true if successful.
 
 ###### ---Font Methods---
-##### registerFont()
+##### registerFont(path as String)
 ##### loadFont()
 ##### unloadFont()
 ##### getFont()

@@ -289,10 +289,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 			gameEngine: m
 			' -----
 			depth: 0
-			x: 0
-			y: 0
-			xspeed: 0
-			yspeed: 0
+			x: 0.0
+			y: 0.0
+			xspeed: 0.0
+			yspeed: 0.0
 	        colliders: {}
 	        images: []
 		}
@@ -484,7 +484,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			new_instance.onCreate()
 			return new_instance
 		else
-			print "No objects registered with the name - " ; object_name
+			print "createInstance() - No objects registered with the name - " ; object_name
 			return invalid
 		end if
 	end function
@@ -497,7 +497,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		if m.Instances.DoesExist(instance_id) then
 			return m.Instances[instance_id]
 		else
-			print "No instance exists with id - " ; instance_id
+			print "getInstanceByID() - No instance exists with id - " ; instance_id
 			return invalid
 		end if
 	end function
@@ -512,7 +512,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 				return m.Instances[instance_key]
 			end if
 		end for
-		print "No instance exists with name - " ; object_name
+		print "getInstanceByName() - No instance exists with name - " ; object_name
 		return invalid
 	end function
 	' ############### getInstanceByName() function - End ###############
@@ -590,7 +590,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### defineRoom() function - Begin ###############
 	gameEngine.defineRoom = function(room_name, room_creation_function)
 		m.Rooms[room_name] = room_creation_function
-		print "Room function has been added"
+		print "defineRoom() - Room function has been added"
 	end function
 	' ############### defineRoom() function - Begin ###############
 
@@ -627,25 +627,56 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### loadBitmap() function - Begin ###############
-	gameEngine.loadBitmap = function(name, path)
-		m.Bitmaps[name] = CreateObject("roBitmap", path)
-		print "Loaded bitmap from " ; path
+	gameEngine.loadBitmap = function(bitmap_name, path)
+		if type(path) = "roAssociativeArray" then
+			if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
+				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
+				print "loadBitmap() - New empty bitmap created."
+				return true
+			else
+				print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap"
+				return false
+			end if
+		else if m.filesystem.Exists(path) then
+			path_object = CreateObject("roPath", path)
+			parts = path_object.Split()
+			if parts.extension = ".png" or parts.extension = ".jpg" then
+				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
+				print "loadBitmap() - Loaded bitmap from " ; path
+				return true
+			else
+				print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg"
+				return false
+			end if
+		else
+			print "loadBitmap() - Bitmap not created, invalid path or object properties provided."
+			return false
+		end if
 	end function
 	' ############### loadBitmap() function - End ###############
 
 
 
 	' ############### getBitmap() function - Begin ###############
-	gameEngine.getBitmap = function(name)
-		return m.Bitmaps[name]
+	gameEngine.getBitmap = function(bitmap_name)
+		if m.Bitmaps.DoesExist(bitmap_name)
+			return m.Bitmaps[bitmap_name]
+		else
+			return invalid
+		end if
 	end function
 	' ############### getBitmap() function - End ###############
 
 
 
 	' ############### unloadBitmap() function - Begin ###############
-	gameEngine.unloadBitmap = function(name)
-		m.Bitmaps[name] = invalid
+	gameEngine.unloadBitmap = function(bitmap_name)
+		if m.Bitmaps.DoesExist(bitmap_name)
+			m.Bitmaps[bitmap_name] = invalid
+			return true
+		else
+			return false
+		end if
 	end function
 	' ############### unloadBitmap() function - End ###############
 
