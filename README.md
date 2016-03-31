@@ -54,13 +54,17 @@ Loads a bitmap into memory and makes it available by name with the getBitmap() f
 ##### getBitmap(bitmap_name as String) as Dynamic
 Returns the bitmap associated with the provided name. Returns invalid if a bitmap with the provided name hasn't been loaded.
 ##### unloadBitmap(bitmap_name as String) as Boolean
-Unloads the bitmap associated with the provided name. Returns true if successful.
+Unloads the bitmap associated with the provided name from memory. Returns true if successful.
 
 ###### ---Font Methods---
-##### registerFont(path as String)
-##### loadFont()
-##### unloadFont()
-##### getFont()
+##### registerFont(path as String) as Boolean
+Registers the font at the given path. Returns true if successful. Note: All fonts in the directory pkg:/fonts/ automatically get registered.
+##### loadFont(name as String, size as Integer, italic as Boolean, bold as Boolean) as Void
+Loads the font with the provided name into memory. The font must be registered first.
+##### unloadFont(name as String) as Void
+Unloads the font associated with the provided name from memory.
+##### getFont(name as String) as Object
+Returns the font associated with the provided name. Font must have been previously loaded using loadFont().
 
 ###### ---Camera Methods---
 ##### cameraIncreaseOffset()

@@ -686,7 +686,21 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 	' ############### registerFont() function - Begin ###############
 	gameEngine.registerFont = function(path)
-		m.font_registry.register(path)
+		if m.filesystem.Exists(path) then
+			path_object = CreateObject("roPath", path)
+			parts = path_object.Split()
+			if parts.extension = ".ttf" or parts.extension = ".otf" then
+				m.font_registry.register(path)
+				print "Font registered successfully"
+				return true
+			else
+				print "Font must be of type .ttf or .otf"
+				return false
+			end if
+		else
+			print "File at path " ; path ; " doesn't exist"
+			return false
+		end if
 	end function
 	' ############### registerFont() function - End ###############
 
