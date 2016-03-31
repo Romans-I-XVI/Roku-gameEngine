@@ -13,7 +13,7 @@ There are two objects that provide game specific methods. Let's start with the m
 
 gameEngine
 ------
-__---General Methods---__
+###### ---General Methods---
 ##### Update() as Void
 This method must be called in your main while loop in order for the game to execute.
 ##### newEmptyObject(name as String) as Object
@@ -21,7 +21,7 @@ This method is primarily for internal use, but may be called manually if desired
 ##### drawColliders(instance as Object) as Void
 This method is for debugging purposes, it will draw the colliders associated with the provided instance.
 
-__---Game Object Methods---__
+###### ---Game Object Methods---
 ##### defineObject(object_name as String, object_creation_function as Function) as Void
 Define a new game object. The function provided will be called when an instance of the object is created, the function provided receives an empty object and modifies it as necessary.
 ##### createInstance(object_name as String, [args as AssociativeArray]) as Dynamic
@@ -48,21 +48,21 @@ Switches to a room that has been defined using defineRoom(). The args Associativ
 
 Returns false if the room switch failed.
 
-__---Bitmap Methods---__
+###### ---Bitmap Methods---
 ##### loadBitmap(bitmap_name as String, path as String) as Boolean
-	Loads a bitmap into memory and makes it available by name with the getBitmap() function. The path can also be an associative array structured like so {width: 10, height: 10, AlphaEnable: true}, doing this will create an empty bitmap. Returns true if successful.
+Loads a bitmap into memory and makes it available by name with the getBitmap() function. The path can also be an associative array structured like so {width: 10, height: 10, AlphaEnable: true}, doing this will create an empty bitmap. Returns true if successful.
 ##### getBitmap(bitmap_name as String) as Dynamic
-	Returns the bitmap associated with the provided name. Returns invalid if a bitmap with the provided name hasn't been loaded.
+Returns the bitmap associated with the provided name. Returns invalid if a bitmap with the provided name hasn't been loaded.
 ##### unloadBitmap(bitmap_name as String) as Boolean
-	Unloads the bitmap associated with the provided name. Returns true if successful.
+Unloads the bitmap associated with the provided name. Returns true if successful.
 
-__---Font Methods---__
+###### ---Font Methods---
 ##### registerFont(path as String)
 ##### loadFont()
 ##### unloadFont()
 ##### getFont()
 
-__---Camera Methods---__
+###### ---Camera Methods---
 ##### cameraIncreaseOffset()
 ##### cameraIncreaseZoom()
 ##### cameraSetOffset()
@@ -72,7 +72,7 @@ __---Camera Methods---__
 ##### cameraFitToScreen()
 ##### cameraCenterToInstance()
 
-__---Audio Methods---__
+###### ---Audio Methods---
 ##### musicPlay()
 ##### musicStop()
 ##### musicPause()
