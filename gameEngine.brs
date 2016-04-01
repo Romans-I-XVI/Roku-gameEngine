@@ -14,6 +14,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		fpsTicker: 0
 		FPS: 0
 		currentID: 0
+		need_to_clear: []
 		empty_bitmap: CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
 		device: CreateObject("roDeviceInfo")
 		compositor: CreateObject("roCompositor")
@@ -83,9 +84,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 		musicStop: invalid
 		musicPause: invalid
 		musicResume: invalid
-
 		addSound: invalid
 		playSound: invalid
+
+		registryWriteString: invalid
+		registryWriteFloat: invalid
+		registryReadString: invalid
+		registryReadFloat: invalid
 
 	}
 
@@ -267,6 +272,14 @@ function gameEngine_init(game_width, game_height, debug = false)
 			end if
 		end if
 
+		' -------------------This is placed here so that objects don't get invalidated mid function-----------------
+		if m.need_to_clear.Count() > 0
+			for i = 0 to m.need_to_clear.Count()-1
+				m.need_to_clear[i].Clear()
+				m.need_to_clear[i].id = invalid
+			end for
+			m.need_to_clear = []
+		end if
 
 		if true then : m.frame.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default) : end if
 		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.frame)
@@ -352,7 +365,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
 			collider.compositor_object.SetData({collider_name: name, instance_id: m.id})
-			if m.colliders[name] = invalid then : m.colliders[name] = collider : else : print "Collider Name Already Exists" : end if
+			if m.colliders[name] = invalid then
+				m.colliders[name] = collider
+			else
+				if GetGlobalAA().debug then : print "Collider Name Already Exists" : end if
+			end if
 		end function
 
 		new_object.addColliderRectangle = function(name, offset_x, offset_y, width, height, enabled = true)
@@ -371,7 +388,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
 			collider.compositor_object.SetData({collider_name: name, instance_id: m.id})
-			if m.colliders[name] = invalid then : m.colliders[name] = collider : else : print "Collider Name Already Exists" : end if
+			if m.colliders[name] = invalid then
+				m.colliders[name] = collider 
+			else
+				if GetGlobalAA().debug then : print "Collider Name Already Exists" : end if
+			end if
 		end function
 
 		new_object.removeCollider = function(name)
@@ -379,7 +400,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 				if type(m.colliders[name].compositor_object) = "roSprite" then : m.colliders[name].compositor_object.Remove() : end if
 				m.colliders[name] = invalid
 			else
-				print "Collider Doesn't Exist" 
+				if GetGlobalAA().debug then : print "Collider Doesn't Exist" : end if
 			end if
 		end function
 
@@ -428,10 +449,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.images.push(image)
 		end function
 		new_object.removeImage = function(index)
-			if m.images[index] <> invalid then : m.images.Delete(index) : else : print "Position In Image Array Is Invalid" : end if
+			if m.images[index] <> invalid then
+				m.images.Delete(index)
+			else
+				if GetGlobalAA().debug then : print "Position In Image Array Is Invalid" : end if
+			end if
 		end function
 
-		if GetGlobalAA().debug then : print "Creating instance - "+new_object.id : end if
 		m.Instances[new_object.id] = new_object
 
 		return new_object
@@ -482,9 +506,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 				new_instance[key] = args[key]
 			end for
 			new_instance.onCreate()
+			if GetGlobalAA().debug then : print "createInstance() - Creating instance: "+new_instance.id : end if
 			return new_instance
 		else
-			print "createInstance() - No objects registered with the name - " ; object_name
+			if GetGlobalAA().debug then : print "createInstance() - No objects registered with the name - " ; object_name : end if
 			return invalid
 		end if
 	end function
@@ -497,7 +522,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		if m.Instances.DoesExist(instance_id) then
 			return m.Instances[instance_id]
 		else
-			print "getInstanceByID() - No instance exists with id - " ; instance_id
+			if GetGlobalAA().debug then : print "getInstanceByID() - No instance exists with id - " ; instance_id : end if
 			return invalid
 		end if
 	end function
@@ -512,7 +537,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 				return m.Instances[instance_key]
 			end if
 		end for
-		print "getInstanceByName() - No instance exists with name - " ; object_name
+		if GetGlobalAA().debug then : print "getInstanceByName() - No instance exists with name - " ; object_name : end if
 		return invalid
 	end function
 	' ############### getInstanceByName() function - End ###############
@@ -537,21 +562,19 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### destroyInstance() function - Begin ###############
 	gameEngine.destroyInstance = function(instance)
 				
-		if GetGlobalAA().debug then : print "Removing Instance: "+instance.id : end if
+		if GetGlobalAA().debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
 		if instance.id <> invalid and m.Instances.DoesExist(instance.id) then
 			for each collider_key in instance.colliders
 				collider = instance.colliders[collider_key]
 				if type(collider.compositor_object) = "roSprite" then 
-					if GetGlobalAA().debug then : print "Removing Collider: "+collider_key : end if
 					collider.compositor_object.Remove()
 				end if
 			end for
 			instance.onDestroy()
 			m.Instances.Delete(instance.id)
-			instance.Clear()
-			instance.id = invalid
+			m.need_to_clear.Push(instance)
 		else
-			print "gameEngine.destroyInstance() - Object was previously destroyed"
+			if GetGlobalAA().debug then : print "destroyInstance() - Object was previously destroyed" : end if
 		end if
 	end function
 	' ############### destroyInstance() function - End ###############
@@ -590,7 +613,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### defineRoom() function - Begin ###############
 	gameEngine.defineRoom = function(room_name, room_creation_function)
 		m.Rooms[room_name] = room_creation_function
-		print "defineRoom() - Room function has been added"
+		if GetGlobalAA().debug then : print "defineRoom() - Room function has been added" : end if
 	end function
 	' ############### defineRoom() function - Begin ###############
 
@@ -616,7 +639,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.currentRoom.onCreate()
 			return true
 		else
-			print "changeRoom() - The provided room name hasn't been defined"
+			if GetGlobalAA().debug then : print "changeRoom() - The provided room name hasn't been defined" : end if
 			return false
 		end if
 	end function
@@ -631,10 +654,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 		if type(path) = "roAssociativeArray" then
 			if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
-				print "loadBitmap() - New empty bitmap created."
+				if GetGlobalAA().debug then : print "loadBitmap() - New empty bitmap created." : end if
 				return true
 			else
-				print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap"
+				if GetGlobalAA().debug then : print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap" : end if
 				return false
 			end if
 		else if m.filesystem.Exists(path) then
@@ -642,14 +665,14 @@ function gameEngine_init(game_width, game_height, debug = false)
 			parts = path_object.Split()
 			if parts.extension = ".png" or parts.extension = ".jpg" then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
-				print "loadBitmap() - Loaded bitmap from " ; path
+				if GetGlobalAA().debug then : print "loadBitmap() - Loaded bitmap from " ; path : end if
 				return true
 			else
-				print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg"
+				if GetGlobalAA().debug then : print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg" : end if
 				return false
 			end if
 		else
-			print "loadBitmap() - Bitmap not created, invalid path or object properties provided."
+			if GetGlobalAA().debug then : print "loadBitmap() - Bitmap not created, invalid path or object properties provided." : end if
 			return false
 		end if
 	end function
@@ -691,14 +714,14 @@ function gameEngine_init(game_width, game_height, debug = false)
 			parts = path_object.Split()
 			if parts.extension = ".ttf" or parts.extension = ".otf" then
 				m.font_registry.register(path)
-				print "Font registered successfully"
+				if GetGlobalAA().debug then : print "Font registered successfully" : end if
 				return true
 			else
-				print "Font must be of type .ttf or .otf"
+				if GetGlobalAA().debug then : print "Font must be of type .ttf or .otf" : end if
 				return false
 			end if
 		else
-			print "File at path " ; path ; " doesn't exist"
+			if GetGlobalAA().debug then : print "File at path " ; path ; " doesn't exist" : end if
 			return false
 		end if
 	end function
@@ -828,7 +851,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### cameraCenterToInstance() function - Begin ###############
 	gameEngine.cameraCenterToInstance = function(instance, mode = 0)
 		if instance.id = invalid
-			print "cameraCenterToInstance() - Provided instance doesn't exist"
+			if GetGlobalAA().debug then : print "cameraCenterToInstance() - Provided instance doesn't exist" : end if
 			return invalid
 		end if
 		frame_width = m.frame.GetWidth()
@@ -932,6 +955,34 @@ function gameEngine_init(game_width, game_height, debug = false)
 	end function
 	' ############### playSound() function - End ###############
 
+
+	' ----------------------------------------Begin Registry Functions------------------------------------------
+	gameEngine.registryWriteString = function(registry_section, key, value)
+	    section = CreateObject("roRegistrySection", registry_section)
+	    section.Write(key, value)
+	    section.Flush()
+	end function
+
+	gameEngine.registryWriteFloat = function(registry_section, key, value)
+		value = str(value)
+		m.registryWriteString(registry_section, key, value)
+	end function
+
+	gameEngine.registryReadString = function(registry_section, key, default_value)
+		section = CreateObject("roRegistrySection", registry_section)
+	    if section.Exists(registry_section) then
+	        return section.Read(registry_section)
+	    else
+	    	section.Write(key, default_value)
+	    	section.Flush()
+	    	return default_value
+	    end if
+	end function
+
+	gameEngine.registryReadFloat = function(registry_section, key, default_value)
+		default_value = str(default_value)
+        return val(m.registryReadString(registry_section, key, default_value))
+	end function
 
 	return gameEngine
 end function

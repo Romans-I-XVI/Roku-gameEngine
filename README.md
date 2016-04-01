@@ -95,3 +95,10 @@ This function is used internally when the camera is set to follow an instance, h
 ##### musicResume()
 ##### addSound()
 ##### playSound()
+
+###### ---Registry Methods---
+##### registryWriteString()
+##### registryWriteFloat()
+##### registryReadString()
+##### registryReadFloat()
+
