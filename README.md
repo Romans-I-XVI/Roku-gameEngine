@@ -120,6 +120,7 @@ gameObject
 A game object is an object that has been created using the function newEmptyObject(), this is usually done internally using by defining a new object using defineObject() and then creating a new instance of it using createInstance(). Instructions on doing this can be found above. 
 
 The basic game object structure looks like this.
+```brightscript
 new_object = {
 
 	' -----Constants-----
@@ -141,6 +142,7 @@ new_object = {
     (Methods will be described below)
 
 }
+```
 
 ###### ---Constants---
 *name: This is the name of the object as declared by defineObject() 
@@ -177,8 +179,9 @@ This is called after the instance is drawn and receives the screen as a object t
 
 ##### onButton(code)
 This is called whenever a button is pressed, released, or held.
-| Button        | When Pressed  | When Released  | When Held |
-|:-------------:|:-------------:|:-----:|:----:|
+
+| Button | When Pressed | When Released | When Held |
+|:---:|:---:|:---:|:---:|
 | Back | 0 | 100 | 1000 |
 | Up | 2 | 102 | 1002 |
 | Down | 3 | 103 | 1003 |
