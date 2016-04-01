@@ -283,7 +283,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.need_to_clear = []
 		end if
 
-		if true then : m.frame.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default) : end if
+		if m.debug then
+			m.frame.DrawRect(10-4, 10, 100, 32, &h000000FF)
+			m.frame.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default)
+		end if
 		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.frame)
 		m.screen.SwapBuffers()
 
@@ -1045,3 +1048,42 @@ function atan2(y, x)
     
     return collision_angle
 end function
+
+Function HSVtoRGB(h%,s%,v%,a = invalid) As Integer
+   ' Romans_I_XVI port (w/ a few tweaks) of:
+   ' http://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
+    
+	h% = h% MOD 360
+   
+	rgb = [ 0, 0, 0 ]
+	if s% = 0 then
+		rgb = [v%/100, v%/100, v%/100]
+	else
+		s = s%/100 : v = v%/100 : h = h%/60 : i = int(h)
+
+		data = [v*(1-s), v*(1-s*(h-i)), v*(1-s*(1-(h-i)))]
+     
+		if i = 0 then
+			rgb = [v, data[2], data[0]]
+		else if i = 1 then
+			rgb = [data[1], v, data[0]]   
+		else if i = 2 then
+			rgb = [data[0], v, data[2]]
+		else if i = 3 then
+			rgb = [data[0], data[1], v]
+		else if i = 4 then
+			rgb = [data[2], data[0], v]
+		else
+			rgb = [v, data[0], data[1]]
+		end if
+	end if
+
+	for c = 0 to rgb.count()-1 : rgb[c] = int(rgb[c] * 255) : end for
+	if a <> invalid then
+		color% = (rgb[0] << 24) + (rgb[1] << 16) + (rgb[2] << 8) + a
+	else
+		color% = (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]
+	end if
+
+	return color%
+End Function
