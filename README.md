@@ -114,3 +114,86 @@ Reads the provided key from the provided registry section. The default value wil
 ##### registryReadFloat(registry_section as String, key as String, default_value as Float) as Float
 Same as registryReadString() except returns the value as a float.
 
+
+gameObject
+------
+A game object is an object that has been created using the function newEmptyObject(), this is usually done internally using by defining a new object using defineObject() and then creating a new instance of it using createInstance(). Instructions on doing this can be found above. 
+
+The basic game object structure looks like this.
+new_object = {
+
+	' -----Constants-----
+	name: name
+	id: m.currentID.ToStr()
+	gameEngine: m
+
+	' -----Variables-----
+	persistent: false
+	depth: 0
+	x: 0.0
+	y: 0.0
+	xspeed: 0.0
+	yspeed: 0.0
+    colliders: {}
+    images: []
+
+    ' -----Methods-----
+    (Methods will be described below)
+
+}
+
+###### ---Constants---
+*name: This is the name of the object as declared by defineObject() 
+--*example - A "ball" object can be defined, all instances of the object will be named "ball" but will have different IDs.
+*id: This is the ID for this specific instance.
+*gameEngine: This a reference to the gameEngine so that every object instance can easily access its methods.
+
+###### ---Variables---
+*persistent: If true the instance will not be destroyed when the on changeRoom(), default behavior is to destroy all instances on changeRoom().
+*depth: Declares the instance draw depth.
+*x/y: The x and y positions of the instance.
+*xspeed/yspeed: The movement speed of the instance. Note: This is automatically multiplied by delta time.
+*colliders: Instances can have multiple colliders, you can modify collider properties here but adding a new collider should be done by the methods described below.
+*images: Instances can have multiple images, you can modify image properties here but adding a new image should be done by the methods described below.
+
+###### ---Override Methods---
+The override methods are designed to be overridden. They are automatically called by the gameEngine at the approprate times.
+Note: For these methods, if an argument is shown, then the override method _must_ accept that argument as well.
+
+##### onCreate()
+This method will always be called when the instance is created. Put creation code here.
+
+##### onUpdate(deltaTime)
+This method is called every frame. Put code to be constantly ran here. 
+
+##### onCollision(collider, other_collider, other_instance)
+This method is called when two object instances collide. collider and other_collider are strings refering to the specific colliders that are in collision.
+
+##### onDrawBegin(screen)
+This is called before the instance is drawn and receives the screen as a object that can be drawn to.
+
+##### onDrawEnd(screen)
+This is called after the instance is drawn and receives the screen as a object that can be drawn to.
+
+##### onButton(code)
+This is called whenever a button is pressed, released, or held.
+| Button        | When Pressed  | When Released  | When Held |
+|:-------------:|:-------------:|:-----:|:----:|
+| Back | 0 | 100 | 1000 |
+| Up | 2 | 102 | 1002 |
+| Down | 3 | 103 | 1003 |
+| Left | 4 | 104 | 1004 |
+| Right | 5 | 105 | 1005 |
+| Select | 6 | 106 | 1006 |
+| Instant Replay | 7 | 107 | 1007 |
+| Rewind | 8 | 108 | 1008 |
+| Fast Forward | 9 | 109 | 1009 |
+| Info | 10 | 110 | 1010 |
+| Play | 13 | 113 | 1013 |
+
+##### onAudioEvent(message)
+This is called when an audio event is triggered, the message is passed to the method.
+
+##### onDestroy()
+This method will always be called just before the instance is destroyed.
+

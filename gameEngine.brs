@@ -300,12 +300,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 	gameEngine.newEmptyObject = function(name as String) as Object
 		m.currentID = m.currentID + 1
 		new_object = {
-			' -----These variables should be considered off limits
+			' -----Constants-----
 			name: name
 			id: m.currentID.ToStr()
-			persistent: false
 			gameEngine: m
-			' -----
+
+			' -----Variables-----
+			persistent: false
 			depth: 0
 			x: 0.0
 			y: 0.0
@@ -313,16 +314,31 @@ function gameEngine_init(game_width, game_height, debug = false)
 			yspeed: 0.0
 	        colliders: {}
 	        images: []
+
+	        ' -----Methods-----
+	        onCreate: invalid
+	        onUpdate: invalid
+	        onCollision: invalid
+	        onDrawBegin: invalid
+	        onDrawEnd: invalid
+	        onButton: invalid
+	        onAudioEvent: invalid
+	        onDestroy: invalid
+	        addColliderCircle: invalid
+	        addColliderRectangle: invalid
+	        removeCollider: invalid
+	        addImage: invalid
+	        removeImage: invalid
 		}
 
 		' These empty functions are placeholders, they are to be overwritten by the user
 		new_object.onCreate = function()
 		end function
 
-		new_object.onCollision = function(collider, other_collider, other_object)
+		new_object.onUpdate = function(deltaTime)
 		end function
 
-		new_object.onUpdate = function(dt)
+		new_object.onCollision = function(collider, other_collider, other_instance)
 		end function
 
 		new_object.onDrawBegin = function(screen)
@@ -331,21 +347,21 @@ function gameEngine_init(game_width, game_height, debug = false)
 		new_object.onDrawEnd = function(screen)
 		end function
 
-		new_object.onButton = function(button)
+		new_object.onButton = function(code)
 			' -------Button Code Reference--------
-			' Button  When pressed  When released
+			' Button  When pressed  When released When Held
 
-			' Back  0  100
-			' Up  2  102
-			' Down  3  103
-			' Left  4  104
-			' Right  5  105
-			' Select  6  106
-			' Instant Replay  7  107
-			' Rewind  8  108
-			' Fast  Forward  9  109
-			' Info  10  110
-			' Play  13  113
+			' Back  0  100 1000
+			' Up  2  102 1002
+			' Down  3  103 1003
+			' Left  4  104 1004
+			' Right  5  105 1005
+			' Select  6  106 1006
+			' Instant Replay  7  107 1007
+			' Rewind  8  108 1008
+			' Fast  Forward  9  109 1009
+			' Info  10  110 1010
+			' Play  13  113 1013
 		end function
 
 		new_object.onAudioEvent = function(msg)
