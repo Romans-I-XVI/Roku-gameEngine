@@ -16,8 +16,10 @@ gameEngine
 ###### ---General Methods---
 ##### Update() as Void
 This method must be called in your main while loop in order for the game to execute.
-##### newEmptyObject(name as String) as Object
+##### newEmptyObject(object_name as String) as Object
 This method is primarily for internal use, but may be called manually if desired. It returns an empty game object.
+##### getDeltaTime() as Float
+Returns the delta time. Note: Delta time is automatically applied to the built in instance xspeed and yspeed. Delta time is also automatically passed to the onUpdate(dt) function in every instance for convenience.
 ##### drawColliders(instance as Object) as Void
 This method is for debugging purposes, it will draw the colliders associated with the provided instance.
 
@@ -58,25 +60,25 @@ Unloads the bitmap associated with the provided name from memory. Returns true i
 
 ###### ---Font Methods---
 ##### registerFont(path as String) as Boolean
-Registers the font at the given path. Returns true if successful. Note: All fonts in the directory pkg:/fonts/ automatically get registered.
-##### loadFont(name as String, size as Integer, italic as Boolean, bold as Boolean) as Void
-Loads the font with the provided name into memory. The font must be registered first.
-##### unloadFont(name as String) as Void
+Registers the font at the provided path. Returns true if successful. Note: All fonts in the directory pkg:/fonts/ automatically get registered.
+##### loadFont(font_name as String, size as Integer, italic as Boolean, bold as Boolean) as Void
+Loads the font with the provided name into memory. Note: The font must be registered first and the font_name must be the same as the filename prefix.
+##### unloadFont(font_name as String) as Void
 Unloads the font associated with the provided name from memory.
-##### getFont(name as String) as Object
+##### getFont(font_name as String) as Object
 Returns the font associated with the provided name. Font must have been previously loaded using loadFont().
 
 ###### ---Camera Methods---
-##### cameraIncreaseOffset(x as Integer, y as Integer) as Void
-Increase the camera x and y positions by the given amounts.
+##### cameraIncreaseOffset(x as Float, y as Float) as Void
+Increase the camera x and y positions by the provided amounts.
 ##### cameraIncreaseZoom(zoom as Float) as Void
-Increase the camera zoom by the given amount.
+Increase the camera zoom by the provided amount.
 ##### cameraIncreaseZoom(zoom_x as Float, zoom_y as Float) as Void
 When zoom_y is provided, the zoom can be different for x and y, meaning the image will be stretched.
-##### cameraSetOffset(x as Integer, y as Integer) as Void
+##### cameraSetOffset(x as Float, y as Float) as Void
 Set the camera x and y positions. Note: positions are absolute and not in relation to the current scale, you should take scale into account when manually setting the positions.
 ##### cameraSetZoom(zoom as Float) as Void
-Set the camera zoom to the given amount.
+Set the camera zoom to the provided amount.
 ##### cameraSetZoom(zoom_x as Float, zoom_y as Float) as Void
 When zoom_y is provided, the zoom can be different for x and y, meaning the image will be stretched.
 ##### cameraSetFollow(instance as Object, [mode as Integer]) as Void
@@ -89,16 +91,26 @@ This fits the game to the screen regardless of the screen aspect ratio. This mak
 This function is used internally when the camera is set to follow an instance, however it can be used manually if you want to center to an object only once. See cameraSetFollow() for a description of mode options.
 
 ###### ---Audio Methods---
-##### musicPlay()
-##### musicStop()
-##### musicPause()
-##### musicResume()
-##### addSound()
-##### playSound()
+##### musicPlay(path as String, [loop as Boolean]) as Boolean
+Plays music from the provided path. Loop defaults to false. Returns true if the path is valid.
+##### musicStop() as Void
+Stops the currently playing music.
+##### musicPause() as Void
+Pauses the currently playing music.
+##### musicResume() as Void
+Resumes music that is paused.
+##### loadSound(sound_name as String, path as String) as Void
+Loads a short sound in to memory from the provided path to be triggered by playSound() with the provided name. This is specifically for sound effects, because the sounds are in memory they will be played instantly.
+##### playSound(sound_name as String, [volume as Integer]) as Boolean
+Plays the sound associated with the name provided, sound must have already been loaded using loadSound(). Returns true if the sound was triggered.
 
 ###### ---Registry Methods---
-##### registryWriteString()
-##### registryWriteFloat()
-##### registryReadString()
-##### registryReadFloat()
+##### registryWriteString(registry_section as String, key as String, value as String) as Void
+Writes to the provided registry section the provided key/value pair. The value should be a string.
+##### registryWriteFloat(registry_section as String, key as String, value as Float) as Void
+Same as registryWriteString() except the value should be a float.
+##### registryReadString(registry_section as String, key as String, default_value as String) as String
+Reads the provided key from the provided registry section. The default value will be written if the registry section and key have no value yet. Returns the value as a string.
+##### registryReadFloat(registry_section as String, key as String, default_value as Float) as Float
+Same as registryReadString() except returns the value as a float.
 

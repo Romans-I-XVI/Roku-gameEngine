@@ -5,10 +5,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### Create Initial Object - Begin ###############
 
 	' Create the main game engine object
-	m.debug = debug
 	gameEngine = {
 		' ****BEGIN - For Internal Use, Do Not Manually Alter****
+		debug: debug
 		buttonHeld: -1
+		dt: 0
 		dtTimer: CreateObject("roTimespan")
 		fpsTimer: CreateObject("roTimespan")
 		fpsTicker: 0
@@ -84,7 +85,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		musicStop: invalid
 		musicPause: invalid
 		musicResume: invalid
-		addSound: invalid
+		loadSound: invalid
 		playSound: invalid
 
 		registryWriteString: invalid
@@ -124,13 +125,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ################################################################ Update() function - Begin #####################################################################################################
-	gameEngine.Update = function()
+	gameEngine.Update = function() as Void
 		m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 		m.screen.Clear(&h000000FF) 
 		m.frame.Clear(&h000000FF) 
 
 
-		dt = m.dtTimer.TotalMilliseconds()/1000
+		m.dt = m.dtTimer.TotalMilliseconds()/1000
 		m.dtTimer.Mark()
         screen_msg = m.screen_port.GetMessage() 
         music_msg = m.music_port.GetMessage()
@@ -149,8 +150,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 			
 			' -------------------- Then handle the object movement--------------------
-			instance.x = instance.x + instance.xspeed*dt
-			instance.y = instance.y + instance.yspeed*dt
+			instance.x = instance.x + instance.xspeed*m.dt
+			instance.y = instance.y + instance.yspeed*m.dt
 
 
 			' --------------------First process the onButton() function--------------------
@@ -176,7 +177,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	        ' -------------------Then process the onUpdate() function----------------------
-			instance.onUpdate(dt)
+			instance.onUpdate(m.dt)
 
 
 			' -------------------Then handle collisions and call onCollision() for each collision---------------------------
@@ -255,11 +256,12 @@ function gameEngine_init(game_width, game_height, debug = false)
 			instance.onDrawBegin(m.frame)
 			for each image in instance.images
 				if image.enabled then
-					m.frame.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, image.rgba)
+					if image.alpha > 255 then : image.alpha = 255 : end if
+					m.frame.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
 				end if
 			end for
 			instance.onDrawEnd(m.frame)
-			' if GetGlobalAA().debug then : m.DrawColliders(instance) : end if
+			' if m.debug then : m.DrawColliders(instance) : end if
 		end for
 
 
@@ -292,7 +294,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ################################################################ newEmptyObject() function - Begin #####################################################################################################
-	gameEngine.newEmptyObject = function(name)
+	gameEngine.newEmptyObject = function(name as String) as Object
 		m.currentID = m.currentID + 1
 		new_object = {
 			' -----These variables should be considered off limits
@@ -368,7 +370,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.colliders[name] = invalid then
 				m.colliders[name] = collider
 			else
-				if GetGlobalAA().debug then : print "Collider Name Already Exists" : end if
+				if m.debug then : print "Collider Name Already Exists" : end if
 			end if
 		end function
 
@@ -391,7 +393,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.colliders[name] = invalid then
 				m.colliders[name] = collider 
 			else
-				if GetGlobalAA().debug then : print "Collider Name Already Exists" : end if
+				if m.debug then : print "Collider Name Already Exists" : end if
 			end if
 		end function
 
@@ -400,59 +402,51 @@ function gameEngine_init(game_width, game_height, debug = false)
 				if type(m.colliders[name].compositor_object) = "roSprite" then : m.colliders[name].compositor_object.Remove() : end if
 				m.colliders[name] = invalid
 			else
-				if GetGlobalAA().debug then : print "Collider Doesn't Exist" : end if
+				if m.debug then : print "Collider Doesn't Exist" : end if
 			end if
 		end function
 
-		new_object.addImage = function(image, offset_x = 0, offset_y = 0, origin_x = 0, origin_y = 0, scale_x = 1, scale_y = 1, rgba = &hFFFFFFFF, enabled = true)
+		new_object.addImage = function(image, args = {})
 			image_object = {
 				image: image,
-				region: invalid
-				offset_x: offset_x,
-				offset_y: offset_y,
-				origin_x: origin_x,
-				origin_y: origin_y,
-				scale_x: scale_x,
-				scale_y: scale_y,
-				rgba: rgba,
-				enabled: enabled
-				animation_speed: 0
-				animation_timer: CreateObject("roTimespan")
-				animation_position: 0
+				offset_x: 0
+				offset_y: 0
+				origin_x: 0
+				origin_y: 0
+				scale_x: 1.0
+				scale_y: 1.0
+				color: &hFFFFFF
+				alpha: 255
+				enabled: true
 				image_count: 1
+				animation_speed: 0
+				animation_position: 0
+				region: invalid
+				animation_timer: invalid
 			}
-			if type(image) = "roRegion" then 
+			for each key in image_object
+				if args.DoesExist(key) then
+					image_object[key] = args[key]
+				end if
+			end for
+			image_object.animation_timer = CreateObject("roTimespan")
+
+			if args.DoesExist("region_width") and args.DoesExist("region_height") then
+				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, args.image_width, args.image_height)
+			else if type(image) = "roRegion" then 
 				image_object.region = image
 			else
-				image_object.region = CreateObject("roRegion", image, 0, 0, image.GetWidth(), image.GetHeight())
+				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, image_object.image.GetWidth(), image_object.image.GetHeight())
 			end if
+
 			m.images.push(image_object)
 		end function
 
-		new_object.addAnimatedImage = function(image_sheet, image_width, image_height, image_count, animation_speed, scale_x = 1, scale_y = 1, offset_x = 0, offset_y = 0, origin_x = 0, origin_y = 0, rgba = &hFFFFFFFF, enabled = true)
-			image = {
-				image: image_sheet,
-				region: CreateObject("roRegion", image_sheet, 0, 0, image_width, image_height)
-				offset_x: offset_x,
-				offset_y: offset_y,
-				origin_x: origin_x,
-				origin_y: origin_y,
-				scale_x: scale_x,
-				scale_y: scale_y,
-				rgba: rgba,
-				enabled: enabled
-				animation_speed: animation_speed
-				animation_timer: CreateObject("roTimespan")
-				animation_position: 0
-				image_count: image_count
-			}
-			m.images.push(image)
-		end function
 		new_object.removeImage = function(index)
 			if m.images[index] <> invalid then
 				m.images.Delete(index)
 			else
-				if GetGlobalAA().debug then : print "Position In Image Array Is Invalid" : end if
+				if m.debug then : print "Position In Image Array Is Invalid" : end if
 			end if
 		end function
 
@@ -464,8 +458,16 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
+	' ############### getDeltaTime() function - Begin ###############
+	gameEngine.getDeltaTime = function() as Float
+		return m.dt
+	end function
+	' ############### getDeltaTime() function - Begin ###############
+
+
+
 	' ############### DrawColliders() function - Begin ###############
-	gameEngine.drawColliders = function(instance)
+	gameEngine.drawColliders = function(instance as Object) as Void
 		for each collider_key in instance.colliders
 			collider = instance.colliders[collider_key]
 			if collider.enabled then
@@ -490,7 +492,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### defineObject() function - Begin ###############
-	gameEngine.defineObject = function(object_name, object_creation_function)
+	gameEngine.defineObject = function(object_name as String, object_creation_function as Function) as Void
 		m.Objects[object_name] = object_creation_function
 	end function
 	' ############### defineObject() function - End ###############
@@ -498,7 +500,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### createInstance() function - Begin ###############
-	gameEngine.createInstance = function(object_name, args = {})
+	gameEngine.createInstance = function(object_name as String, args = {} as Object) as Dynamic
 		if m.Objects.DoesExist(object_name)
 			new_instance = m.newEmptyObject(object_name)
 			m.Objects[object_name](new_instance)
@@ -506,10 +508,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 				new_instance[key] = args[key]
 			end for
 			new_instance.onCreate()
-			if GetGlobalAA().debug then : print "createInstance() - Creating instance: "+new_instance.id : end if
+			if m.debug then : print "createInstance() - Creating instance: "+new_instance.id : end if
 			return new_instance
 		else
-			if GetGlobalAA().debug then : print "createInstance() - No objects registered with the name - " ; object_name : end if
+			if m.debug then : print "createInstance() - No objects registered with the name - " ; object_name : end if
 			return invalid
 		end if
 	end function
@@ -518,11 +520,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### getInstanceByID() function - Begin ###############
-	gameEngine.getInstanceByID = function(instance_id)
+	gameEngine.getInstanceByID = function(instance_id as String) as Dynamic
 		if m.Instances.DoesExist(instance_id) then
 			return m.Instances[instance_id]
 		else
-			if GetGlobalAA().debug then : print "getInstanceByID() - No instance exists with id - " ; instance_id : end if
+			if m.debug then : print "getInstanceByID() - No instance exists with id - " ; instance_id : end if
 			return invalid
 		end if
 	end function
@@ -531,13 +533,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### getInstanceByName() function - Begin ###############
-	gameEngine.getInstanceByName = function(object_name)
+	gameEngine.getInstanceByName = function(object_name as String) as Dynamic
 		for each instance_key in m.Instances
 			if m.Instances[instance_key].name = object_name then
 				return m.Instances[instance_key]
 			end if
 		end for
-		if GetGlobalAA().debug then : print "getInstanceByName() - No instance exists with name - " ; object_name : end if
+		if m.debug then : print "getInstanceByName() - No instance exists with name - " ; object_name : end if
 		return invalid
 	end function
 	' ############### getInstanceByName() function - End ###############
@@ -545,7 +547,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### getAllInstances() function - Begin ###############
-	gameEngine.getAllInstances = function(object_name)
+	gameEngine.getAllInstances = function(object_name as String) as Dynamic
 		array = []
 		for each instance_key in m.Instances
 			instance = m.Instances[instance_key]
@@ -560,9 +562,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### destroyInstance() function - Begin ###############
-	gameEngine.destroyInstance = function(instance)
-				
-		if GetGlobalAA().debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
+	gameEngine.destroyInstance = function(instance as Object) as Void
+		if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
 		if instance.id <> invalid and m.Instances.DoesExist(instance.id) then
 			for each collider_key in instance.colliders
 				collider = instance.colliders[collider_key]
@@ -574,7 +575,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.Instances.Delete(instance.id)
 			m.need_to_clear.Push(instance)
 		else
-			if GetGlobalAA().debug then : print "destroyInstance() - Object was previously destroyed" : end if
+			if m.debug then : print "destroyInstance() - Object was previously destroyed" : end if
 		end if
 	end function
 	' ############### destroyInstance() function - End ###############
@@ -582,7 +583,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### destroyAllInstances() function - Begin ###############
-	gameEngine.destroyAllInstances = function(object_name)
+	gameEngine.destroyAllInstances = function(object_name as String) as Void
 		for each instance_key in m.Instances
 			instance = m.Instances[instance_key]
 			if instance.name = object_name then
@@ -595,7 +596,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### instanceCount() function - Begin ###############
-	gameEngine.instanceCount = function(object_name)
+	gameEngine.instanceCount = function(object_name as String) as Integer
 		instance_count = 0
 		for each instance_key in m.Instances
 			if m.Instances[instance_key].name = object_name then
@@ -611,16 +612,16 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### defineRoom() function - Begin ###############
-	gameEngine.defineRoom = function(room_name, room_creation_function)
+	gameEngine.defineRoom = function(room_name as String, room_creation_function as Function) as Void
 		m.Rooms[room_name] = room_creation_function
-		if GetGlobalAA().debug then : print "defineRoom() - Room function has been added" : end if
+		if m.debug then : print "defineRoom() - Room function has been added" : end if
 	end function
 	' ############### defineRoom() function - Begin ###############
 
 
 
 	' ############### changeRoom() function - Begin ###############
-	gameEngine.changeRoom = function(room_name, args = {})
+	gameEngine.changeRoom = function(room_name as String, args = {} as Object) as Boolean
 		if m.Rooms[room_name] <> invalid then
 			if m.currentRoom <> invalid then 
 				m.destroyInstance(m.currentRoom)
@@ -639,7 +640,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.currentRoom.onCreate()
 			return true
 		else
-			if GetGlobalAA().debug then : print "changeRoom() - The provided room name hasn't been defined" : end if
+			if m.debug then : print "changeRoom() - The provided room name hasn't been defined" : end if
 			return false
 		end if
 	end function
@@ -650,14 +651,14 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### loadBitmap() function - Begin ###############
-	gameEngine.loadBitmap = function(bitmap_name, path)
+	gameEngine.loadBitmap = function(bitmap_name as String, path as String) as Boolean
 		if type(path) = "roAssociativeArray" then
 			if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
-				if GetGlobalAA().debug then : print "loadBitmap() - New empty bitmap created." : end if
+				if m.debug then : print "loadBitmap() - New empty bitmap created." : end if
 				return true
 			else
-				if GetGlobalAA().debug then : print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap" : end if
+				if m.debug then : print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap" : end if
 				return false
 			end if
 		else if m.filesystem.Exists(path) then
@@ -665,14 +666,14 @@ function gameEngine_init(game_width, game_height, debug = false)
 			parts = path_object.Split()
 			if parts.extension = ".png" or parts.extension = ".jpg" then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
-				if GetGlobalAA().debug then : print "loadBitmap() - Loaded bitmap from " ; path : end if
+				if m.debug then : print "loadBitmap() - Loaded bitmap from " ; path : end if
 				return true
 			else
-				if GetGlobalAA().debug then : print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg" : end if
+				if m.debug then : print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg" : end if
 				return false
 			end if
 		else
-			if GetGlobalAA().debug then : print "loadBitmap() - Bitmap not created, invalid path or object properties provided." : end if
+			if m.debug then : print "loadBitmap() - Bitmap not created, invalid path or object properties provided." : end if
 			return false
 		end if
 	end function
@@ -681,7 +682,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### getBitmap() function - Begin ###############
-	gameEngine.getBitmap = function(bitmap_name)
+	gameEngine.getBitmap = function(bitmap_name as String) as Dynamic
 		if m.Bitmaps.DoesExist(bitmap_name)
 			return m.Bitmaps[bitmap_name]
 		else
@@ -693,7 +694,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### unloadBitmap() function - Begin ###############
-	gameEngine.unloadBitmap = function(bitmap_name)
+	gameEngine.unloadBitmap = function(bitmap_name as String) as Boolean
 		if m.Bitmaps.DoesExist(bitmap_name)
 			m.Bitmaps[bitmap_name] = invalid
 			return true
@@ -708,20 +709,20 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### registerFont() function - Begin ###############
-	gameEngine.registerFont = function(path)
+	gameEngine.registerFont = function(path as String) as Boolean
 		if m.filesystem.Exists(path) then
 			path_object = CreateObject("roPath", path)
 			parts = path_object.Split()
 			if parts.extension = ".ttf" or parts.extension = ".otf" then
 				m.font_registry.register(path)
-				if GetGlobalAA().debug then : print "Font registered successfully" : end if
+				if m.debug then : print "Font registered successfully" : end if
 				return true
 			else
-				if GetGlobalAA().debug then : print "Font must be of type .ttf or .otf" : end if
+				if m.debug then : print "Font must be of type .ttf or .otf" : end if
 				return false
 			end if
 		else
-			if GetGlobalAA().debug then : print "File at path " ; path ; " doesn't exist" : end if
+			if m.debug then : print "File at path " ; path ; " doesn't exist" : end if
 			return false
 		end if
 	end function
@@ -730,24 +731,24 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### loadFont() function - Begin ###############
-	gameEngine.loadFont = function(name, size, italic, bold)
-		m.Fonts[name] = m.font_registry.GetFont(name, size, italic, bold)
+	gameEngine.loadFont = function(font_name as String, size as Integer, italic as Boolean, bold as Boolean) as Void
+		m.Fonts[font_name] = m.font_registry.GetFont(font_name, size, italic, bold)
 	end function
 	' ############### loadFont() function - End ###############
 
 
 
 	' ############### unloadFont() function - Begin ###############
-	gameEngine.unloadFont = function(name)
-		m.Fonts[name] = invalid
+	gameEngine.unloadFont = function(font_name as String) as Void
+		m.Fonts[font_name] = invalid
 	end function
 	' ############### unloadFont() function - End ###############
 
 
 
 	' ############### getFont() function - Begin ###############
-	gameEngine.getFont = function(name)
-		return m.Fonts[name]
+	gameEngine.getFont = function(font_name as String) as Object
+		return m.Fonts[font_name]
 	end function
 	' ############### getFont() function - End ###############
 
@@ -760,7 +761,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraIncreaseOffset() function - Begin ###############
-	gameEngine.cameraIncreaseOffset = function(x, y)
+	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
+	gameEngine.cameraIncreaseOffset = function(x as Float, y as Float) as Void
 		m.camera.offset_x = m.camera.offset_x - x
 		m.camera.offset_y = m.camera.offset_y - y
 	end function
@@ -769,7 +771,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraIncreaseZoom() function - Begin ###############
-	gameEngine.cameraIncreaseZoom = function(scale_x, scale_y = -999)
+	gameEngine.cameraIncreaseZoom = function(scale_x as Float, scale_y = -999 as Float) as Void
 		if scale_y = -999
 			scale_y = scale_x
 		end if
@@ -783,7 +785,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraSetOffset() function - Begin ###############
-	gameEngine.cameraSetOffset = function(x, y)
+	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
+	gameEngine.cameraSetOffset = function(x as Float, y as Float) as Void
 		m.camera.offset_x = -x
 		m.camera.offset_y = -y
 	end function
@@ -792,7 +795,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraSetZoom() function - Begin ###############
-	gameEngine.cameraSetZoom = function(scale_x, scale_y = -999)
+	gameEngine.cameraSetZoom = function(scale_x as Float, scale_y = -999 as Float) as Void
 		if scale_y = -999
 			scale_y = scale_x
 		end if
@@ -804,7 +807,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraSetFollow() function - Begin ###############
-	gameEngine.cameraSetFollow = function(instance, mode = 0)
+	gameEngine.cameraSetFollow = function(instance as Object, mode = 0 as Integer) as Void
 		m.camera.follow = instance
 		m.camera.follow_mode = mode
 	end function
@@ -813,7 +816,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraUnsetFollow() function - Begin ###############
-	gameEngine.cameraUnsetFollow = function()
+	gameEngine.cameraUnsetFollow = function() as Void
 		m.camera.follow = invalid
 	end function
 	' ############### cameraUnsetFollow() function - End ###############
@@ -821,7 +824,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraFitToScreen() function - Begin ###############
-	gameEngine.cameraFitToScreen = function()
+	gameEngine.cameraFitToScreen = function() as Void
 		frame_width = m.frame.GetWidth()
 		frame_height = m.frame.GetHeight()
 		screen_width = m.screen.GetWidth()
@@ -849,9 +852,9 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### cameraCenterToInstance() function - Begin ###############
-	gameEngine.cameraCenterToInstance = function(instance, mode = 0)
+	gameEngine.cameraCenterToInstance = function(instance as Object, mode = 0 as Integer) as dynamic
 		if instance.id = invalid
-			if GetGlobalAA().debug then : print "cameraCenterToInstance() - Provided instance doesn't exist" : end if
+			if m.debug then : print "cameraCenterToInstance() - Provided instance doesn't exist" : end if
 			return invalid
 		end if
 		frame_width = m.frame.GetWidth()
@@ -904,21 +907,28 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### musicPlay() function - Begin ###############
-	gameEngine.musicPlay = function(audio_path, loop = false)
-		m.audioplayer.stop()
-		m.audioplayer.ClearContent()
-	    song = {}
-	    song.url = path
-	    audioplayer.AddContent(song)
-	    audioplayer.SetLoop(loop)
-	    audioPlayer.play()
+	gameEngine.musicPlay = function(path as String, loop = false as Boolean) as Boolean
+		if m.filesystem.Exists(path) then
+			m.audioplayer.stop()
+			m.audioplayer.ClearContent()
+		    song = {}
+		    song.url = path
+		    audioplayer.AddContent(song)
+		    audioplayer.SetLoop(loop)
+		    audioPlayer.play()
+			return true
+			if m.debug then : print "musicPlay() - Playing music from path: " ; path : end if
+		else
+			if m.debug then : print "musicPlay() - No file exists at path: " ; path : end if
+			return false
+		end if
 	end function
 	' ############### musicPlay() function - End ###############
 
 
 
 	' ############### musicStop() function - Begin ###############
-	gameEngine.musicStop = function()
+	gameEngine.musicStop = function() as Void
 		m.audioplayer.stop()
 	end function
 	' ############### musicStop() function - End ###############
@@ -926,7 +936,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### musicPause() function - Begin ###############
-	gameEngine.musicPause = function()
+	gameEngine.musicPause = function() as Void
 		m.audioplayer.pause()
 	end function
 	' ############### musicPause() function - End ###############
@@ -934,41 +944,48 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### musicResume() function - Begin ###############
-	gameEngine.musicResume = function()
+	gameEngine.musicResume = function() as Void
 		m.audioplayer.resume()
 	end function
 	' ############### musicResume() function - End ###############
 
 
 
-	' ############### addSound() function - Begin ###############
-	gameEngine.addSound = function(sound_name, sound_path)
-		m.Sounds[sound_name] = CreateObject("roAudioResource", sound_path)
+	' ############### loadSound() function - Begin ###############
+	gameEngine.loadSound = function(sound_name as String, path as String) as Void
+		m.Sounds[sound_name] = CreateObject("roAudioResource", path)
 	end function
-	' ############### addSound() function - End ###############
+	' ############### loadSound() function - End ###############
 
 
 
 	' ############### playSound() function - Begin ###############
-	gameEngine.playSound = function(sound_name, volume = 100)
-		m.Sounds[sound_name].trigger(volume)
+	gameEngine.playSound = function(sound_name as String, volume = 100 as Integer) as Boolean
+		if m.Sounds.DoesExist(sound_name) then
+			m.Sounds[sound_name].trigger(volume)
+			if m.debug then : print "playSound() - Playing sound: " ; sound_name : end if
+			return true
+		else
+			if m.debug then : print "playSound() - No sound has been loaded under the name: " ; sound_name : end if
+			return false
+		end if
 	end function
 	' ############### playSound() function - End ###############
 
 
 	' ----------------------------------------Begin Registry Functions------------------------------------------
-	gameEngine.registryWriteString = function(registry_section, key, value)
+	gameEngine.registryWriteString = function(registry_section as String, key as String, value as String) as Void
 	    section = CreateObject("roRegistrySection", registry_section)
 	    section.Write(key, value)
 	    section.Flush()
 	end function
 
-	gameEngine.registryWriteFloat = function(registry_section, key, value)
+	gameEngine.registryWriteFloat = function(registry_section as String, key as String, value as Float) as Void
 		value = str(value)
 		m.registryWriteString(registry_section, key, value)
 	end function
 
-	gameEngine.registryReadString = function(registry_section, key, default_value)
+	gameEngine.registryReadString = function(registry_section as String, key as String, default_value as String) as String
 		section = CreateObject("roRegistrySection", registry_section)
 	    if section.Exists(registry_section) then
 	        return section.Read(registry_section)
@@ -979,7 +996,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 	    end if
 	end function
 
-	gameEngine.registryReadFloat = function(registry_section, key, default_value)
+	gameEngine.registryReadFloat = function(registry_section as String, key as String, default_value as Float) as Float
 		default_value = str(default_value)
         return val(m.registryReadString(registry_section, key, default_value))
 	end function
