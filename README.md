@@ -143,18 +143,17 @@ new_object = {
 ```
 
 ###### ---Constants---
-*name: This is the name of the object as declared by defineObject() 
---*example - A "ball" object can be defined, all instances of the object will be named "ball" but will have different IDs.
-*id: This is the ID for this specific instance.
-*gameEngine: This a reference to the gameEngine so that every object instance can easily access its methods.
+* name: This is the name of the object as declared by defineObject(). For example - A "ball" object can be defined, all instances of the object will be named "ball" but will have different IDs.
+* id: This is the ID for this specific instance.
+* gameEngine: This a reference to the gameEngine so that every object instance can easily access its methods.
 
 ###### ---Variables---
-*persistent: If true the instance will not be destroyed when the on changeRoom(), default behavior is to destroy all instances on changeRoom().
-*depth: Declares the instance draw depth.
-*x/y: The x and y positions of the instance.
-*xspeed/yspeed: The movement speed of the instance. Note: This is automatically multiplied by delta time.
-*colliders: Instances can have multiple colliders, you can modify collider properties here but adding a new collider should be done by the methods described below.
-*images: Instances can have multiple images, you can modify image properties here but adding a new image should be done by the methods described below.
+* persistent: If true the instance will not be destroyed when the on changeRoom(), default behavior is to destroy all instances on changeRoom().
+* depth: Declares the instance draw depth.
+* x/y: The x and y positions of the instance.
+* xspeed/yspeed: The movement speed of the instance. Note: This is automatically multiplied by delta time.
+* colliders: Instances can have multiple colliders, you can modify collider properties here but adding a new collider should be done by the methods described below.
+* images: Instances can have multiple images, you can modify image properties here but adding a new image should be done by the methods described below.
 
 ###### ---Override Methods---
 The override methods are designed to be overridden. They are automatically called by the gameEngine at the approprate times.
