@@ -208,7 +208,7 @@ Adds a circular collider to the instance's colliders associative array with the 
 ##### removeCollider(collider_name)
 Removes the collider with the provided name.
 ##### addImage(image as Object, args as Object)
-Adds the provided image to the instance's images array. The image should be of type roBitmap or roRegion. Args should be an associative array with values to override the defaults. Here are the defaults that can be overridden. Images are added to an array and are drawn in the order they are added to that array.
+Adds the provided image to the instance's images array. The image should be of type roBitmap or roRegion. Images are added to an array and are drawn in the order they are added to that array. Args should be an associative array with values to override the defaults. Here are the defaults that can be overridden.
 
 ```brightscript
 args = {
