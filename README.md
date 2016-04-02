@@ -8,8 +8,6 @@ First start by creating the gameEngine object
 
 ##### gameEngine = gameEngine_init()
 
-# Methods
-There are two objects that provide game specific methods. Let's start with the main gameEngine object.
 
 gameEngine
 ------
