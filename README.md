@@ -200,3 +200,36 @@ This is called when an audio event is triggered, the message is passed to the me
 ##### onDestroy()
 This method will always be called just before the instance is destroyed.
 
+###### ---Creation Methods---
+##### addColliderRectangle(collider_name as String, offset_x as Integer, offset_y as Integer, width as Integer, height as Integer, [enabled as Boolean])
+Adds a rectangle collider to the instance's colliders associative array with the provided name and properties. Enabled is true by default.
+##### addColliderCircle(collider_name, radius, [offset_x as Integer, offset_y as Integer, enabled as Boolean])
+Adds a circular collider to the instance's colliders associative array with the provided name and properties. By default offset_x is 0, offset_y is 0, and enabled is true.
+##### removeCollider(collider_name)
+Removes the collider with the provided name.
+##### addImage(image as Object, args as Object)
+Adds the provided image to the instance's images array. The image should be of type roBitmap or roRegion. Args should be an associative array with values to override the defaults. Here are the defaults that can be overridden. Images are added to an array and are drawn in the order they are added to that array.
+
+```brightscript
+args = {
+	offset_x: 0 ' The offset of the image.
+	offset_y: 0 
+	origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
+	origin_y: 0
+	scale_x: 1.0 ' The image scale.
+	scale_y: 1.0
+	color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+	alpha: 255 ' Change the image alpha (transparency).
+	enabled: true ' Whether or not the image will be drawn.
+
+	' The following values should only be changed if the image is a spritesheet that needs to be animated.
+	' The spritesheet can have any assortment of multiple columns and rows.
+	image_count: 1 ' The number of images in the spritesheet.
+	image_width: invalid ' The width of each individual image on the spritesheet.
+	image_height: invalid ' The height of each individual image on the spritesheet.
+	animation_speed: 0 ' The time in milliseconds for a single cycle through the animation to play.
+	animation_position: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
+}
+```
+##### removeImage(index as Integer)
+Removes the image in the images array that corresponds to the provided index.

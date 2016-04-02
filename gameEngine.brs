@@ -371,7 +371,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		end function
 
 
-		new_object.addColliderCircle = function(name, radius, offset_x = 0, offset_y = 0, enabled = true)
+		new_object.addColliderCircle = function(collider_name, radius, offset_x = 0, offset_y = 0, enabled = true)
 			collider = {
 				type: "circle",
 				enabled: enabled,
@@ -385,15 +385,15 @@ function gameEngine_init(game_width, game_height, debug = false)
 			region.SetCollisionCircle(offset_x, offset_y, radius)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
-			collider.compositor_object.SetData({collider_name: name, instance_id: m.id})
-			if m.colliders[name] = invalid then
-				m.colliders[name] = collider
+			collider.compositor_object.SetData({collider_name: collider_name, instance_id: m.id})
+			if m.colliders[collider_name] = invalid then
+				m.colliders[collider_name] = collider
 			else
 				if m.debug then : print "Collider Name Already Exists" : end if
 			end if
 		end function
 
-		new_object.addColliderRectangle = function(name, offset_x, offset_y, width, height, enabled = true)
+		new_object.addColliderRectangle = function(collider_name, offset_x, offset_y, width, height, enabled = true)
 			collider = {
 				type: "rectangle",
 				enabled: enabled,
@@ -408,18 +408,18 @@ function gameEngine_init(game_width, game_height, debug = false)
 			region.SetCollisionRectangle(offset_x, offset_y, width, height)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
-			collider.compositor_object.SetData({collider_name: name, instance_id: m.id})
-			if m.colliders[name] = invalid then
-				m.colliders[name] = collider 
+			collider.compositor_object.SetData({collider_name: collider_name, instance_id: m.id})
+			if m.colliders[collider_name] = invalid then
+				m.colliders[collider_name] = collider 
 			else
 				if m.debug then : print "Collider Name Already Exists" : end if
 			end if
 		end function
 
-		new_object.removeCollider = function(name)
-			if m.colliders[name] <> invalid then
-				if type(m.colliders[name].compositor_object) = "roSprite" then : m.colliders[name].compositor_object.Remove() : end if
-				m.colliders[name] = invalid
+		new_object.removeCollider = function(collider_name)
+			if m.colliders[collider_name] <> invalid then
+				if type(m.colliders[collider_name].compositor_object) = "roSprite" then : m.colliders[collider_name].compositor_object.Remove() : end if
+				m.colliders[collider_name] = invalid
 			else
 				if m.debug then : print "Collider Doesn't Exist" : end if
 			end if
@@ -427,19 +427,29 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		new_object.addImage = function(image, args = {})
 			image_object = {
-				image: image,
-				offset_x: 0
-				offset_y: 0
-				origin_x: 0
+				' --------------Values That Can Be Changed------------
+				offset_x: 0 ' The offset of the image.
+				offset_y: 0 
+				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
 				origin_y: 0
-				scale_x: 1.0
+				scale_x: 1.0 ' The image scale.
 				scale_y: 1.0
-				color: &hFFFFFF
-				alpha: 255
-				enabled: true
-				image_count: 1
-				animation_speed: 0
-				animation_position: 0
+				color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+				alpha: 255 ' Change the image alpha (transparency).
+				enabled: true ' Whether or not the image will be drawn.
+
+				' -------------Only To Be Changed For Animation---------------
+				' The following values should only be changed if the image is a spritesheet that needs to be animated.
+				' The spritesheet can have any assortment of multiple columns and rows.
+				image_count: 1 ' The number of images in the spritesheet.
+				image_width: invalid ' The width of each individual image on the spritesheet.
+				image_height: invalid ' The height of each individual image on the spritesheet.
+				animation_speed: 0 ' The time in milliseconds for a single cycle through the animation to play.
+				animation_position: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
+
+				' -------------Never To Be Manually Changed-----------------
+				' These values should never need to be manually changed.
+				image: image,
 				region: invalid
 				animation_timer: invalid
 			}
@@ -450,7 +460,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			end for
 			image_object.animation_timer = CreateObject("roTimespan")
 
-			if args.DoesExist("region_width") and args.DoesExist("region_height") then
+			if image_object.image_width <> invalid and image_object.image_height <> invalid then
 				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, args.image_width, args.image_height)
 			else if type(image) = "roRegion" then 
 				image_object.region = image
@@ -465,7 +475,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.images[index] <> invalid then
 				m.images.Delete(index)
 			else
-				if m.debug then : print "Position In Image Array Is Invalid" : end if
+				if m.debug then : print "removeImage() - Position In Image Array Is Invalid" : end if
 			end if
 		end function
 
