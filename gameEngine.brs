@@ -196,7 +196,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 					if multiple_collisions <> invalid
 						for each other_collider in multiple_collisions
 							other_collider_data = other_collider.GetData()
-							if m.Instances.DoesExist(other_collider_data.instance_id)
+							if other_collider_data.instance_id <> instance.id and m.Instances.DoesExist(other_collider_data.instance_id)
 								instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.instance_id])
 							end if
 						end for
@@ -496,20 +496,20 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### DrawColliders() function - Begin ###############
-	gameEngine.drawColliders = function(instance as Object) as Void
+	gameEngine.drawColliders = function(instance as Object, color = &hFF0000FF as Integer) as Void
 		for each collider_key in instance.colliders
 			collider = instance.colliders[collider_key]
 			if collider.enabled then
 				if collider.type = "circle" then
 					' This function is slow as I'm making draw calls for every section of the line.
 					' It's for debugging purposes only!
-					DrawCircle(m.screen, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, &hFF0000FF)
+					DrawCircle(m.frame, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, color)
 				end if
 				if collider.type = "rectangle" then
-					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, &hFF0000FF)
-					m.frame.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, &hFF0000FF)
-					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, &hFF0000FF)
-					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, &hFF0000FF)
+					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, color)
+					m.frame.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, color)
+					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, color)
+					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, color)
 				end if
 			end if
 		end for
@@ -661,7 +661,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 				end if
 			end for
 			m.currentRoom = invalid
-			m.currentRoom = m.newEmptyObject("room")
+			m.currentRoom = m.newEmptyObject(room_name)
 			m.Rooms[room_name](m.currentRoom)
 			for each key in args
 				m.currentRoom[key] = args[key]
