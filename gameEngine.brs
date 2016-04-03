@@ -536,10 +536,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 		if m.Objects.DoesExist(object_name)
 			new_instance = m.newEmptyObject(object_name)
 			m.Objects[object_name](new_instance)
+			new_instance.onCreate()
 			for each key in args
 				new_instance[key] = args[key]
 			end for
-			new_instance.onCreate()
 			if m.debug then : print "createInstance() - Creating instance: "+new_instance.id : end if
 			return new_instance
 		else
