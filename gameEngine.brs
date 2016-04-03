@@ -204,7 +204,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 								end for
 							end if
 						else
-							print "did this"
 							collider.compositor_object.SetMemberFlags(99)
 							collider.compositor_object.SetCollidableFlags(99)
 						end if
@@ -212,7 +211,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 						if instance.colliders.DoesExist(collider_key)
 							instance.colliders.Delete(collider_key)
 						end if
-						print "Invalid collider!!!!!!!!!!!!!!!!!!!!!!!!!!"
 					end if
 				end for
 
