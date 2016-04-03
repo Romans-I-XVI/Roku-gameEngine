@@ -38,7 +38,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		' ****Variables****
 		currentRoom: invalid
-		Instances: {} ' This holds all of the game object instances
+		Instances: { room: {}} ' This holds all of the game object instances
 		Objects: {} ' This holds the object definitions by name (the object creation functions)
 		Rooms: {} ' This holds the room definitions by name (the room creation functions)
 		Bitmaps: {} ' This holds the loaded bitmaps by name
@@ -54,7 +54,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		defineObject: invalid
 		createInstance: invalid
 		getInstanceByID: invalid
-		getInstanceByName: invalid
+		getInstanceByType: invalid
 		getAllInstances: invalid
 		destroyInstance: invalid
 		destroyAllInstances: invalid
@@ -197,8 +197,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 						if multiple_collisions <> invalid
 							for each other_collider in multiple_collisions
 								other_collider_data = other_collider.GetData()
-								if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
-									instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
+								if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_type].DoesExist(other_collider_data.instance_id)
+									instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_type][other_collider_data.instance_id])
 								end if
 							end for
 						end if
@@ -269,7 +269,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		' --------------------Then do camera magic if it's set to follow----------------------------
 		if m.camera.follow <> invalid
-			if m.camera.follow.id <> invalid and m.Instances[m.camera.follow.name].DoesExist(m.camera.follow.id)
+			if m.camera.follow.id <> invalid and m.Instances[m.camera.follow.type].DoesExist(m.camera.follow.id)
 				m.cameraCenterToInstance(m.camera.follow, m.camera.follow_mode)
 			else
 				m.camera.follow = invalid
@@ -299,11 +299,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ################################################################ newEmptyObject() function - Begin #####################################################################################################
-	gameEngine.newEmptyObject = function(name as String) as Object
+	gameEngine.newEmptyObject = function(object_type as String) as Object
 		m.currentID = m.currentID + 1
 		new_object = {
 			' -----Constants-----
-			name: name
+			type: object_type
 			id: m.currentID.ToStr()
 			gameEngine: m
 
@@ -387,7 +387,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			region.SetCollisionCircle(offset_x, offset_y, radius)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
-			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
+			collider.compositor_object.SetData({collider_name: collider_name, object_type: m.type, instance_id: m.id})
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider
 			else
@@ -410,7 +410,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			region.SetCollisionRectangle(offset_x, offset_y, width, height)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
-			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
+			collider.compositor_object.SetData({collider_name: collider_name, object_type: m.type, instance_id: m.id})
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider 
 			else
@@ -481,7 +481,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			end if
 		end function
 
-		m.Instances[new_object.name][new_object.id] = new_object
+		m.Instances[new_object.type][new_object.id] = new_object
 
 		return new_object
 	end function
@@ -523,19 +523,19 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### defineObject() function - Begin ###############
-	gameEngine.defineObject = function(object_name as String, object_creation_function as Function) as Void
-		m.Objects[object_name] = object_creation_function
-		m.Instances[object_name] = {}
+	gameEngine.defineObject = function(object_type as String, object_creation_function as Function) as Void
+		m.Objects[object_type] = object_creation_function
+		m.Instances[object_type] = {}
 	end function
 	' ############### defineObject() function - End ###############
 
 
 
 	' ############### createInstance() function - Begin ###############
-	gameEngine.createInstance = function(object_name as String, args = {} as Object) as Dynamic
-		if m.Objects.DoesExist(object_name)
-			new_instance = m.newEmptyObject(object_name)
-			m.Objects[object_name](new_instance)
+	gameEngine.createInstance = function(object_type as String, args = {} as Object) as Dynamic
+		if m.Objects.DoesExist(object_type)
+			new_instance = m.newEmptyObject(object_type)
+			m.Objects[object_type](new_instance)
 			new_instance.onCreate()
 			for each key in args
 				new_instance[key] = args[key]
@@ -543,7 +543,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.debug then : print "createInstance() - Creating instance: "+new_instance.id : end if
 			return new_instance
 		else
-			if m.debug then : print "createInstance() - No objects registered with the name - " ; object_name : end if
+			if m.debug then : print "createInstance() - No objects registered with the name - " ; object_type : end if
 			return invalid
 		end if
 	end function
@@ -565,30 +565,30 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ############### getInstanceByName() function - Begin ###############
-	gameEngine.getInstanceByName = function(object_name as String) as Dynamic
-		if m.Instances.DoesExist(object_name) then
-			for each instance_key in m.Instances[object_name]
-				return m.Instances[object_name][instance_key] ' Obviously only retrieves the first value
+	' ############### getInstanceByType() function - Begin ###############
+	gameEngine.getInstanceByType = function(object_type as String) as Dynamic
+		if m.Instances.DoesExist(object_type) then
+			for each instance_key in m.Instances[object_type]
+				return m.Instances[object_type][instance_key] ' Obviously only retrieves the first value
 			end for
 		end if
-		if m.debug then : print "getInstanceByName() - No instance exists with name - " ; object_name : end if
+		if m.debug then : print "getInstanceByType() - No instance exists with name - " ; object_type : end if
 		return invalid
 	end function
-	' ############### getInstanceByName() function - End ###############
+	' ############### getInstanceByType() function - End ###############
 
 
 
 	' ############### getAllInstances() function - Begin ###############
-	gameEngine.getAllInstances = function(object_name as String) as Dynamic
-		if m.Instances.DoesExist(object_name) then
+	gameEngine.getAllInstances = function(object_type as String) as Dynamic
+		if m.Instances.DoesExist(object_type) then
 			array = []
-			for each instance_key in m.Instances[object_name]
-				array.Push(m.Instances[object_name][instance_key])
+			for each instance_key in m.Instances[object_type]
+				array.Push(m.Instances[object_type][instance_key])
 			end for
 			return array
 		else
-			if m.debug then : print "getAllInstances() - No object defined with name - " ; object_name : end if
+			if m.debug then : print "getAllInstances() - No object defined with name - " ; object_type : end if
 			return invalid
 		end if
 	end function
@@ -599,7 +599,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### destroyInstance() function - Begin ###############
 	gameEngine.destroyInstance = function(instance as Object) as Void
 		if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
-		if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
+		if instance.id <> invalid and m.Instances[instance.type].DoesExist(instance.id) then
 			for each collider_key in instance.colliders
 				collider = instance.colliders[collider_key]
 				if type(collider.compositor_object) = "roSprite" then 
@@ -607,7 +607,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 				end if
 			end for
 			instance.onDestroy()
-			m.Instances[instance.name].Delete(instance.id)
+			m.Instances[instance.type].Delete(instance.id)
 			m.need_to_clear.Push(instance)
 		else
 			if m.debug then : print "destroyInstance() - Object was previously destroyed" : end if
@@ -618,9 +618,9 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### destroyAllInstances() function - Begin ###############
-	gameEngine.destroyAllInstances = function(object_name as String) as Void
-		for each instance_key in m.Instances[object_name]
-			m.destroyInstance(m.Instances[object_name][instance_key])
+	gameEngine.destroyAllInstances = function(object_type as String) as Void
+		for each instance_key in m.Instances[object_type]
+			m.destroyInstance(m.Instances[object_type][instance_key])
 		end for
 	end function
 	' ############### destroyAllInstances() function - End ###############
@@ -628,8 +628,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 	' ############### instanceCount() function - Begin ###############
-	gameEngine.instanceCount = function(object_name as String) as Integer
-		return m.Instances[object_name].Count()
+	gameEngine.instanceCount = function(object_type as String) as Integer
+		return m.Instances[object_type].Count()
 	end function 
 	' ############### instanceCount() function - End ###############
 
@@ -640,7 +640,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 	' ############### defineRoom() function - Begin ###############
 	gameEngine.defineRoom = function(room_name as String, room_creation_function as Function) as Void
 		m.Rooms[room_name] = room_creation_function
-		m.Instances[room_name] = {}
 		if m.debug then : print "defineRoom() - Room function has been added" : end if
 	end function
 	' ############### defineRoom() function - Begin ###############
@@ -661,7 +660,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 				end for
 			end for
 			m.currentRoom = invalid
-			m.currentRoom = m.newEmptyObject(room_name)
+			m.currentRoom = m.newEmptyObject("room")
+			m.currentRoom.name = room_name
 			m.Rooms[room_name](m.currentRoom)
 			for each key in args
 				m.currentRoom[key] = args[key]
