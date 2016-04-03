@@ -122,11 +122,12 @@ The basic game object structure looks like this.
 new_object = {
 
 	' -----Constants-----
-	name: name
+	type: object_type
 	id: m.currentID.ToStr()
 	gameEngine: m
 
 	' -----Variables-----
+	name: ""
 	persistent: false
 	depth: 0
 	x: 0.0
@@ -143,11 +144,12 @@ new_object = {
 ```
 
 ###### ---Constants---
-* name: This is the name of the object as declared by defineObject(). For example - A "ball" object can be defined, all instances of the object will be named "ball" but will have different IDs.
+* type: This is the object type as declared by defineObject(). For example - A "ball" object can be defined, all instances of the object will be of type "ball" but will have different IDs.
 * id: This is the ID for this specific instance.
-* gameEngine: This a reference to the gameEngine so that every object instance can easily access its methods.
+* gameEngine: This is a reference to the gameEngine so that every object instance can easily access its methods.
 
 ###### ---Variables---
+* name: The name is blank by default, except for rooms, in which case the name is automatically set to the name of the room. This can otherwise be used to name the instance if desired.
 * persistent: If true the instance will not be destroyed when the on changeRoom(), default behavior is to destroy all instances on changeRoom().
 * depth: Declares the instance draw depth.
 * x/y: The x and y positions of the instance.

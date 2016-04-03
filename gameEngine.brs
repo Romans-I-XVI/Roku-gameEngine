@@ -184,27 +184,35 @@ function gameEngine_init(game_width, game_height, debug = false)
 				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
 				for each collider_key in instance.colliders
 					collider = instance.colliders[collider_key]
-					if collider.enabled then
-						collider.compositor_object.SetMemberFlags(1)
-						collider.compositor_object.SetCollidableFlags(1)
-						if collider.type = "circle" then
-							collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
-						else if collider.type = "rectangle" then
-							collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
-						end if
-						collider.compositor_object.MoveTo(instance.x, instance.y)
-						multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
-						if multiple_collisions <> invalid
-							for each other_collider in multiple_collisions
-								other_collider_data = other_collider.GetData()
-								if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_type].DoesExist(other_collider_data.instance_id)
-									instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_type][other_collider_data.instance_id])
-								end if
-							end for
+					if collider <> invalid then
+						if collider.enabled then
+							collider.compositor_object.SetMemberFlags(1)
+							collider.compositor_object.SetCollidableFlags(1)
+							if collider.type = "circle" then
+								collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
+							else if collider.type = "rectangle" then
+								collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
+							end if
+							collider.compositor_object.MoveTo(instance.x, instance.y)
+							multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
+							if multiple_collisions <> invalid
+								for each other_collider in multiple_collisions
+									other_collider_data = other_collider.GetData()
+									if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_type].DoesExist(other_collider_data.instance_id)
+										instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_type][other_collider_data.instance_id])
+									end if
+								end for
+							end if
+						else
+							print "did this"
+							collider.compositor_object.SetMemberFlags(99)
+							collider.compositor_object.SetCollidableFlags(99)
 						end if
 					else
-						collider.compositor_object.SetMemberFlags(99)
-						collider.compositor_object.SetCollidableFlags(99)
+						if instance.colliders.DoesExist(collider_key)
+							instance.colliders.Delete(collider_key)
+						end if
+						print "Invalid collider!!!!!!!!!!!!!!!!!!!!!!!!!!"
 					end if
 				end for
 
@@ -308,6 +316,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			gameEngine: m
 
 			' -----Variables-----
+			name: ""
 			persistent: false
 			depth: 0
 			x: 0.0
@@ -376,6 +385,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		new_object.addColliderCircle = function(collider_name, radius, offset_x = 0, offset_y = 0, enabled = true)
 			collider = {
 				type: "circle",
+				name: collider_name,
 				enabled: enabled,
 				radius: radius,
 				offset_x: offset_x,
@@ -391,13 +401,14 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider
 			else
-				if m.debug then : print "Collider Name Already Exists" : end if
+				if m.gameEngine.debug then : print "Collider Name Already Exists" : end if
 			end if
 		end function
 
 		new_object.addColliderRectangle = function(collider_name, offset_x, offset_y, width, height, enabled = true)
 			collider = {
 				type: "rectangle",
+				name: collider_name,
 				enabled: enabled,
 				offset_x: offset_x,
 				offset_y: offset_y,
@@ -414,22 +425,23 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider 
 			else
-				if m.debug then : print "Collider Name Already Exists" : end if
+				if m.gameEngine.debug then : print "Collider Name Already Exists" : end if
 			end if
 		end function
 
 		new_object.removeCollider = function(collider_name)
 			if m.colliders[collider_name] <> invalid then
 				if type(m.colliders[collider_name].compositor_object) = "roSprite" then : m.colliders[collider_name].compositor_object.Remove() : end if
-				m.colliders[collider_name] = invalid
+				m.colliders.Delete(collider_name)
 			else
-				if m.debug then : print "Collider Doesn't Exist" : end if
+				if m.gameEngine.debug then : print "Collider Doesn't Exist" : end if
 			end if
 		end function
 
 		new_object.addImage = function(image, args = {})
 			image_object = {
 				' --------------Values That Can Be Changed------------
+				name: ""
 				offset_x: 0 ' The offset of the image.
 				offset_y: 0 
 				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
@@ -477,7 +489,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.images[index] <> invalid then
 				m.images.Delete(index)
 			else
-				if m.debug then : print "removeImage() - Position In Image Array Is Invalid" : end if
+				if m.gameEngine.debug then : print "removeImage() - Position In Image Array Is Invalid" : end if
 			end if
 		end function
 
