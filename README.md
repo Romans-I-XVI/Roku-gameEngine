@@ -6,7 +6,8 @@ The purpose of this project is to make it easy to develop game for the Roku in a
 
 First start by creating the gameEngine object
 
-##### gameEngine = gameEngine_init()
+##### gameEngine = gameEngine_init(game_width as Integer, game_height as Integer, gui_layer as Boolean, debug as Boolean) as Object
+Creates the main gameEngine object, the game width and height create an empty bitmap of that size that the game is drawn to. If debug is enabled various information will be printed to the console.
 
 
 gameEngine
@@ -18,6 +19,8 @@ This method must be called in your main while loop in order for the game to exec
 This method is primarily for internal use, but may be called manually if desired. It returns an empty game object.
 ##### getDeltaTime() as Float
 Returns the delta time. Note: Delta time is automatically applied to the built in instance xspeed and yspeed. Delta time is also automatically passed to the onUpdate(dt) function in every instance for convenience.
+##### setBackgroundColor(color as Dynamic) as Void
+Set the color the game layer will be cleared with, if set to invalid the game layer will not be cleared.
 ##### drawColliders(instance as Object) as Void
 This method is for debugging purposes, it will draw the colliders associated with the provided instance.
 
@@ -170,11 +173,14 @@ This method is called every frame. Put code to be constantly ran here.
 ##### onCollision(collider, other_collider, other_instance)
 This method is called when two object instances collide. collider and other_collider are strings refering to the specific colliders that are in collision.
 
-##### onDrawBegin(screen)
-This is called before the instance is drawn and receives the screen as a object that can be drawn to.
+##### onDrawBegin(gameLayer)
+This is called before the instance is drawn and receives the game layer as a object that can be drawn to. 
 
-##### onDrawEnd(screen)
-This is called after the instance is drawn and receives the screen as a object that can be drawn to.
+##### onDrawEnd(gameLayer)
+This is called after the instance is drawn and receives the game layer as a object that can be drawn to. 
+
+##### onDrawGui(screen)
+This is called after the game has been drawn to the screen and receives the screen object. This can be used to draw interface elements if the camera is being used as anything drawn here will not be effected by the camera zoom/position. Note: The screen is always the same resolution as the device resolution.
 
 ##### onButton(code)
 This is called whenever a button is pressed, released, or held.

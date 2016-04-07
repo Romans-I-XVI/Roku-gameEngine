@@ -25,7 +25,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 		audioplayer: CreateObject("roAudioPlayer")
 		music_port: CreateObject("roMessagePort")
 		font_registry: CreateObject("roFontRegistry")
-		frame: CreateObject("roBitmap", {width: game_width, height: game_height, AlphaEnable: true})
+		background_color: &h000000FF
+		gameLayer: CreateObject("roBitmap", {width: game_width, height: game_height, AlphaEnable: true})
 		camera: {
 			offset_x: 0
 			offset_y: 0
@@ -128,14 +129,15 @@ function gameEngine_init(game_width, game_height, debug = false)
 	gameEngine.Update = function() as Void
 		m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 		m.screen.Clear(&h000000FF) 
-		m.frame.Clear(&h000000FF) 
+		if m.background_color <> invalid then
+			m.gameLayer.Clear(m.background_color)
+		end if
 
 
 		m.dt = m.dtTimer.TotalMilliseconds()/1000
 		m.dtTimer.Mark()
         screen_msg = m.screen_port.GetMessage() 
         music_msg = m.music_port.GetMessage()
-		draw_depths = []
 		m.fpsTicker = m.fpsTicker + 1
 		if m.fpsTimer.TotalMilliseconds() > 1000 then
 			m.FPS = m.fpsTicker
@@ -143,133 +145,131 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.fpsTimer.Mark()
 		end if
 
-
-		' --------------------Begin giant loop for processing all game objects----------------
+		' --------------------------Add object to the appropriate position in the draw_depths array-----------------
+		sorted_instances = []
 		for each object_key in m.Instances
 			for each instance_key in m.Instances[object_key]
 				instance = m.Instances[object_key][instance_key]
-
-				
-				' -------------------- Then handle the object movement--------------------
-				instance.x = instance.x + instance.xspeed*m.dt
-				instance.y = instance.y + instance.yspeed*m.dt
-
-
-				' --------------------First process the onButton() function--------------------
-		        if type(screen_msg) = "roUniversalControlEvent" then
-		        	instance.onButton(screen_msg.GetInt())
-		        	if screen_msg.GetInt() < 100
-		        		m.buttonHeld = screen_msg.GetInt()
-		        	else
-		        		m.buttonHeld = -1
-		        	end if
-		        end if
-		        if m.buttonHeld <> -1 then
-		        	' Button release codes are 100 plus the button press code
-		        	' This shows a button held code as 1000 plus the button press code
-		        	instance.onButton(1000+m.buttonHeld)
-		        end if
-
-
-		        ' -------------------Then send the audioplayer event msg if applicable-------------------
-		        if type(music_msg) = "roAudioPlayerEvent" then
-		        	instance.onAudioEvent(music_msg)
-		        end if
-
-
-		        ' -------------------Then process the onUpdate() function----------------------
-				instance.onUpdate(m.dt)
-
-
-				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
-				for each collider_key in instance.colliders
-					collider = instance.colliders[collider_key]
-					if collider <> invalid then
-						if collider.enabled then
-							collider.compositor_object.SetMemberFlags(1)
-							collider.compositor_object.SetCollidableFlags(1)
-							if collider.type = "circle" then
-								collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
-							else if collider.type = "rectangle" then
-								collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
-							end if
-							collider.compositor_object.MoveTo(instance.x, instance.y)
-							multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
-							if multiple_collisions <> invalid
-								for each other_collider in multiple_collisions
-									other_collider_data = other_collider.GetData()
-									if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_type].DoesExist(other_collider_data.instance_id)
-										instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_type][other_collider_data.instance_id])
-									end if
-								end for
-							end if
-						else
-							collider.compositor_object.SetMemberFlags(99)
-							collider.compositor_object.SetCollidableFlags(99)
-						end if
-					else
-						if instance.colliders.DoesExist(collider_key)
-							instance.colliders.Delete(collider_key)
-						end if
-					end if
-				end for
-
-
-				' -------------------- Then handle image animation------------------------
-				for each image_object in instance.images
-					if image_object.image_count > 1 then
-						image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
-						if image_animation_timing >= 1 then
-							image_object.animation_position = image_object.animation_position+image_animation_timing
-							if image_object.animation_position > image_object.image_count then
-								image_object.animation_position = 0
-								image_object.animation_timer.Mark()
-							end if
-							image_width = image_object.image.GetWidth()
-							region_position = int(image_object.animation_position)
-							region_width = image_object.region.GetWidth()
-							region_height = image_object.region.GetHeight()
-
-							y_offset = region_position*region_width \ image_width
-							x_offset = region_position*region_width-image_width*y_offset
-							image_object.region = CreateObject("roRegion", image_object.image, x_offset, y_offset*region_height, region_width, region_height)
-						end if
-					end if
-				end for
-
-
-				' --------------------------Add object to the appropriate position in the draw_depths array-----------------
-				if draw_depths.Count() > 0 then
+				if sorted_instances.Count() > 0 then
 					inserted = false
-					for i = draw_depths.Count()-1 to 0 step -1
-						if not inserted and instance.depth > draw_depths[i].depth then
-							ArrayInsert(draw_depths, i+1, instance)
+					for i = sorted_instances.Count()-1 to 0 step -1
+						if not inserted and instance.depth > sorted_instances[i].depth then
+							ArrayInsert(sorted_instances, i+1, instance)
 							inserted = true
 							exit for
 						end if
 					end for
 					if not inserted then
-						draw_depths.Unshift(instance)
+						sorted_instances.Unshift(instance)
 					end if
 				else
-					draw_depths.Unshift(instance)
+					sorted_instances.Unshift(instance)
 				end if
 			end for
 		end for
 
+		' --------------------Begin giant loop for processing all game objects----------------
+		for i = sorted_instances.Count()-1 to 0 step -1
+			instance = sorted_instances[i]
+			
+			' -------------------- Then handle the object movement--------------------
+			instance.x = instance.x + instance.xspeed*m.dt
+			instance.y = instance.y + instance.yspeed*m.dt
 
-		' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
-		for i = draw_depths.Count()-1 to 0 step -1
-			instance = draw_depths[i]
-			instance.onDrawBegin(m.frame)
+
+			' --------------------First process the onButton() function--------------------
+	        if type(screen_msg) = "roUniversalControlEvent" then
+	        	instance.onButton(screen_msg.GetInt())
+	        	if screen_msg.GetInt() < 100
+	        		m.buttonHeld = screen_msg.GetInt()
+	        	else
+	        		m.buttonHeld = -1
+	        	end if
+	        end if
+	        if m.buttonHeld <> -1 then
+	        	' Button release codes are 100 plus the button press code
+	        	' This shows a button held code as 1000 plus the button press code
+	        	instance.onButton(1000+m.buttonHeld)
+	        end if
+
+
+	        ' -------------------Then send the audioplayer event msg if applicable-------------------
+	        if type(music_msg) = "roAudioPlayerEvent" then
+	        	instance.onAudioEvent(music_msg)
+	        end if
+
+
+	        ' -------------------Then process the onUpdate() function----------------------
+			instance.onUpdate(m.dt)
+
+
+			' -------------------Then handle collisions and call onCollision() for each collision---------------------------
+			for each collider_key in instance.colliders
+				collider = instance.colliders[collider_key]
+				if collider <> invalid then
+					if collider.enabled then
+						collider.compositor_object.SetMemberFlags(1)
+						collider.compositor_object.SetCollidableFlags(1)
+						if collider.type = "circle" then
+							collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
+						else if collider.type = "rectangle" then
+							collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
+						end if
+						collider.compositor_object.MoveTo(instance.x, instance.y)
+						multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
+						if multiple_collisions <> invalid
+							for each other_collider in multiple_collisions
+								other_collider_data = other_collider.GetData()
+								if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_type].DoesExist(other_collider_data.instance_id)
+									instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_type][other_collider_data.instance_id])
+								end if
+							end for
+						end if
+					else
+						collider.compositor_object.SetMemberFlags(99)
+						collider.compositor_object.SetCollidableFlags(99)
+					end if
+				else
+					if instance.colliders.DoesExist(collider_key)
+						instance.colliders.Delete(collider_key)
+					end if
+				end if
+			end for
+
+
+			' -------------------- Then handle image animation------------------------
+			for each image_object in instance.images
+				if image_object.image_count > 1 then
+					image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
+					if image_animation_timing >= 1 then
+						image_object.animation_position = image_object.animation_position+image_animation_timing
+						if image_object.animation_position > image_object.image_count then
+							image_object.animation_position = 0
+							image_object.animation_timer.Mark()
+						end if
+						image_width = image_object.image.GetWidth()
+						region_position = int(image_object.animation_position)
+						region_width = image_object.region.GetWidth()
+						region_height = image_object.region.GetHeight()
+
+						y_offset = region_position*region_width \ image_width
+						x_offset = region_position*region_width-image_width*y_offset
+						image_object.region = CreateObject("roRegion", image_object.image, x_offset, y_offset*region_height, region_width, region_height)
+					end if
+				end if
+			end for
+
+
+			' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
+			instance.onDrawBegin(m.gameLayer)
 			for each image in instance.images
 				if image.enabled then
 					if image.alpha > 255 then : image.alpha = 255 : end if
-					m.frame.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
+					m.gameLayer.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
 				end if
 			end for
-			instance.onDrawEnd(m.frame)
-			' if m.debug then : m.DrawColliders(instance) : end if
+			instance.onDrawEnd(m.gameLayer)
+
 		end for
 
 
@@ -282,6 +282,20 @@ function gameEngine_init(game_width, game_height, debug = false)
 			end if
 		end if
 
+
+		' -------------------Draw everything to the screen----------------------------
+		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.gameLayer)
+		for i = sorted_instances.Count()-1 to 0 step -1
+			instance = sorted_instances[i]
+			instance.onDrawGui(m.screen)
+		end for
+		if m.debug then
+			m.screen.DrawRect(10-4, 10, 100, 32, &h000000FF)
+			m.screen.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default)
+		end if
+		m.screen.SwapBuffers()
+
+
 		' -------------------This is placed here so that objects don't get invalidated mid function-----------------
 		if m.need_to_clear.Count() > 0
 			for i = 0 to m.need_to_clear.Count()-1
@@ -290,14 +304,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 			end for
 			m.need_to_clear = []
 		end if
-
-		if m.debug then
-			m.frame.DrawRect(10-4, 10, 100, 32, &h000000FF)
-			m.frame.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default)
-		end if
-		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.frame)
-		m.screen.SwapBuffers()
-
 
 	end function
 	' ################################################################ Update() function - End #####################################################################################################
@@ -350,10 +356,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 		new_object.onCollision = function(collider, other_collider, other_instance)
 		end function
 
-		new_object.onDrawBegin = function(screen)
+		new_object.onDrawBegin = function(gameLayer)
 		end function
 
-		new_object.onDrawEnd = function(screen)
+		new_object.onDrawEnd = function(gameLayer)
+		end function
+
+		new_object.onDrawGui = function(screen)
 		end function
 
 		new_object.onButton = function(code)
@@ -507,6 +516,14 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
+	' ############### setBackgroundColor() function - Begin ###############
+	gameEngine.setBackgroundColor = function(color as Dynamic) as Void
+		m.background_color = color
+	end function
+	' ############### setBackgroundColor() function - Begin ###############
+
+
+
 	' ############### DrawColliders() function - Begin ###############
 	gameEngine.drawColliders = function(instance as Object, color = &hFF0000FF as Integer) as Void
 		for each collider_key in instance.colliders
@@ -515,13 +532,13 @@ function gameEngine_init(game_width, game_height, debug = false)
 				if collider.type = "circle" then
 					' This function is slow as I'm making draw calls for every section of the line.
 					' It's for debugging purposes only!
-					DrawCircle(m.frame, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, color)
+					DrawCircle(m.gameLayer, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, color)
 				end if
 				if collider.type = "rectangle" then
-					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, color)
-					m.frame.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, color)
-					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, color)
-					m.frame.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, color)
+					m.gameLayer.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, color)
+					m.gameLayer.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, color)
+					m.gameLayer.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, color)
+					m.gameLayer.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, color)
 				end if
 			end if
 		end for
@@ -864,24 +881,24 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 	' ############### cameraFitToScreen() function - Begin ###############
 	gameEngine.cameraFitToScreen = function() as Void
-		frame_width = m.frame.GetWidth()
-		frame_height = m.frame.GetHeight()
+		game_width = m.gameLayer.GetWidth()
+		game_height = m.gameLayer.GetHeight()
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
-		if screen_width/screen_height < frame_width/frame_height then
-			m.camera.scale_x = screen_width/frame_width
+		if screen_width/screen_height < game_width/game_height then
+			m.camera.scale_x = screen_width/game_width
 			m.camera.scale_y = m.camera.scale_x
 			m.camera.offset_x = 0
-			m.camera.offset_y = (screen_height-(screen_width/(frame_width/frame_height)))/2
-		else if screen_width/screen_height > frame_width/frame_height then
-			m.camera.scale_x = screen_height/frame_height
+			m.camera.offset_y = (screen_height-(screen_width/(game_width/game_height)))/2
+		else if screen_width/screen_height > game_width/game_height then
+			m.camera.scale_x = screen_height/game_height
 			m.camera.scale_y = m.camera.scale_x
-			m.camera.offset_x = (screen_width-(screen_height*(frame_width/frame_height)))/2
+			m.camera.offset_x = (screen_width-(screen_height*(game_width/game_height)))/2
 			m.camera.offset_y = 0
 		else
 			m.camera.offset_x = 0
 			m.camera.offset_y = 0
-			scale_difference = screen_width/frame_width
+			scale_difference = screen_width/game_width
 			m.camera.scale_x = 1*scale_difference
 			m.camera.scale_y = 1*scale_difference
 		end if
@@ -896,8 +913,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.debug then : print "cameraCenterToInstance() - Provided instance doesn't exist" : end if
 			return invalid
 		end if
-		frame_width = m.frame.GetWidth()
-		frame_height = m.frame.GetHeight()
+		game_width = m.gameLayer.GetWidth()
+		game_height = m.gameLayer.GetHeight()
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
 
@@ -905,8 +922,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 		offset_y = 0-instance.y*m.camera.scale_y+screen_height/2
 
 		if mode = 0
-			minimum_offset_x = -((frame_width*m.camera.scale_x)-screen_width)
-			minimum_offset_y = -((frame_height*m.camera.scale_y)-screen_height)
+			minimum_offset_x = -((game_width*m.camera.scale_x)-screen_width)
+			minimum_offset_y = -((game_height*m.camera.scale_y)-screen_height)
 
 			if offset_x >= minimum_offset_x and offset_x <= 0
 				m.camera.offset_x = offset_x
@@ -929,12 +946,12 @@ function gameEngine_init(game_width, game_height, debug = false)
 		end if
 
 
-		if frame_width*m.camera.scale_x < screen_width
-			m.camera.offset_x = (screen_width-frame_width*m.camera.scale_x)/2
+		if game_width*m.camera.scale_x < screen_width
+			m.camera.offset_x = (screen_width-game_width*m.camera.scale_x)/2
 		end if
 
-		if frame_height*m.camera.scale_y < screen_height
-			m.camera.offset_y = (screen_height-frame_height*m.camera.scale_y)/2
+		if game_height*m.camera.scale_y < screen_height
+			m.camera.offset_y = (screen_height-game_height*m.camera.scale_y)/2
 		end if
 
 
