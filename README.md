@@ -164,8 +164,8 @@ new_object = {
 The override methods are designed to be overridden. They are automatically called by the gameEngine at the approprate times.
 Note: For these methods, if an argument is shown, then the override method _must_ accept that argument as well.
 
-##### onCreate()
-This method will always be called when the instance is created. Put creation code here.
+##### onCreate(args)
+This method will always be called when the instance is created. Put creation code here. Must receive args as an associative array, this is the same associative array that is passed as args when calling createInstance().
 
 ##### onUpdate(deltaTime)
 This method is called every frame. Put code to be constantly ran here. 
