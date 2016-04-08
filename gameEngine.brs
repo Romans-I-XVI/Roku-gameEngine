@@ -347,7 +347,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		}
 
 		' These empty functions are placeholders, they are to be overwritten by the user
-		new_object.onCreate = function()
+		new_object.onCreate = function(args)
 		end function
 
 		new_object.onUpdate = function(deltaTime)
@@ -563,10 +563,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		if m.Objects.DoesExist(object_type)
 			new_instance = m.newEmptyObject(object_type)
 			m.Objects[object_type](new_instance)
-			new_instance.onCreate()
-			for each key in args
-				new_instance[key] = args[key]
-			end for
+			new_instance.onCreate(args)
 			if m.debug then : print "createInstance() - Creating instance: "+new_instance.id : end if
 			return new_instance
 		else
@@ -690,10 +687,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.currentRoom = m.newEmptyObject("room")
 			m.currentRoom.name = room_name
 			m.Rooms[room_name](m.currentRoom)
-			for each key in args
-				m.currentRoom[key] = args[key]
-			end for
-			m.currentRoom.onCreate()
+			m.currentRoom.onCreate(args)
 			return true
 		else
 			if m.debug then : print "changeRoom() - The provided room name hasn't been defined" : end if
