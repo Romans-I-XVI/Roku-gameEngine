@@ -284,6 +284,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 		' -------------------Draw everything to the screen----------------------------
+		print m.camera.offset_x
 		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.gameLayer)
 		for i = sorted_instances.Count()-1 to 0 step -1
 			instance = sorted_instances[i]
@@ -521,6 +522,30 @@ function gameEngine_init(game_width, game_height, debug = false)
 		m.background_color = color
 	end function
 	' ############### setBackgroundColor() function - Begin ###############
+
+
+
+	' ############### setGameSize() function - Begin ###############
+	gameEngine.setGameSize = function(game_width as Integer, game_height as Integer) as Void
+		m.gameLayer = CreateObject("roBitmap", {width: game_width, height: game_height, AlphaEnable: true})
+	end function
+	' ############### setGameSize() function - Begin ###############
+
+
+
+	' ############### getGameWidth() function - Begin ###############
+	gameEngine.getGameWidth = function() as Integer
+		return m.gameLayer.GetWidth()
+	end function
+	' ############### getGameWidth() function - Begin ###############
+
+
+
+	' ############### getGameHeight() function - Begin ###############
+	gameEngine.getGameHeight = function() as Integer
+		return m.gameLayer.GetHeight()
+	end function
+	' ############### getGameHeight() function - Begin ###############
 
 
 
@@ -934,19 +959,23 @@ function gameEngine_init(game_width, game_height, debug = false)
 			else if not offset_y <= 0
 				m.camera.offset_y = 0
 			end if
+
+			if game_width*m.camera.scale_x < screen_width
+				m.camera.offset_x = (screen_width-game_width*m.camera.scale_x)/2
+			end if
+
+			if game_height*m.camera.scale_y < screen_height
+				m.camera.offset_y = (screen_height-game_height*m.camera.scale_y)/2
+			end if
+
 		else if mode = 1
+
 			m.camera.offset_x = offset_x
 			m.camera.offset_y = offset_y
+			
 		end if
 
 
-		if game_width*m.camera.scale_x < screen_width
-			m.camera.offset_x = (screen_width-game_width*m.camera.scale_x)/2
-		end if
-
-		if game_height*m.camera.scale_y < screen_height
-			m.camera.offset_y = (screen_height-game_height*m.camera.scale_y)/2
-		end if
 
 
 	end function
@@ -1021,35 +1050,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 		end if
 	end function
 	' ############### playSound() function - End ###############
-
-
-	' ----------------------------------------Begin Registry Functions------------------------------------------
-	gameEngine.registryWriteString = function(registry_section as String, key as String, value as String) as Void
-	    section = CreateObject("roRegistrySection", registry_section)
-	    section.Write(key, value)
-	    section.Flush()
-	end function
-
-	gameEngine.registryWriteFloat = function(registry_section as String, key as String, value as Float) as Void
-		value = str(value)
-		m.registryWriteString(registry_section, key, value)
-	end function
-
-	gameEngine.registryReadString = function(registry_section as String, key as String, default_value as String) as String
-		section = CreateObject("roRegistrySection", registry_section)
-	    if section.Exists(registry_section) then
-	        return section.Read(registry_section)
-	    else
-	    	section.Write(key, default_value)
-	    	section.Flush()
-	    	return default_value
-	    end if
-	end function
-
-	gameEngine.registryReadFloat = function(registry_section as String, key as String, default_value as Float) as Float
-		default_value = str(default_value)
-        return val(m.registryReadString(registry_section, key, default_value))
-	end function
 
 	return gameEngine
 end function
@@ -1134,3 +1134,43 @@ Function HSVtoRGB(h%,s%,v%,a = invalid) As Integer
 
 	return color%
 End Function
+
+' ----------------------------------------Begin Registry Functions------------------------------------------
+function registryWriteString(registry_section as String, key as String, value as String) as Void
+    section = CreateObject("roRegistrySection", registry_section)
+    section.Write(key, value)
+    section.Flush()
+end function
+
+function registryWriteFloat(registry_section as String, key as String, value as Float) as Void
+	value = str(value)
+	registryWriteString(registry_section, key, value)
+end function
+
+function registryReadString(registry_section as String, key as String, default_value as String) as String
+	section = CreateObject("roRegistrySection", registry_section)
+    if section.Exists(key) then
+    	print true
+        return section.Read(key)
+    else
+    	print false
+    	section.Write(key, default_value)
+    	section.Flush()
+    	return default_value
+    end if
+end function
+
+function registryReadFloat(registry_section as String, key as String, default_value as Float) as Float
+	default_value = str(default_value)
+    return val(registryReadString(registry_section, key, default_value))
+end function
+
+function DrawText(draw2d as Object, text as String, x as Integer, y as Integer, font as Object, alignment = "left" as String, color = &hFFFFFFFF as Integer) as Void
+	if alignment = "left"
+		draw2d.DrawText(text, x, y, color, font)
+	else if alignment = "right"
+		draw2d.DrawText(text, x-font.GetOneLineWidth(text, 10000), y, color, font)
+	else if alignment = "center"
+		draw2d.DrawText(text, x-font.GetOneLineWidth(text, 10000)/2, y, color, font)
+	end if
+end function
