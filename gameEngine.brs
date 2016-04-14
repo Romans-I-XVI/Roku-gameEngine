@@ -170,6 +170,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 		' --------------------Begin giant loop for processing all game objects----------------
 		for i = sorted_instances.Count()-1 to 0 step -1
+			if m.need_to_exit_for
+				m.need_to_exit_for = false
+				exit for
+			end if
 			instance = sorted_instances[i]
 			
 			' -------------------- Then handle the object movement--------------------
@@ -284,7 +288,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 		' -------------------Draw everything to the screen----------------------------
-		print m.camera.offset_x
 		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.gameLayer)
 		for i = sorted_instances.Count()-1 to 0 step -1
 			instance = sorted_instances[i]
@@ -713,6 +716,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 			m.currentRoom.name = room_name
 			m.Rooms[room_name](m.currentRoom)
 			m.currentRoom.onCreate(args)
+			m.need_to_exit_for = true
 			return true
 		else
 			if m.debug then : print "changeRoom() - The provided room name hasn't been defined" : end if
@@ -926,6 +930,15 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
+	' ############### cameraCenter() function - Begin ###############
+	gameEngine.cameraCenter = function() as Void
+		m.camera.offset_x = m.screen.GetWidth()/2-(m.camera.scale_x*m.gameLayer.GetWidth())/2
+		m.camera.offset_y = m.screen.GetHeight()/2-(m.camera.scale_y*m.gameLayer.GetHeight())/2
+	end function
+	' ############### cameraCenter() function - End ###############
+
+
+
 	' ############### cameraCenterToInstance() function - Begin ###############
 	gameEngine.cameraCenterToInstance = function(instance as Object, mode = 0 as Integer) as dynamic
 		if instance.id = invalid
@@ -937,7 +950,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
 
-		offset_x = 0-instance.x*m.camera.scale_x+m.screen.GetWidth()/2
+		offset_x = 0-instance.x*m.camera.scale_x+screen_width/2
 		offset_y = 0-instance.y*m.camera.scale_y+screen_height/2
 
 		if mode = 0
