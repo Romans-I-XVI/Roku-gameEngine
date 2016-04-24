@@ -56,6 +56,8 @@ Returns the number of instances of the specified type.
 Define a new room. The function provided will be called when the room is switched to, the function provided receives an empty object and modifies it as necessary. This is the same as defineObject() except it is used for rooms.
 ##### changeRoom(room_name as String, [args as AssociativeArray]) as Boolean
 Switches to a room that has been defined using defineRoom(). The args AssociativeArray is optional, if args is provided, all key/value pairs will be added to the instance.
+##### resetRoom() as Void
+Resets the current room, retaining the original args.
 
 Returns false if the room switch failed.
 

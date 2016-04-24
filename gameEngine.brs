@@ -38,6 +38,8 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 		' ****Variables****
 		currentRoom: invalid
+		currentRoomName: ""
+		currentRoomArgs: {}
 		Instances: { room: {}} ' This holds all of the game object instances
 		Objects: {} ' This holds the object definitions by name (the object creation functions)
 		Rooms: {} ' This holds the room definitions by name (the room creation functions)
@@ -726,18 +728,26 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 					end if
 				end for
 			end for
-			m.currentRoom = invalid
 			m.currentRoom = m.newEmptyObject("room")
-			m.currentRoom.name = room_name
 			m.Rooms[room_name](m.currentRoom)
+			m.currentRoomName = room_name
+			m.currentRoomArgs = args
 			m.currentRoom.onCreate(args)
 			return true
 		else
-			if m.debug then : print "changeRoom() - The provided room name hasn't been defined" : end if
+			if m.debug then : print "changeRoom() - A room named " + room_name + " hasn't been defined" : end if
 			return false
 		end if
 	end function
 	' ############### changeRoom() function - End ###############
+
+
+
+	' ############### resetRoom() function - End ###############
+	gameEngine.resetRoom = function() as Void
+		m.changeRoom(m.currentRoomName, m.currentRoomArgs)
+	end function
+	' ############### resetRoom() function - End ###############
 
 
 	' --------------------------------Begin Bitmap Functions----------------------------------------
@@ -1174,7 +1184,7 @@ function registryWriteFloat(registry_section as String, key as String, value as 
 	registryWriteString(registry_section, key, value)
 end function
 
-function registryReadString(registry_section as String, key as String, default_value as String) as String
+function registryReadString(registry_section as String, key as String, default_value = "" as String) as String
 	section = CreateObject("roRegistrySection", registry_section)
     if section.Exists(key) then
     	print true
@@ -1187,7 +1197,7 @@ function registryReadString(registry_section as String, key as String, default_v
     end if
 end function
 
-function registryReadFloat(registry_section as String, key as String, default_value as Float) as Float
+function registryReadFloat(registry_section as String, key as String, default_value = 0 as Float) as Float
 	default_value = str(default_value)
     return val(registryReadString(registry_section, key, default_value))
 end function
