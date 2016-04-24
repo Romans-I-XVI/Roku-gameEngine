@@ -1,6 +1,6 @@
 ' -------------------------Function To Create Main Game Engine Object------------------------
 
-function gameEngine_init(game_width, game_height, debug = false)
+function gameEngine_init(canvas_width, canvas_height, debug = false)
 	
 	' ############### Create Initial Object - Begin ###############
 
@@ -24,7 +24,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		music_port: CreateObject("roMessagePort")
 		font_registry: CreateObject("roFontRegistry")
 		background_color: &h000000FF
-		graphics: CreateObject("roBitmap", {width: game_width, height: game_height, AlphaEnable: true})
+		canvas: CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
 		screen: invalid
 		camera: {
 			offset_x: 0
@@ -50,8 +50,11 @@ function gameEngine_init(game_width, game_height, debug = false)
 		Update: invalid
 		newEmptyObject: invalid
 		drawColliders: invalid
-		setGraphicsSize: invalid
-		getGraphics: invalid
+
+		getDeltaTime: invalid
+		setBackgroundColor: invalid
+		setCanvasSize: invalid
+		getCanvas: invalid
 		getScreen: invalid
 		getCamera: invalid
 
@@ -133,7 +136,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 		m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 		m.screen.Clear(&h000000FF) 
 		if m.background_color <> invalid then
-			m.graphics.Clear(m.background_color)
+			m.canvas.Clear(m.background_color)
 		end if
 
 
@@ -272,15 +275,15 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 			' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
-			instance.onDrawBegin(m.graphics)
+			instance.onDrawBegin(m.canvas)
 			if instance.id = invalid then : goto end_of_for_loop  : end if
 			for each image in instance.images
 				if image.enabled then
 					if image.alpha > 255 then : image.alpha = 255 : end if
-					m.graphics.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
+					m.canvas.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
 				end if
 			end for
-			instance.onDrawEnd(m.graphics)
+			instance.onDrawEnd(m.canvas)
 			if instance.id = invalid then : goto end_of_for_loop  : end if
 
 			end_of_for_loop:
@@ -299,7 +302,7 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 		' -------------------Draw everything to the screen----------------------------
-		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.graphics)
+		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.canvas)
 		for i = sorted_instances.Count()-1 to 0 step -1
 			instance = sorted_instances[i]
 			if instance.id <> invalid
@@ -363,10 +366,10 @@ function gameEngine_init(game_width, game_height, debug = false)
 		new_object.onCollision = function(collider, other_collider, other_instance)
 		end function
 
-		new_object.onDrawBegin = function(graphics)
+		new_object.onDrawBegin = function(canvas)
 		end function
 
-		new_object.onDrawEnd = function(graphics)
+		new_object.onDrawEnd = function(canvas)
 		end function
 
 		new_object.onDrawGui = function(screen)
@@ -515,6 +518,29 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
+	' ############### DrawColliders() function - Begin ###############
+	gameEngine.drawColliders = function(instance as Object, color = &hFF0000FF as Integer) as Void
+		for each collider_key in instance.colliders
+			collider = instance.colliders[collider_key]
+			if collider.enabled then
+				if collider.type = "circle" then
+					' This function is slow as I'm making draw calls for every section of the line.
+					' It's for debugging purposes only!
+					DrawCircle(m.canvas, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, color)
+				end if
+				if collider.type = "rectangle" then
+					m.canvas.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, color)
+					m.canvas.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, color)
+					m.canvas.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, color)
+					m.canvas.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, color)
+				end if
+			end if
+		end for
+	end function
+	' ############### DrawColliders() function - End ###############
+
+
+
 	' ############### getDeltaTime() function - Begin ###############
 	gameEngine.getDeltaTime = function() as Float
 		return m.dt
@@ -531,19 +557,19 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 
 
-	' ############### setGraphicsSize() function - Begin ###############
-	gameEngine.setGraphicsSize = function(game_width as Integer, game_height as Integer) as Void
-		m.graphics = CreateObject("roBitmap", {width: game_width, height: game_height, AlphaEnable: true})
+	' ############### setCanvasSize() function - Begin ###############
+	gameEngine.setCanvasSize = function(canvas_width as Integer, canvas_height as Integer) as Void
+		m.canvas = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
 	end function
-	' ############### setGraphicsSize() function - Begin ###############
+	' ############### setCanvasSize() function - Begin ###############
 
 
 
-	' ############### getGraphics() function - Begin ###############
-	gameEngine.getGraphics = function() as Object
-		return m.graphics
+	' ############### getCanvas() function - Begin ###############
+	gameEngine.getCanvas = function() as Object
+		return m.canvas
 	end function
-	' ############### getGraphics() function - Begin ###############
+	' ############### getCanvas() function - Begin ###############
 
 
 
@@ -560,29 +586,6 @@ function gameEngine_init(game_width, game_height, debug = false)
 		return m.camera
 	end function
 	' ############### getCamera() function - Begin ###############
-
-
-
-	' ############### DrawColliders() function - Begin ###############
-	gameEngine.drawColliders = function(instance as Object, color = &hFF0000FF as Integer) as Void
-		for each collider_key in instance.colliders
-			collider = instance.colliders[collider_key]
-			if collider.enabled then
-				if collider.type = "circle" then
-					' This function is slow as I'm making draw calls for every section of the line.
-					' It's for debugging purposes only!
-					DrawCircle(m.graphics, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, color)
-				end if
-				if collider.type = "rectangle" then
-					m.graphics.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, color)
-					m.graphics.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, color)
-					m.graphics.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, color)
-					m.graphics.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, color)
-				end if
-			end if
-		end for
-	end function
-	' ############### DrawColliders() function - End ###############
 
 
 	' --------------------------------Begin Object Functions----------------------------------------
@@ -915,24 +918,24 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 	' ############### cameraFitToScreen() function - Begin ###############
 	gameEngine.cameraFitToScreen = function() as Void
-		game_width = m.graphics.GetWidth()
-		game_height = m.graphics.GetHeight()
+		canvas_width = m.canvas.GetWidth()
+		canvas_height = m.canvas.GetHeight()
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
-		if screen_width/screen_height < game_width/game_height then
-			m.camera.scale_x = screen_width/game_width
+		if screen_width/screen_height < canvas_width/canvas_height then
+			m.camera.scale_x = screen_width/canvas_width
 			m.camera.scale_y = m.camera.scale_x
 			m.camera.offset_x = 0
-			m.camera.offset_y = (screen_height-(screen_width/(game_width/game_height)))/2
-		else if screen_width/screen_height > game_width/game_height then
-			m.camera.scale_x = screen_height/game_height
+			m.camera.offset_y = (screen_height-(screen_width/(canvas_width/canvas_height)))/2
+		else if screen_width/screen_height > canvas_width/canvas_height then
+			m.camera.scale_x = screen_height/canvas_height
 			m.camera.scale_y = m.camera.scale_x
-			m.camera.offset_x = (screen_width-(screen_height*(game_width/game_height)))/2
+			m.camera.offset_x = (screen_width-(screen_height*(canvas_width/canvas_height)))/2
 			m.camera.offset_y = 0
 		else
 			m.camera.offset_x = 0
 			m.camera.offset_y = 0
-			scale_difference = screen_width/game_width
+			scale_difference = screen_width/canvas_width
 			m.camera.scale_x = 1*scale_difference
 			m.camera.scale_y = 1*scale_difference
 		end if
@@ -943,8 +946,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 
 	' ############### cameraCenter() function - Begin ###############
 	gameEngine.cameraCenter = function() as Void
-		m.camera.offset_x = m.screen.GetWidth()/2-(m.camera.scale_x*m.graphics.GetWidth())/2
-		m.camera.offset_y = m.screen.GetHeight()/2-(m.camera.scale_y*m.graphics.GetHeight())/2
+		m.camera.offset_x = m.screen.GetWidth()/2-(m.camera.scale_x*m.canvas.GetWidth())/2
+		m.camera.offset_y = m.screen.GetHeight()/2-(m.camera.scale_y*m.canvas.GetHeight())/2
 	end function
 	' ############### cameraCenter() function - End ###############
 
@@ -956,8 +959,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 			if m.debug then : print "cameraCenterToInstance() - Provided instance doesn't exist" : end if
 			return invalid
 		end if
-		game_width = m.graphics.GetWidth()
-		game_height = m.graphics.GetHeight()
+		canvas_width = m.canvas.GetWidth()
+		canvas_height = m.canvas.GetHeight()
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
 
@@ -965,8 +968,8 @@ function gameEngine_init(game_width, game_height, debug = false)
 		offset_y = 0-instance.y*m.camera.scale_y+screen_height/2
 
 		if mode = 0
-			minimum_offset_x = -((game_width*m.camera.scale_x)-screen_width)
-			minimum_offset_y = -((game_height*m.camera.scale_y)-screen_height)
+			minimum_offset_x = -((canvas_width*m.camera.scale_x)-screen_width)
+			minimum_offset_y = -((canvas_height*m.camera.scale_y)-screen_height)
 
 			if offset_x >= minimum_offset_x and offset_x <= 0
 				m.camera.offset_x = offset_x
@@ -984,12 +987,12 @@ function gameEngine_init(game_width, game_height, debug = false)
 				m.camera.offset_y = 0
 			end if
 
-			if game_width*m.camera.scale_x < screen_width
-				m.camera.offset_x = (screen_width-game_width*m.camera.scale_x)/2
+			if canvas_width*m.camera.scale_x < screen_width
+				m.camera.offset_x = (screen_width-canvas_width*m.camera.scale_x)/2
 			end if
 
-			if game_height*m.camera.scale_y < screen_height
-				m.camera.offset_y = (screen_height-game_height*m.camera.scale_y)/2
+			if canvas_height*m.camera.scale_y < screen_height
+				m.camera.offset_y = (screen_height-canvas_height*m.camera.scale_y)/2
 			end if
 
 		else if mode = 1

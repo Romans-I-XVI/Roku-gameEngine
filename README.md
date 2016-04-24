@@ -6,8 +6,8 @@ The purpose of this project is to make it easy to develop game for the Roku in a
 
 First start by creating the gameEngine object
 
-##### gameEngine = gameEngine_init(game_width as Integer, game_height as Integer, gui_layer as Boolean, debug as Boolean) as Object
-Creates the main gameEngine object, the game width and height create an empty bitmap of that size that the game is drawn to. If debug is enabled various information will be printed to the console.
+##### gameEngine = gameEngine_init(canvas_width as Integer, canvas_height as Integer, gui_layer as Boolean, debug as Boolean) as Object
+Creates the main gameEngine object, the canvas width and height create an empty bitmap of that size that the game is drawn to. If debug is enabled various information will be printed to the console.
 
 
 gameEngine
@@ -17,18 +17,26 @@ gameEngine
 This method must be called in your main while loop in order for the game to execute.
 ##### newEmptyObject(object_type as String) as Object
 This method is primarily for internal use, but may be called manually if desired. It returns an empty game object.
+##### drawColliders(instance as Object) as Void
+This method is for debugging purposes, it will draw the colliders associated with the provided instance.
 ##### getDeltaTime() as Float
 Returns the delta time. Note: Delta time is automatically applied to the built in instance xspeed and yspeed. Delta time is also automatically passed to the onUpdate(dt) function in every instance for convenience.
 ##### setBackgroundColor(color as Dynamic) as Void
 Set the color the game layer will be cleared with, if set to invalid the game layer will not be cleared.
-##### drawColliders(instance as Object) as Void
-This method is for debugging purposes, it will draw the colliders associated with the provided instance.
+##### setCanvasSize(canvas_width as Integer, canvas_height as Integer) as Void
+Modifies the canvas size with the provided width and height. 
+##### getCanvas() as Object
+Returns the canvas bitmap object.
+##### getScreen() as Object
+Returns the screen object.
+##### getCamera() as Object
+Returns the camera object.
 
 ###### ---Game Object Methods---
 ##### defineObject(object_type as String, object_creation_function as Function) as Void
 Define a new game object. The function provided will be called when an instance of the object is created, the function provided receives an empty object and modifies it as necessary.
 ##### createInstance(object_type as String, [args as AssociativeArray]) as Dynamic
-Creates a new instance of an object that has been defined using defineObject(). The args AssociativeArray is optional, if args is provided, all key/value pairs will be added to the instance.
+Creates a new instance of an object that has been defined using defineObject(). The args AssociativeArray is optional, it will be passed to the onCreate() method.
 
 If the instance is created successfully, the instance is returned. Otherwise returns invalid.
 ##### getInstanceByID(instance_id as String) as Object
@@ -83,11 +91,13 @@ Set the camera zoom to the provided amount.
 ##### cameraSetZoom(zoom_x as Float, zoom_y as Float) as Void
 When zoom_y is provided, the zoom can be different for x and y, meaning the image will be stretched.
 ##### cameraSetFollow(instance as Object, [mode as Integer]) as Void
-Sets the camera to follow the provided instance. Mode can be 0 or 1, the default is 0. In mode 0, the camera will not move beyond the frame boundaries. In mode 1, the camera will keep the instance centered no matter what, meaning if the instance is towards the edge of the frame, black will be shown.
+Sets the camera to follow the provided instance. Mode can be 0 or 1, the default is 0. In mode 0, the camera will not move beyond the canvas boundaries. In mode 1, the camera will keep the instance centered no matter what, meaning if the instance is towards the edge of the canvas, black will be shown.
 ##### cameraUnsetFollow() as Void
 Stops following the instance if one was being followed.
 ##### cameraFitToScreen() as Void
-This fits the game to the screen regardless of the screen aspect ratio. This makes it so a game can be made at any size and black bars will be shown on the top/bottom or left/right if the game aspect ratio is not the same as the TV's.
+This fits the game canvas to the screen regardless of the screen aspect ratio. This makes it so a game can be made at any size and black bars will be shown on the top/bottom or left/right if the game aspect ratio is not the same as the TV's.
+##### cameraCenter() as Void
+This centers the game canvas.
 ##### cameraCenterToInstance(instance as Object, [mode as Integer]) as Void
 This function is used internally when the camera is set to follow an instance, however it can be used manually if you want to center to an object only once. See cameraSetFollow() for a description of mode options.
 
@@ -104,16 +114,6 @@ Resumes music that is paused.
 Loads a short sound in to memory from the provided path to be triggered by playSound() with the provided name. This is specifically for sound effects, because the sounds are in memory they will be played instantly.
 ##### playSound(sound_name as String, [volume as Integer]) as Boolean
 Plays the sound associated with the name provided, sound must have already been loaded using loadSound(). Returns true if the sound was triggered.
-
-###### ---Registry Methods---
-##### registryWriteString(registry_section as String, key as String, value as String) as Void
-Writes to the provided registry section the provided key/value pair. The value should be a string.
-##### registryWriteFloat(registry_section as String, key as String, value as Float) as Void
-Same as registryWriteString() except the value should be a float.
-##### registryReadString(registry_section as String, key as String, default_value as String) as String
-Reads the provided key from the provided registry section. The default value will be written if the registry section and key have no value yet. Returns the value as a string.
-##### registryReadFloat(registry_section as String, key as String, default_value as Float) as Float
-Same as registryReadString() except returns the value as a float.
 
 
 gameObject
@@ -238,3 +238,27 @@ args = {
 ```
 ##### removeImage(index as Integer)
 Removes the image in the images array that corresponds to the provided index.
+
+Other Utilities
+------
+This area will be a collection of functions that I've found useful for game development.
+
+##### ArrayInsert(array, index, value) 
+This function is used internally. It will insert a value to the specified index of an array and shift all subsequent values.
+##### DrawCircle(draw2d, line_count, x, y, radius, color)
+This function is used interally when DrawColliders() is called. It will draw an empty circle to the screen, however this is extremely expensive and is meant for debugging purposes only.
+##### atan2(y, x)
+This is here because brightscript unfortunately doesn't provide an atan2 math function.
+##### HSVtoRGB(hue, saturation, value, [alpha])
+This will convert a hue, saturation, value color to a red, green, blue color hex. If alpha is provided the returned hex will be in RGBA format instead of RGB.
+
+###### ---Registry Functions---
+These registry functions make it easy to read and write to the registry, they should be mostly self exlanitory.
+##### registryWriteString(registry_section as String, key as String, value as String) as Void
+Writes to the provided registry section the provided key/value pair. The value should be a string.
+##### registryWriteFloat(registry_section as String, key as String, value as Float) as Void
+Same as registryWriteString() except the value should be a float.
+##### registryReadString(registry_section as String, key as String, default_value as String) as String
+Reads the provided key from the provided registry section. The default value will be written if the registry section and key have no value yet. Returns the value as a string.
+##### registryReadFloat(registry_section as String, key as String, default_value as Float) as Float
+Same as registryReadString() except returns the value as a float.
