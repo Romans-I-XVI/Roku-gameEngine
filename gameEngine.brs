@@ -17,6 +17,8 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		currentID: 0
 		empty_bitmap: CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
 		device: CreateObject("roDeviceInfo")
+		urltransfers: {}
+		url_port: CreateObject("roMessagePort")
 		compositor: CreateObject("roCompositor")
 		filesystem: CreateObject("roFileSystem")
 		screen_port: CreateObject("roMessagePort")
@@ -144,6 +146,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 		m.dt = m.dtTimer.TotalMilliseconds()/1000
 		m.dtTimer.Mark()
+		url_msg = m.url_port.GetMessage()
         screen_msg = m.screen_port.GetMessage() 
         music_msg = m.music_port.GetMessage()
 		m.fpsTicker = m.fpsTicker + 1
@@ -209,6 +212,14 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 	        ' -------------------Then send the audioplayer event msg if applicable-------------------
 	        if type(music_msg) = "roAudioPlayerEvent" then
 	        	instance.onAudioEvent(music_msg)
+				if instance.id = invalid then : goto end_of_for_loop  : end if
+	        end if
+
+
+
+	        ' -------------------Then send the urltransfer event msg if applicable-------------------
+	        if type(url_msg) = "roUrlEvent" then
+	        	instance.onUrlEvent(url_msg)
 				if instance.id = invalid then : goto end_of_for_loop  : end if
 	        end if
 
@@ -291,6 +302,15 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 			end_of_for_loop:
 
 		end for
+
+		' ------------------Destroy the UrlTransfer object if it has returned an event------------------
+		if type(url_msg) = "roUrlEvent"
+			url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
+	    	if m.urltransfers.DoesExist(url_transfer_id_string) then
+	        	m.urltransfers.Delete(url_transfer_id_string)
+				if m.debug then : print "Destroyed UrlTransfer Object - " ; url_transfer_id_string : end if
+	        end if
+	    end if
 
 
 		' --------------------Then do camera magic if it's set to follow----------------------------
@@ -395,6 +415,9 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		end function
 
 		new_object.onAudioEvent = function(msg)
+		end function
+
+		new_object.onUrlEvent = function(msg)
 		end function
 
 		new_object.onDestroy = function()
@@ -588,6 +611,14 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		return m.camera
 	end function
 	' ############### getCamera() function - Begin ###############
+
+
+
+	' ############### getUrlTransfer() function - Begin ###############
+	gameEngine.getUrlTransfer = function() as Object
+		return m.urltransfer
+	end function
+	' ############### getUrlTransfer() function - Begin ###############
 
 
 	' --------------------------------Begin Object Functions----------------------------------------
@@ -1087,6 +1118,27 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		end if
 	end function
 	' ############### playSound() function - End ###############
+
+
+
+	' ############### newUrlTransfer() function - Begin ###############
+	gameEngine.newUrlTransfer = function()
+		UrlTransfer = CreateObject("roUrlTransfer")
+		UrlTransfer.SetMessagePort(m.url_port)
+		m.urltransfers[UrlTransfer.GetIdentity().ToStr()] = UrlTransfer
+		return UrlTransfer
+	end function
+	' ############### newUrlTransfer() function - Begin ###############
+
+
+	' ############### destroyUrlTransfer() function - Begin ###############
+	gameEngine.destroyUrlTransfer = function(UrlTransferIdentity)
+		id_string = UrlTransferIdentity.ToStr()
+		if m.urltransfers.DoesExist(id_string) then
+			m.urltransfers.Delete(id_string)
+		end if
+	end function
+	' ############### destroyUrlTransfer() function - Begin ###############
 
 	return gameEngine
 end function
