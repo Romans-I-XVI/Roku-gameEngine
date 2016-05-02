@@ -1121,24 +1121,14 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 
-	' ############### newUrlTransfer() function - Begin ###############
-	gameEngine.newUrlTransfer = function()
+	' ############### newAsyncUrlTransfer() function - Begin ###############
+	gameEngine.newAsyncUrlTransfer = function()
 		UrlTransfer = CreateObject("roUrlTransfer")
 		UrlTransfer.SetMessagePort(m.url_port)
 		m.urltransfers[UrlTransfer.GetIdentity().ToStr()] = UrlTransfer
 		return UrlTransfer
 	end function
-	' ############### newUrlTransfer() function - Begin ###############
-
-
-	' ############### destroyUrlTransfer() function - Begin ###############
-	gameEngine.destroyUrlTransfer = function(UrlTransferIdentity)
-		id_string = UrlTransferIdentity.ToStr()
-		if m.urltransfers.DoesExist(id_string) then
-			m.urltransfers.Delete(id_string)
-		end if
-	end function
-	' ############### destroyUrlTransfer() function - Begin ###############
+	' ############### newAsyncUrlTransfer() function - Begin ###############
 
 	return gameEngine
 end function
