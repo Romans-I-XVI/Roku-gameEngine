@@ -888,12 +888,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 	' ############### canvasGetOffset() function - Begin ###############
 	gameEngine.canvasGetSettings = function() as Object
-		return {
-			offset_x: m.canvas.offset_x
-			offset_y: m.canvas.offset_y
-			scale_x: m.canvas.scale_x
-			scale_y: m.canvas.scale_y
-		}
+		return m.canvas
 	end function
 	' ############### canvasGetOffset() function - Begin ###############
 
