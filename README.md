@@ -115,7 +115,7 @@ Plays the sound associated with the name provided, sound must have already been 
 
 ###### ---Async Methods---
 ##### newAsyncUrlTransfer() as Object
-Returns a roUrlTransfer object that can be used to asynchronously request data from a server. The response message is then passed to the gameObject onUrlEvent method. The roUrlTransfer object _must be used only once_ as it will be automatically destroyed upon recieving a response. A new roUrlTransfer object should be retrieved for each independent transfer request.
+Returns a roUrlTransfer object that can be used to asynchronously request data from a server. The response message is then passed to the gameObject onUrlEvent method. The roUrlTransfer object _must be used only once_ for a url request as it will be automatically destroyed upon recieving a response. A new roUrlTransfer object should be retrieved for each independent transfer request. This allows for multiple transfers to occur simultaneously.
 
 
 gameObject
@@ -202,6 +202,9 @@ This is called whenever a button is pressed, released, or held.
 ##### onAudioEvent(message)
 This is called when an audio event is triggered, the message is passed to the method.
 
+##### onUrlEvent(message)
+This is called when a URL event is triggered by a roUrlTransfer object retrieved from newAsyncUrlTransfer(). The message is passed to the method, then the roUrlTransfer object is automatically destroyed.
+
 ##### onDestroy()
 This method will always be called just before the instance is destroyed.
 
@@ -254,5 +257,5 @@ This will convert a hue, saturation, value color to a red, green, blue color hex
 These registry functions make it easy to read and write to the registry, they should be mostly self exlanitory.
 ##### registryWrite(registry_section as String, key as String, value as Dynamic) as Void
 Writes to the provided registry section the provided key/value pair. Data types supported are booleans, integer and floating point numbers, strings, roArray, and roAssociativeArray objects.
-##### registryRead(registry_section as String, key as String, [default_value as Dynamic]) as String
-Reads the provided key from the provided registry section. The default value will be written if the registry section and key have no value yet. Returns the value as a string.
+##### registryRead(registry_section as String, key as String, [default_value as Dynamic]) as Dynamic
+Reads the provided key from the provided registry section. The default value will be written if the registry section and key have no value yet.
