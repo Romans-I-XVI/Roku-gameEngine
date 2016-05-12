@@ -23,14 +23,10 @@ This method is for debugging purposes, it will draw the colliders associated wit
 Returns the delta time. Note: Delta time is automatically applied to the built in instance xspeed and yspeed. Delta time is also automatically passed to the onUpdate(dt) function in every instance for convenience.
 ##### setBackgroundColor(color as Dynamic) as Void
 Set the color the canvas will be cleared with, if set to invalid the canvas will not be cleared.
-##### setCanvasSize(canvas_width as Integer, canvas_height as Integer) as Void
-Modifies the canvas size with the provided width and height. 
 ##### getCanvas() as Object
 Returns the canvas bitmap object.
 ##### getScreen() as Object
 Returns the screen object.
-##### getCamera() as Object
-Returns the camera object.
 
 ###### ---Game Object Methods---
 ##### defineObject(object_type as String, object_creation_function as Function) as Void
@@ -77,29 +73,29 @@ Unloads the font associated with the provided name from memory.
 ##### getFont(font_name as String) as Object
 Returns the font associated with the provided name. Font must have been previously loaded using loadFont().
 
-###### ---Camera Methods---
-##### cameraIncreaseOffset(x as Float, y as Float) as Void
-Increase the camera x and y positions by the provided amounts.
-##### cameraIncreaseZoom(zoom as Float) as Void
-Increase the camera zoom by the provided amount.
-##### cameraIncreaseZoom(zoom_x as Float, zoom_y as Float) as Void
-When zoom_y is provided, the zoom can be different for x and y, meaning the image will be stretched.
-##### cameraSetOffset(x as Float, y as Float) as Void
-Set the camera x and y positions. Note: positions are absolute and not in relation to the current scale, you should take scale into account when manually setting the positions.
-##### cameraSetZoom(zoom as Float) as Void
-Set the camera zoom to the provided amount.
-##### cameraSetZoom(zoom_x as Float, zoom_y as Float) as Void
-When zoom_y is provided, the zoom can be different for x and y, meaning the image will be stretched.
-##### cameraSetFollow(instance as Object, [mode as Integer]) as Void
-Sets the camera to follow the provided instance. Mode can be 0 or 1, the default is 0. In mode 0, the camera will not move beyond the canvas boundaries. In mode 1, the camera will keep the instance centered no matter what, meaning if the instance is towards the edge of the canvas, black will be shown.
-##### cameraUnsetFollow() as Void
+###### ---Canvas Methods---
+##### canvasSetSize(canvas_width as Integer, canvas_height as Integer) as Void
+Modifies the canvas size with the provided width and height. 
+##### canvasGetSettings() as Object
+Returns an associative array with the current canvas settings. This will include; offset_x, offset_y, scale_x, scale_y.
+##### canvasIncreaseOffset(x as Float, y as Float) as Void
+Increase the canvas x and y positions by the provided amounts.
+##### canvasIncreaseScale(scale_x as Float, [scale_y as Float]) as Void
+Increases the canvas scale by the given amount, if only scale_x is given, scale_y will be set to the same amount. The scale_y parameter is only necessary if you want to stretch the canvas.
+##### canvasSetOffset(x as Float, y as Float) as Void
+Set the canvas x and y positions. Note: positions are absolute and not in relation to the current scale, you should take scale into account when manually setting the positions.
+##### canvasSetScale(scale_x as Float, [scale_y as Float]) as Void
+Sets the canvas scale to the given amount, if only scale_x is given, scale_y will be set to the same amount. The scale_y parameter is only necessary if you want to stretch the canvas.
+##### canvasSetFollow(instance as Object, [mode as Integer]) as Void
+Sets the canvas to follow the provided instance. Mode can be 0 or 1, the default is 0. In mode 0, the canvas will not move beyond the canvas boundaries. In mode 1, the canvas will keep the instance centered no matter what, meaning if the instance is towards the edge of the canvas, black will be shown.
+##### canvasUnsetFollow() as Void
 Stops following the instance if one was being followed.
-##### cameraFitToScreen() as Void
+##### canvasFitToScreen() as Void
 This fits the game canvas to the screen regardless of the screen aspect ratio. This makes it so a game can be made at any size and black bars will be shown on the top/bottom or left/right if the game aspect ratio is not the same as the TV's.
-##### cameraCenter() as Void
+##### canvasCenterToScreen() as Void
 This centers the game canvas.
-##### cameraCenterToInstance(instance as Object, [mode as Integer]) as Void
-This function is used internally when the camera is set to follow an instance, however it can be used manually if you want to center to an object only once. See cameraSetFollow() for a description of mode options.
+##### canvasCenterToInstance(instance as Object, [mode as Integer]) as Void
+This function is used internally when the canvas is set to follow an instance, however it can be used manually if you want to center to an object only once. See canvasSetFollow() for a description of mode options.
 
 ###### ---Audio Methods---
 ##### musicPlay(path as String, [loop as Boolean]) as Boolean

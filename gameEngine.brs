@@ -26,9 +26,9 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		music_port: CreateObject("roMessagePort")
 		font_registry: CreateObject("roFontRegistry")
 		background_color: &h000000FF
-		canvas: CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
 		screen: invalid
-		camera: {
+		canvas: {
+			bitmap: CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
 			offset_x: 0
 			offset_y: 0
 			scale_x: 1.0
@@ -57,10 +57,8 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 		getDeltaTime: invalid
 		setBackgroundColor: invalid
-		setCanvasSize: invalid
 		getCanvas: invalid
 		getScreen: invalid
-		getCamera: invalid
 
 		defineObject: invalid
 		createInstance: invalid
@@ -83,14 +81,15 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		unloadFont: invalid
 		getFont: invalid
 
-		cameraIncreaseOffset: invalid
-		cameraIncreaseZoom: invalid
-		cameraSetOffset: invalid
-		cameraSetZoom: invalid
-		cameraSetFollow: invalid
-		cameraUnsetFollow: invalid
-		cameraFitToScreen: invalid
-		cameraCenterToInstance: Invalid
+		canvasSetSize: invalid
+		canvasIncreaseOffset: invalid
+		canvasIncreaseScale: invalid
+		canvasSetOffset: invalid
+		canvasSetScale: invalid
+		canvasSetFollow: invalid
+		canvasUnsetFollow: invalid
+		canvasFitToScreen: invalid
+		canvasCenterToInstance: Invalid
 
 		musicPlay: invalid
 		musicStop: invalid
@@ -135,7 +134,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 		m.screen.Clear(&h000000FF) 
 		if m.background_color <> invalid then
-			m.canvas.Clear(m.background_color)
+			m.canvas.bitmap.Clear(m.background_color)
 		end if
 
 
@@ -283,15 +282,15 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 			' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
-			instance.onDrawBegin(m.canvas)
+			instance.onDrawBegin(m.canvas.bitmap)
 			if instance.id = invalid then : goto end_of_for_loop  : end if
 			for each image in instance.images
 				if image.enabled then
 					if image.alpha > 255 then : image.alpha = 255 : end if
-					m.canvas.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
+					m.canvas.bitmap.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
 				end if
 			end for
-			instance.onDrawEnd(m.canvas)
+			instance.onDrawEnd(m.canvas.bitmap)
 			if instance.id = invalid then : goto end_of_for_loop  : end if
 
 			end_of_for_loop:
@@ -308,18 +307,18 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 	    end if
 
 
-		' --------------------Then do camera magic if it's set to follow----------------------------
-		if m.camera.follow <> invalid
-			if m.camera.follow.id <> invalid and m.Instances[m.camera.follow.type].DoesExist(m.camera.follow.id)
-				m.cameraCenterToInstance(m.camera.follow, m.camera.follow_mode)
+		' --------------------Then do canvas magic if it's set to follow----------------------------
+		if m.canvas.follow <> invalid
+			if m.canvas.follow.id <> invalid and m.Instances[m.canvas.follow.type].DoesExist(m.canvas.follow.id)
+				m.canvasCenterToInstance(m.canvas.follow, m.canvas.follow_mode)
 			else
-				m.camera.follow = invalid
+				m.canvas.follow = invalid
 			end if
 		end if
 
 
 		' -------------------Draw everything to the screen----------------------------
-		m.screen.DrawScaledObject(m.camera.offset_x, m.camera.offset_y, m.camera.scale_x, m.camera.scale_y, m.canvas)
+		m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
 		for i = sorted_instances.Count()-1 to 0 step -1
 			instance = sorted_instances[i]
 			if instance.id <> invalid
@@ -546,13 +545,13 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 				if collider.type = "circle" then
 					' This function is slow as I'm making draw calls for every section of the line.
 					' It's for debugging purposes only!
-					DrawCircle(m.canvas, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, color)
+					DrawCircle(m.canvas.bitmap, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, color)
 				end if
 				if collider.type = "rectangle" then
-					m.canvas.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, color)
-					m.canvas.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, color)
-					m.canvas.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, color)
-					m.canvas.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, color)
+					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, color)
+					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, color)
+					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, color)
+					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, color)
 				end if
 			end if
 		end for
@@ -577,17 +576,9 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 
-	' ############### setCanvasSize() function - Begin ###############
-	gameEngine.setCanvasSize = function(canvas_width as Integer, canvas_height as Integer) as Void
-		m.canvas = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
-	end function
-	' ############### setCanvasSize() function - Begin ###############
-
-
-
 	' ############### getCanvas() function - Begin ###############
 	gameEngine.getCanvas = function() as Object
-		return m.canvas
+		return m.canvas.bitmap
 	end function
 	' ############### getCanvas() function - Begin ###############
 
@@ -598,14 +589,6 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		return m.screen
 	end function
 	' ############### getScreen() function - Begin ###############
-
-
-
-	' ############### getCamera() function - Begin ###############
-	gameEngine.getCamera = function() as Object
-		return m.camera
-	end function
-	' ############### getCamera() function - Begin ###############
 
 
 
@@ -882,167 +865,182 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 	' ############### getFont() function - End ###############
 
 
-	' --------------------------------Begin Camera Functions----------------------------------------
-	' Note, camera functions can be complicated to use manually, because the "camera" is actually a single
-	' bitmap that is being scaled and positioned. In order to make it easy for the user, I do things that might
-	' seem odd, such as negating the offset so that it feels like you are offsetting the "camera" as opposed to
-	' offsetting the bitmap.
+	' --------------------------------Begin Canvas Functions----------------------------------------
+	' Note, canvas functions can be complicated to use manually, because the "canvas" is actually a single
+	' bitmap that is being scaled and positioned. 
 
 
-	' ############### cameraIncreaseOffset() function - Begin ###############
-	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
-	gameEngine.cameraIncreaseOffset = function(x as Float, y as Float) as Void
-		m.camera.offset_x = m.camera.offset_x - x
-		m.camera.offset_y = m.camera.offset_y - y
+	' ############### canvasSetSize() function - Begin ###############
+	gameEngine.canvasSetSize = function(canvas_width as Integer, canvas_height as Integer) as Void
+		m.canvas.bitmap = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
 	end function
-	' ############### cameraIncreaseOffset() function - End ###############
+	' ############### canvasSetSize() function - Begin ###############
+
+
+	' ############### canvasGetOffset() function - Begin ###############
+	gameEngine.canvasGetSettings = function() as Object
+		return {
+			offset_x: m.canvas.offset_x
+			offset_y: m.canvas.offset_y
+			scale_x: m.canvas.scale_x
+			scale_y: m.canvas.scale_y
+		}
+	end function
+	' ############### canvasGetOffset() function - Begin ###############
+
+
+	' ############### canvasIncreaseOffset() function - Begin ###############
+	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
+	gameEngine.canvasIncreaseOffset = function(x as Float, y as Float) as Void
+		m.canvas.offset_x = m.canvas.offset_x + x
+		m.canvas.offset_y = m.canvas.offset_y + y
+	end function
+	' ############### canvasIncreaseOffset() function - End ###############
 
 
 
-	' ############### cameraIncreaseZoom() function - Begin ###############
-	gameEngine.cameraIncreaseZoom = function(scale_x as Float, scale_y = -999 as Float) as Void
-		if scale_y = -999
+	' ############### canvasIncreaseScale() function - Begin ###############
+	gameEngine.canvasIncreaseScale = function(scale_x as Float, scale_y = invalid as Dynamic) as Void
+		if scale_y = invalid
 			scale_y = scale_x
 		end if
-		m.camera.scale_x = m.camera.scale_x + scale_x
-		m.camera.scale_y = m.camera.scale_y + scale_y
-		if m.camera.scale_x < 0 then : m.camera.scale_x = 0 : end if
-		if m.camera.scale_y < 0 then : m.camera.scale_y = 0 : end if
+		m.canvas.scale_x = m.canvas.scale_x + scale_x
+		m.canvas.scale_y = m.canvas.scale_y + scale_y
+		if m.canvas.scale_x < 0 then : m.canvas.scale_x = 0 : end if
+		if m.canvas.scale_y < 0 then : m.canvas.scale_y = 0 : end if
 	end function
-	' ############### cameraIncreaseZoom() function - End ###############
+	' ############### canvasIncreaseScale() function - End ###############
 
 
 
-	' ############### cameraSetOffset() function - Begin ###############
+	' ############### canvasSetOffset() function - Begin ###############
 	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
-	gameEngine.cameraSetOffset = function(x as Float, y as Float) as Void
-		m.camera.offset_x = -x
-		m.camera.offset_y = -y
+	gameEngine.canvasSetOffset = function(x as Float, y as Float) as Void
+		m.canvas.offset_x = x
+		m.canvas.offset_y = y
 	end function
-	' ############### cameraSetOffset() function - End ###############
+	' ############### canvasSetOffset() function - End ###############
 
 
 
-	' ############### cameraSetZoom() function - Begin ###############
-	gameEngine.cameraSetZoom = function(scale_x as Float, scale_y = -999 as Float) as Void
-		if scale_y = -999
+	' ############### canvasSetScale() function - Begin ###############
+	gameEngine.canvasSetScale = function(scale_x as Float, scale_y = invalid as Dynamic) as Void
+		if scale_y = invalid
 			scale_y = scale_x
 		end if
-		m.camera.scale_x = scale_x
-		m.camera.scale_y = scale_y
+		m.canvas.scale_x = scale_x
+		m.canvas.scale_y = scale_y
 	end function
-	' ############### cameraSetZoom() function - End ###############
+	' ############### canvasSetScale() function - End ###############
 
 
 
-	' ############### cameraSetFollow() function - Begin ###############
-	gameEngine.cameraSetFollow = function(instance as Object, mode = 0 as Integer) as Void
-		m.camera.follow = instance
-		m.camera.follow_mode = mode
+	' ############### canvasSetFollow() function - Begin ###############
+	gameEngine.canvasSetFollow = function(instance as Object, mode = 0 as Integer) as Void
+		m.canvas.follow = instance
+		m.canvas.follow_mode = mode
 	end function
-	' ############### cameraSetFollow() function - End ###############
+	' ############### canvasSetFollow() function - End ###############
 
 
 
-	' ############### cameraUnsetFollow() function - Begin ###############
-	gameEngine.cameraUnsetFollow = function() as Void
-		m.camera.follow = invalid
+	' ############### canvasUnsetFollow() function - Begin ###############
+	gameEngine.canvasUnsetFollow = function() as Void
+		m.canvas.follow = invalid
 	end function
-	' ############### cameraUnsetFollow() function - End ###############
+	' ############### canvasUnsetFollow() function - End ###############
 
 
 
-	' ############### cameraFitToScreen() function - Begin ###############
-	gameEngine.cameraFitToScreen = function() as Void
-		canvas_width = m.canvas.GetWidth()
-		canvas_height = m.canvas.GetHeight()
+	' ############### canvasFitToScreen() function - Begin ###############
+	gameEngine.canvasFitToScreen = function() as Void
+		canvas_width = m.canvas.bitmap.GetWidth()
+		canvas_height = m.canvas.bitmap.GetHeight()
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
 		if screen_width/screen_height < canvas_width/canvas_height then
-			m.camera.scale_x = screen_width/canvas_width
-			m.camera.scale_y = m.camera.scale_x
-			m.camera.offset_x = 0
-			m.camera.offset_y = (screen_height-(screen_width/(canvas_width/canvas_height)))/2
+			m.canvas.scale_x = screen_width/canvas_width
+			m.canvas.scale_y = m.canvas.scale_x
+			m.canvas.offset_x = 0
+			m.canvas.offset_y = (screen_height-(screen_width/(canvas_width/canvas_height)))/2
 		else if screen_width/screen_height > canvas_width/canvas_height then
-			m.camera.scale_x = screen_height/canvas_height
-			m.camera.scale_y = m.camera.scale_x
-			m.camera.offset_x = (screen_width-(screen_height*(canvas_width/canvas_height)))/2
-			m.camera.offset_y = 0
+			m.canvas.scale_x = screen_height/canvas_height
+			m.canvas.scale_y = m.canvas.scale_x
+			m.canvas.offset_x = (screen_width-(screen_height*(canvas_width/canvas_height)))/2
+			m.canvas.offset_y = 0
 		else
-			m.camera.offset_x = 0
-			m.camera.offset_y = 0
+			m.canvas.offset_x = 0
+			m.canvas.offset_y = 0
 			scale_difference = screen_width/canvas_width
-			m.camera.scale_x = 1*scale_difference
-			m.camera.scale_y = 1*scale_difference
+			m.canvas.scale_x = 1*scale_difference
+			m.canvas.scale_y = 1*scale_difference
 		end if
 	end function
-	' ############### cameraFitToScreen() function - End ###############
+	' ############### canvasFitToScreen() function - End ###############
 
 
 
-	' ############### cameraCenter() function - Begin ###############
-	gameEngine.cameraCenter = function() as Void
-		m.camera.offset_x = m.screen.GetWidth()/2-(m.camera.scale_x*m.canvas.GetWidth())/2
-		m.camera.offset_y = m.screen.GetHeight()/2-(m.camera.scale_y*m.canvas.GetHeight())/2
+	' ############### canvasCenterToScreen() function - Begin ###############
+	gameEngine.canvasCenterToScreen = function() as Void
+		m.canvas.offset_x = m.screen.GetWidth()/2-(m.canvas.scale_x*m.canvas.bitmap.GetWidth())/2
+		m.canvas.offset_y = m.screen.GetHeight()/2-(m.canvas.scale_y*m.canvas.bitmap.GetHeight())/2
 	end function
-	' ############### cameraCenter() function - End ###############
+	' ############### canvasCenterToScreen() function - End ###############
 
 
 
-	' ############### cameraCenterToInstance() function - Begin ###############
-	gameEngine.cameraCenterToInstance = function(instance as Object, mode = 0 as Integer) as dynamic
+	' ############### canvasCenterToInstance() function - Begin ###############
+	gameEngine.canvasCenterToInstance = function(instance as Object, mode = 0 as Integer) as dynamic
+
 		if instance.id = invalid
-			if m.debug then : print "cameraCenterToInstance() - Provided instance doesn't exist" : end if
+			if m.debug then : print "canvasCenterToInstance() - Provided instance doesn't exist" : end if
 			return invalid
 		end if
-		canvas_width = m.canvas.GetWidth()
-		canvas_height = m.canvas.GetHeight()
+		canvas_width = m.canvas.bitmap.GetWidth()
+		canvas_height = m.canvas.bitmap.GetHeight()
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
 
-		offset_x = 0-instance.x*m.camera.scale_x+screen_width/2
-		offset_y = 0-instance.y*m.camera.scale_y+screen_height/2
+		offset_x = 0-instance.x*m.canvas.scale_x+screen_width/2
+		offset_y = 0-instance.y*m.canvas.scale_y+screen_height/2
 
 		if mode = 0
-			minimum_offset_x = -((canvas_width*m.camera.scale_x)-screen_width)
-			minimum_offset_y = -((canvas_height*m.camera.scale_y)-screen_height)
+			minimum_offset_x = -((canvas_width*m.canvas.scale_x)-screen_width)
+			minimum_offset_y = -((canvas_height*m.canvas.scale_y)-screen_height)
 
 			if offset_x >= minimum_offset_x and offset_x <= 0
-				m.camera.offset_x = offset_x
+				m.canvas.offset_x = offset_x
 			else if not offset_x >= minimum_offset_x
-				m.camera.offset_x = minimum_offset_x
+				m.canvas.offset_x = minimum_offset_x
 			else if not offset_x <= 0 
-				m.camera.offset_x = 0
+				m.canvas.offset_x = 0
 			end if
 
 			if offset_y >= minimum_offset_y and offset_y <=0
-				m.camera.offset_y = offset_y
+				m.canvas.offset_y = offset_y
 			else if not offset_y >= minimum_offset_y
-				m.camera.offset_y = minimum_offset_y
+				m.canvas.offset_y = minimum_offset_y
 			else if not offset_y <= 0
-				m.camera.offset_y = 0
+				m.canvas.offset_y = 0
 			end if
 
-			if canvas_width*m.camera.scale_x < screen_width
-				m.camera.offset_x = (screen_width-canvas_width*m.camera.scale_x)/2
+			if canvas_width*m.canvas.scale_x < screen_width
+				m.canvas.offset_x = (screen_width-canvas_width*m.canvas.scale_x)/2
 			end if
 
-			if canvas_height*m.camera.scale_y < screen_height
-				m.camera.offset_y = (screen_height-canvas_height*m.camera.scale_y)/2
+			if canvas_height*m.canvas.scale_y < screen_height
+				m.canvas.offset_y = (screen_height-canvas_height*m.canvas.scale_y)/2
 			end if
 
 		else if mode = 1
 
-			m.camera.offset_x = offset_x
-			m.camera.offset_y = offset_y
+			m.canvas.offset_x = offset_x
+			m.canvas.offset_y = offset_y
 			
 		end if
 
-
-
-
 	end function
-	' ############### cameraCenterToInstance() function - End ###############
+	' ############### canvasCenterToInstance() function - End ###############
 
 
 	' --------------------------------Begin Audio Functions----------------------------------------
