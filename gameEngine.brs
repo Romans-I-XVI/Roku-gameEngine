@@ -40,9 +40,8 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 		' ****Variables****
 		currentRoom: invalid
-		currentRoomName: ""
 		currentRoomArgs: {}
-		Instances: { room: {}} ' This holds all of the game object instances
+		Instances: {} ' This holds all of the game object instances
 		Objects: {} ' This holds the object definitions by name (the object creation functions)
 		Rooms: {} ' This holds the room definitions by name (the room creation functions)
 		Bitmaps: {} ' This holds the loaded bitmaps by name
@@ -55,15 +54,16 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		newEmptyObject: invalid
 		drawColliders: invalid
 
-		getDeltaTime: invalid
 		setBackgroundColor: invalid
+		getDeltaTime: invalid
+		getRoom: invalid
 		getCanvas: invalid
 		getScreen: invalid
 
 		defineObject: invalid
 		createInstance: invalid
 		getInstanceByID: invalid
-		getInstanceByType: invalid
+		getInstanceByName: invalid
 		getAllInstances: invalid
 		destroyInstance: invalid
 		destroyAllInstances: invalid
@@ -71,6 +71,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 		defineRoom: invalid
 		changeRoom: invalid
+		resetRoom: invalid
 
 		loadBitmap: invalid
 		getBitmap: invalid
@@ -89,6 +90,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		canvasSetFollow: invalid
 		canvasUnsetFollow: invalid
 		canvasFitToScreen: invalid
+		canvasCentertoScreen: invalid
 		canvasCenterToInstance: Invalid
 
 		musicPlay: invalid
@@ -240,8 +242,8 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 						if multiple_collisions <> invalid
 							for each other_collider in multiple_collisions
 								other_collider_data = other_collider.GetData()
-								if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_type].DoesExist(other_collider_data.instance_id)
-									instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_type][other_collider_data.instance_id])
+								if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
+									instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
 									if instance.id = invalid then : goto end_of_for_loop  : end if
 								end if
 							end for
@@ -309,7 +311,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 		' --------------------Then do canvas magic if it's set to follow----------------------------
 		if m.canvas.follow <> invalid
-			if m.canvas.follow.id <> invalid and m.Instances[m.canvas.follow.type].DoesExist(m.canvas.follow.id)
+			if m.canvas.follow.id <> invalid and m.Instances[m.canvas.follow.name].DoesExist(m.canvas.follow.id)
 				m.canvasCenterToInstance(m.canvas.follow, m.canvas.follow_mode)
 			else
 				m.canvas.follow = invalid
@@ -337,16 +339,15 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ################################################################ newEmptyObject() function - Begin #####################################################################################################
-	gameEngine.newEmptyObject = function(object_type as String) as Object
+	gameEngine.newEmptyObject = function(object_name as String) as Object
 		m.currentID = m.currentID + 1
 		new_object = {
 			' -----Constants-----
-			type: object_type
+			name: object_name
 			id: m.currentID.ToStr()
 			gameEngine: m
 
 			' -----Variables-----
-			name: ""
 			persistent: false
 			depth: 0
 			x: 0.0
@@ -433,7 +434,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 			region.SetCollisionCircle(offset_x, offset_y, radius)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
-			collider.compositor_object.SetData({collider_name: collider_name, object_type: m.type, instance_id: m.id})
+			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider
 			else
@@ -457,7 +458,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 			region.SetCollisionRectangle(offset_x, offset_y, width, height)
 			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
-			collider.compositor_object.SetData({collider_name: collider_name, object_type: m.type, instance_id: m.id})
+			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider 
 			else
@@ -529,7 +530,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 			end if
 		end function
 
-		m.Instances[new_object.type][new_object.id] = new_object
+		m.Instances[new_object.name][new_object.id] = new_object
 
 		return new_object
 	end function
@@ -560,6 +561,14 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 
+	' ############### setBackgroundColor() function - Begin ###############
+	gameEngine.setBackgroundColor = function(color as Dynamic) as Void
+		m.background_color = color
+	end function
+	' ############### setBackgroundColor() function - Begin ###############
+
+
+
 	' ############### getDeltaTime() function - Begin ###############
 	gameEngine.getDeltaTime = function() as Float
 		return m.dt
@@ -567,12 +576,11 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 	' ############### getDeltaTime() function - Begin ###############
 
 
-
-	' ############### setBackgroundColor() function - Begin ###############
-	gameEngine.setBackgroundColor = function(color as Dynamic) as Void
-		m.background_color = color
+	' ############### getRoom() function - Begin ###############
+	gameEngine.getRoom = function() as Object
+		return m.currentRoom
 	end function
-	' ############### setBackgroundColor() function - Begin ###############
+	' ############### getRoom() function - Begin ###############
 
 
 
@@ -603,24 +611,24 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### defineObject() function - Begin ###############
-	gameEngine.defineObject = function(object_type as String, object_creation_function as Function) as Void
-		m.Objects[object_type] = object_creation_function
-		m.Instances[object_type] = {}
+	gameEngine.defineObject = function(object_name as String, object_creation_function as Function) as Void
+		m.Objects[object_name] = object_creation_function
+		m.Instances[object_name] = {}
 	end function
 	' ############### defineObject() function - End ###############
 
 
 
 	' ############### createInstance() function - Begin ###############
-	gameEngine.createInstance = function(object_type as String, args = {} as Object) as Dynamic
-		if m.Objects.DoesExist(object_type)
-			new_instance = m.newEmptyObject(object_type)
-			m.Objects[object_type](new_instance)
+	gameEngine.createInstance = function(object_name as String, args = {} as Object) as Dynamic
+		if m.Objects.DoesExist(object_name)
+			new_instance = m.newEmptyObject(object_name)
+			m.Objects[object_name](new_instance)
 			new_instance.onCreate(args)
 			if m.debug then : print "createInstance() - Creating instance: "+new_instance.id : end if
 			return new_instance
 		else
-			if m.debug then : print "createInstance() - No objects registered with the name - " ; object_type : end if
+			if m.debug then : print "createInstance() - No objects registered with the name - " ; object_name : end if
 			return invalid
 		end if
 	end function
@@ -642,30 +650,30 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 
-	' ############### getInstanceByType() function - Begin ###############
-	gameEngine.getInstanceByType = function(object_type as String) as Dynamic
-		if m.Instances.DoesExist(object_type) then
-			for each instance_key in m.Instances[object_type]
-				return m.Instances[object_type][instance_key] ' Obviously only retrieves the first value
+	' ############### getInstanceByName() function - Begin ###############
+	gameEngine.getInstanceByName = function(object_name as String) as Dynamic
+		if m.Instances.DoesExist(object_name) then
+			for each instance_key in m.Instances[object_name]
+				return m.Instances[object_name][instance_key] ' Obviously only retrieves the first value
 			end for
 		end if
-		if m.debug then : print "getInstanceByType() - No instance exists with name - " ; object_type : end if
+		if m.debug then : print "getInstanceByName() - No instance exists with name - " ; object_name : end if
 		return invalid
 	end function
-	' ############### getInstanceByType() function - End ###############
+	' ############### getInstanceByName() function - End ###############
 
 
 
 	' ############### getAllInstances() function - Begin ###############
-	gameEngine.getAllInstances = function(object_type as String) as Dynamic
-		if m.Instances.DoesExist(object_type) then
+	gameEngine.getAllInstances = function(object_name as String) as Dynamic
+		if m.Instances.DoesExist(object_name) then
 			array = []
-			for each instance_key in m.Instances[object_type]
-				array.Push(m.Instances[object_type][instance_key])
+			for each instance_key in m.Instances[object_name]
+				array.Push(m.Instances[object_name][instance_key])
 			end for
 			return array
 		else
-			if m.debug then : print "getAllInstances() - No object defined with name - " ; object_type : end if
+			if m.debug then : print "getAllInstances() - No object defined with name - " ; object_name : end if
 			return invalid
 		end if
 	end function
@@ -676,7 +684,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 	' ############### destroyInstance() function - Begin ###############
 	gameEngine.destroyInstance = function(instance as Object) as Void
 		if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
-		if instance.id <> invalid and m.Instances[instance.type].DoesExist(instance.id) then
+		if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
 			for each collider_key in instance.colliders
 				collider = instance.colliders[collider_key]
 				if type(collider.compositor_object) = "roSprite" then 
@@ -684,7 +692,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 				end if
 			end for
 			instance.onDestroy()
-			m.Instances[instance.type].Delete(instance.id)
+			m.Instances[instance.name].Delete(instance.id)
 			instance.Clear()
 			instance.id = invalid
 		else
@@ -696,9 +704,9 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### destroyAllInstances() function - Begin ###############
-	gameEngine.destroyAllInstances = function(object_type as String) as Void
-		for each instance_key in m.Instances[object_type]
-			m.destroyInstance(m.Instances[object_type][instance_key])
+	gameEngine.destroyAllInstances = function(object_name as String) as Void
+		for each instance_key in m.Instances[object_name]
+			m.destroyInstance(m.Instances[object_name][instance_key])
 		end for
 	end function
 	' ############### destroyAllInstances() function - End ###############
@@ -706,8 +714,8 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### instanceCount() function - Begin ###############
-	gameEngine.instanceCount = function(object_type as String) as Integer
-		return m.Instances[object_type].Count()
+	gameEngine.instanceCount = function(object_name as String) as Integer
+		return m.Instances[object_name].Count()
 	end function 
 	' ############### instanceCount() function - End ###############
 
@@ -718,6 +726,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 	' ############### defineRoom() function - Begin ###############
 	gameEngine.defineRoom = function(room_name as String, room_creation_function as Function) as Void
 		m.Rooms[room_name] = room_creation_function
+		m.Instances[room_name] = {}
 		if m.debug then : print "defineRoom() - Room function has been added" : end if
 	end function
 	' ############### defineRoom() function - Begin ###############
@@ -737,9 +746,8 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 					end if
 				end for
 			end for
-			m.currentRoom = m.newEmptyObject("room")
+			m.currentRoom = m.newEmptyObject(room_name)
 			m.Rooms[room_name](m.currentRoom)
-			m.currentRoomName = room_name
 			m.currentRoomArgs = args
 			m.currentRoom.onCreate(args)
 			return true
@@ -754,7 +762,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 	' ############### resetRoom() function - End ###############
 	gameEngine.resetRoom = function() as Void
-		m.changeRoom(m.currentRoomName, m.currentRoomArgs)
+		m.changeRoom(m.currentRoom.name, m.currentRoomArgs)
 	end function
 	' ############### resetRoom() function - End ###############
 
