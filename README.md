@@ -2,11 +2,11 @@ Roku-gameEngine
 ======
 An object oriented game engine for the Roku
 
-The purpose of this project is to make it easy to develop game for the Roku in an object oriented fasion. Similar to how you would with an engine such as Gamemaker or Unity (minus any visual software that is).
+The purpose of this project is to make it easy to develop games for the Roku in an object oriented fasion. Similar to how you would with an engine such as Gamemaker or Unity (minus any visual software that is).
 
 First start by creating the gameEngine object
 
-##### gameEngine = gameEngine_init(canvas_width as Integer, canvas_height as Integer, gui_layer as Boolean, debug as Boolean) as Object
+##### gameEngine = gameEngine_init(canvas_width as Integer, canvas_height as Integer, debug as Boolean) as Object
 Creates the main gameEngine object, the canvas width and height create an empty bitmap of that size that the game is drawn to. If debug is enabled various information will be printed to the console.
 
 
@@ -22,7 +22,7 @@ This method is for debugging purposes, it will draw the colliders associated wit
 ##### getDeltaTime() as Float
 Returns the delta time. Note: Delta time is automatically applied to the built in instance xspeed and yspeed. Delta time is also automatically passed to the onUpdate(dt) function in every instance for convenience.
 ##### setBackgroundColor(color as Dynamic) as Void
-Set the color the game layer will be cleared with, if set to invalid the game layer will not be cleared.
+Set the color the canvas will be cleared with, if set to invalid the canvas will not be cleared.
 ##### setCanvasSize(canvas_width as Integer, canvas_height as Integer) as Void
 Modifies the canvas size with the provided width and height. 
 ##### getCanvas() as Object
@@ -55,14 +55,12 @@ Returns the number of instances of the specified type.
 ##### defineRoom(room_name as String, room_creation_function as Function) as Void
 Define a new room. The function provided will be called when the room is switched to, the function provided receives an empty object and modifies it as necessary. This is the same as defineObject() except it is used for rooms.
 ##### changeRoom(room_name as String, [args as AssociativeArray]) as Boolean
-Switches to a room that has been defined using defineRoom(). The args AssociativeArray is optional, if args is provided, all key/value pairs will be added to the instance.
+Switches to a room that has been defined using defineRoom(). The args AssociativeArray is optional, it will be passed to the onCreate() method.
 ##### resetRoom() as Void
 Resets the current room, retaining the original args.
 
-Returns false if the room switch failed.
-
 ###### ---Bitmap Methods---
-##### loadBitmap(bitmap_name as String, path as String) as Boolean
+##### loadBitmap(bitmap_name as String, path as Dynamic) as Boolean
 Loads a bitmap into memory and makes it available by name with the getBitmap() function. The path can also be an associative array structured like so {width: 10, height: 10, AlphaEnable: true}, doing this will create an empty bitmap. Returns true if successful.
 ##### getBitmap(bitmap_name as String) as Dynamic
 Returns the bitmap associated with the provided name. Returns invalid if a bitmap with the provided name hasn't been loaded.
@@ -124,7 +122,7 @@ Returns a roUrlTransfer object that can be used to asynchronously request data f
 
 gameObject
 ------
-A game object is an object that has been created using the function newEmptyObject(), this is usually done internally using by defining a new object using defineObject() and then creating a new instance of it using createInstance(). Instructions on doing this can be found above. 
+A game object is an object that has been created using the function newEmptyObject(), this is usually done internally by defining a new object using defineObject() and then creating a new instance of it using createInstance(). Instructions on doing this can be found above. 
 
 The basic game object structure looks like this.
 ```brightscript
@@ -136,7 +134,6 @@ new_object = {
 	gameEngine: m
 
 	' -----Variables-----
-	name: ""
 	persistent: false
 	depth: 0
 	x: 0.0
@@ -158,7 +155,6 @@ new_object = {
 * gameEngine: This is a reference to the gameEngine so that every object instance can easily access its methods.
 
 ###### ---Variables---
-* name: The name is blank by default, except for rooms, in which case the name is automatically set to the name of the room. This can otherwise be used to name the instance if desired.
 * persistent: If true the instance will not be destroyed when the on changeRoom(), default behavior is to destroy all instances on changeRoom().
 * depth: Declares the instance draw depth.
 * x/y: The x and y positions of the instance.
@@ -177,16 +173,16 @@ This method will always be called when the instance is created. Put creation cod
 This method is called every frame. Put code to be constantly ran here. 
 
 ##### onCollision(collider, other_collider, other_instance)
-This method is called when two object instances collide. collider and other_collider are strings refering to the specific colliders that are in collision.
+This method is called when two object instances collide. collider and other_collider are strings refering to the specific colliders that are in collision. other_instance is the object instance that has been collided with.
 
-##### onDrawBegin(gameLayer)
-This is called before the instance is drawn and receives the game layer as a object that can be drawn to. 
+##### onDrawBegin(canvas)
+This is called before the instance is drawn and receives the canvas as a object that can be drawn to. 
 
-##### onDrawEnd(gameLayer)
-This is called after the instance is drawn and receives the game layer as a object that can be drawn to. 
+##### onDrawEnd(canvas)
+This is called after the instance is drawn and receives the canvas as a object that can be drawn to. 
 
 ##### onDrawGui(screen)
-This is called after the game has been drawn to the screen and receives the screen object. This can be used to draw interface elements if the camera is being used as anything drawn here will not be effected by the camera zoom/position. Note: The screen is always the same resolution as the device resolution.
+This is called after the game has been drawn to the screen and receives the screen object. This can be used to draw interface elements that will not be affected by the canvas position/scale. Note: The screen is always the same resolution as the device resolution.
 
 ##### onButton(code)
 This is called whenever a button is pressed, released, or held.
@@ -257,14 +253,8 @@ This function is used interally when DrawColliders() is called. It will draw an 
 This is here because brightscript unfortunately doesn't provide an atan2 math function.
 ##### HSVtoRGB(hue, saturation, value, [alpha])
 This will convert a hue, saturation, value color to a red, green, blue color hex. If alpha is provided the returned hex will be in RGBA format instead of RGB.
-
-###### ---Registry Functions---
 These registry functions make it easy to read and write to the registry, they should be mostly self exlanitory.
-##### registryWriteString(registry_section as String, key as String, value as String) as Void
-Writes to the provided registry section the provided key/value pair. The value should be a string.
-##### registryWriteFloat(registry_section as String, key as String, value as Float) as Void
-Same as registryWriteString() except the value should be a float.
-##### registryReadString(registry_section as String, key as String, default_value as String) as String
+##### registryWrite(registry_section as String, key as String, value as Dynamic) as Void
+Writes to the provided registry section the provided key/value pair. Data types supported are booleans, integer and floating point numbers, strings, roArray, and roAssociativeArray objects.
+##### registryRead(registry_section as String, key as String, [default_value as Dynamic]) as String
 Reads the provided key from the provided registry section. The default value will be written if the registry section and key have no value yet. Returns the value as a string.
-##### registryReadFloat(registry_section as String, key as String, default_value as Float) as Float
-Same as registryReadString() except returns the value as a float.
