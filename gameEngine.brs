@@ -780,7 +780,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### loadBitmap() function - Begin ###############
-	gameEngine.loadBitmap = function(bitmap_name as String, path as String) as Boolean
+	gameEngine.loadBitmap = function(bitmap_name as String, path as Dynamic) as Boolean
 		if type(path) = "roAssociativeArray" then
 			if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
