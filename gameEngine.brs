@@ -365,6 +365,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 	        onDrawEnd: invalid
 	        onButton: invalid
 	        onAudioEvent: invalid
+	        onUrlEvent: invalid
 	        onDestroy: invalid
 	        addColliderCircle: invalid
 	        addColliderRectangle: invalid
