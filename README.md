@@ -117,6 +117,10 @@ Loads a short sound in to memory from the provided path to be triggered by playS
 ##### playSound(sound_name as String, [volume as Integer]) as Boolean
 Plays the sound associated with the name provided, sound must have already been loaded using loadSound(). Returns true if the sound was triggered.
 
+###### ---Async Methods---
+##### newAsyncUrlTransfer() as Object
+Returns a roUrlTransfer object that can be used to asynchronously request data from a server. The response message is then passed to the gameObject onUrlEvent method. The roUrlTransfer object _must be used only once_ as it will be automatically destroyed upon recieving a response. A new roUrlTransfer object should be retrieved for each independent transfer request.
+
 
 gameObject
 ------
