@@ -83,6 +83,8 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		getFont: invalid
 
 		canvasSetSize: invalid
+		canvasGetOffset: invalid
+		canvasGetScale: invalid
 		canvasIncreaseOffset: invalid
 		canvasIncreaseScale: invalid
 		canvasSetOffset: invalid
@@ -887,10 +889,17 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### canvasGetOffset() function - Begin ###############
-	gameEngine.canvasGetSettings = function() as Object
-		return m.canvas
+	gameEngine.canvasGetOffset = function() as Object
+		return {x: m.canvas.offset_x, y: m.canvas.offset_y}
 	end function
 	' ############### canvasGetOffset() function - Begin ###############
+
+
+	' ############### canvasGetScale() function - Begin ###############
+	gameEngine.canvasGetScale = function() as Object
+		return {x: m.canvas.scale_x, y: m.canvas.scale_y}
+	end function
+	' ############### canvasGetScale() function - Begin ###############
 
 
 	' ############### canvasIncreaseOffset() function - Begin ###############

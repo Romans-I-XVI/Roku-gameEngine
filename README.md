@@ -78,8 +78,10 @@ Returns the font associated with the provided name. Font must have been previous
 ###### ---Canvas Methods---
 ##### canvasSetSize(canvas_width as Integer, canvas_height as Integer) as Void
 Modifies the canvas size with the provided width and height. 
-##### canvasGetSettings() as Object
-Returns an associative array with the current canvas settings. This will include; offset_x, offset_y, scale_x, scale_y.
+##### canvasGetOffset() as Object
+Returns an associative array with the current canvas offset. Will contain values for x and y.
+##### canvasGetScale() as Object
+Returns an associative array with the current canvas scale. Will contain values for x and y.
 ##### canvasIncreaseOffset(x as Float, y as Float) as Void
 Increase the canvas x and y positions by the provided amounts.
 ##### canvasIncreaseScale(scale_x as Float, [scale_y as Float]) as Void
