@@ -139,6 +139,8 @@ function new_game(canvas_width, canvas_height, debug = false)
 	' ################################################################ Play() function - Begin #####################################################################################################
 	game.Play = function() as Void
 
+		m.running = true
+
 		while m.running
 
 
@@ -347,9 +349,11 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 		end while
 
-	m.Instances.Clear()
-	m.currentRoom = invalid
-	m.currentRoomArgs.Clear()
+		for each object_key in m.Instances
+			m.Instances[object_key].Clear()
+		end for
+		m.currentRoom = invalid
+		m.currentRoomArgs.Clear()
 
 	end function
 	' ################################################################ Play() function - End #####################################################################################################
