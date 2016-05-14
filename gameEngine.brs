@@ -605,7 +605,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 
 	' ############### isPaused() function - Begin ###############
-	game.isPaused = function() as Void
+	game.isPaused = function() as Boolean
 		return m.paused
 	end function
 	' ############### isPaused() function - End ###############
