@@ -6,11 +6,11 @@ The purpose of this project is to make it easy to develop games for the Roku in 
 
 First start by creating the gameEngine object
 
-##### gameEngine = gameEngine_init(canvas_width as Integer, canvas_height as Integer, debug as Boolean) as Object
-Creates the main gameEngine object, the canvas width and height create an empty bitmap of that size that the game is drawn to. If debug is enabled various information will be printed to the console.
+##### game = new_game(canvas_width as Integer, canvas_height as Integer, debug as Boolean) as Object
+Creates the main game object, the canvas width and height create an empty bitmap of that size that the game is drawn to. If debug is enabled various information will be printed to the console.
 
 
-gameEngine
+Game
 ------
 ###### ---General Methods---
 ##### Play() as Void
@@ -128,7 +128,7 @@ Plays the sound associated with the name provided, sound must have already been 
 Returns a roUrlTransfer object that can be used to asynchronously request data from a server. The response message is then passed to the gameObject onUrlEvent method. The roUrlTransfer object _must be used only once_ for a url request as it will be automatically destroyed upon recieving a response. A new roUrlTransfer object should be retrieved for each independent transfer request. This allows for multiple transfers to occur simultaneously.
 
 
-gameObject
+Game Object
 ------
 A game object is an object that has been created using the function newEmptyObject(), this is usually done internally by defining a new object using defineObject() and then creating a new instance of it using createInstance(). Instructions on doing this can be found above. 
 
@@ -139,7 +139,7 @@ new_object = {
 	' -----Constants-----
 	name: object_name
 	id: m.currentID.ToStr()
-	gameEngine: m
+	game: m
 
 	' -----Variables-----
 	persistent: false
@@ -161,7 +161,7 @@ new_object = {
 ###### ---Constants---
 * name: This is the object name as declared by defineObject(). For example - A "ball" object can be defined, all instances of the object will have the name "ball" but will have different IDs.
 * id: This is the ID for this specific instance.
-* gameEngine: This is a reference to the gameEngine so that every object instance can easily access its methods.
+* game: This is a reference to the game so that every object instance can easily access its methods.
 
 ###### ---Variables---
 * persistent: If true the instance will not be destroyed when the on changeRoom(), default behavior is to destroy all instances on changeRoom().
@@ -173,7 +173,7 @@ new_object = {
 * images: Instances can have multiple images, you can modify image properties here but adding a new image should be done by the methods described below.
 
 ###### ---Override Methods---
-The override methods are designed to be overridden. They are automatically called by the gameEngine at the approprate times.
+The override methods are designed to be overridden. They are automatically called by the game at the approprate times.
 Note: For these methods, if an argument is shown, then the override method _must_ accept that argument as well.
 
 ##### onCreate(args)
