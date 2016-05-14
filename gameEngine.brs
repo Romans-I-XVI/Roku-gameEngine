@@ -14,6 +14,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 		dt: 0
 		dtTimer: CreateObject("roTimespan")
 		fpsTimer: CreateObject("roTimespan")
+		pauseTimer: CreateObject("roTimespan")
 		fpsTicker: 0
 		FPS: 0
 		currentID: 0
@@ -590,15 +591,22 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 	' ############### Pause() function - Begin ###############
 	game.Pause = function() as Void
-		m.paused = true
+		if not m.paused then
+			m.paused = true
+			m.pauseTimer.Mark()
+		end if
 	end function
 	' ############### Pause() function - End ###############
 
 
 
 	' ############### Resume() function - Begin ###############
-	game.Resume = function() as Void
-		m.paused = false
+	game.Resume = function() as Dynamic
+		if m.paused then
+			m.paused = false
+			return m.pauseTimer.TotalMilliseconds()
+		end if
+		return invalid
 	end function
 	' ############### Resume() function - End ###############
 

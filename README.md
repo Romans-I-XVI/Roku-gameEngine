@@ -19,8 +19,8 @@ After setting up your game, call this method to execute it.
 This will end your game.
 ##### Pause() as Void
 This will pause your game. Note: all instances that have _pauseable = false_ will continue to execute. Also keep in mind that onDrawBegin, onDrawEnd, and onDrawGui are _always_ executed even when the game is paused.
-##### Resume() as Void
-This will resume your paused game.
+##### Resume() as Dynamic
+This will resume your paused game. Returns how long the game was paused in milliseconds if the game was paused, otherwise returns invalid if the game wasn't paused.
 ##### isPaused()
 Returns true if the game is paused.
 ##### setBackgroundColor(color as Dynamic) as Void
