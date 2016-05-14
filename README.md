@@ -76,8 +76,8 @@ Unloads the bitmap associated with the provided name from memory. Returns true i
 ###### ---Font Methods---
 ##### registerFont(path as String) as Boolean
 Registers the font at the provided path. Returns true if successful. Note: All fonts in the directory pkg:/fonts/ automatically get registered.
-##### loadFont(font_name as String, size as Integer, italic as Boolean, bold as Boolean) as Void
-Loads the font with the provided name into memory. Note: The font must be registered first and the font_name must be the same as the filename prefix.
+##### loadFont(font_name as String, font as String, size as Integer, italic as Boolean, bold as Boolean) as Void
+Loads the font into memory and makes it accessable by the provided name. Note: The font must be registered first and "font" must be the filename prefix.
 ##### unloadFont(font_name as String) as Void
 Unloads the font associated with the provided name from memory.
 ##### getFont(font_name as String) as Object

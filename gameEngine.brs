@@ -902,8 +902,8 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 
 	' ############### loadFont() function - Begin ###############
-	game.loadFont = function(font_name as String, size as Integer, italic as Boolean, bold as Boolean) as Void
-		m.Fonts[font_name] = m.font_registry.GetFont(font_name, size, italic, bold)
+	game.loadFont = function(font_name as String, font as String, size as Integer, italic as Boolean, bold as Boolean) as Void
+		m.Fonts[font_name] = m.font_registry.GetFont(font, size, italic, bold)
 	end function
 	' ############### loadFont() function - End ###############
 
