@@ -1,13 +1,15 @@
-' -------------------------Function To Create Main Game Engine Object------------------------
+' -------------------------Function To Create Main Game Object------------------------
 
-function gameEngine_init(canvas_width, canvas_height, debug = false)
+function new_game(canvas_width, canvas_height, debug = false)
 	
 	' ############### Create Initial Object - Begin ###############
 
 	' Create the main game engine object
-	gameEngine = {
+	game = {
 		' ****BEGIN - For Internal Use, Do Not Manually Alter****
 		debug: debug
+		running: true
+		paused: false
 		buttonHeld: -1
 		dt: 0
 		dtTimer: CreateObject("roTimespan")
@@ -48,7 +50,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 		Sounds: {} ' This holds the loaded sounds by name
 		Fonts: {} ' This holds the loaded fonts by name
 
-		' These are just placeholder reminders of what functions get added to the gameEngine
+		' These are just placeholder reminders of what functions get added to the game
 		' ****Functions****
 		Update: invalid
 		newEmptyObject: invalid
@@ -105,27 +107,27 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 	}
 
 	' Set up the screen
-	UIResolution = gameEngine.device.getUIResolution()
-	gameEngine.screen = CreateObject("roScreen", true, UIResolution.width, UIResolution.height)
-	gameEngine.compositor.SetDrawTo(gameEngine.screen, &h00000000)
-	gameEngine.screen.SetMessagePort(gameEngine.screen_port)
-	gameEngine.screen.SetAlphaEnable(true)
+	UIResolution = game.device.getUIResolution()
+	game.screen = CreateObject("roScreen", true, UIResolution.width, UIResolution.height)
+	game.compositor.SetDrawTo(game.screen, &h00000000)
+	game.screen.SetMessagePort(game.screen_port)
+	game.screen.SetAlphaEnable(true)
 
 	' Set up the audioplayer
-	gameEngine.audioplayer.SetMessagePort(gameEngine.music_port)
+	game.audioplayer.SetMessagePort(game.music_port)
 
 	' Register all fonts in package
-	ttfs_in_package = gameEngine.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
-	otfs_in_package = gameEngine.filesystem.FindRecurse("pkg:/fonts/", ".otf")
+	ttfs_in_package = game.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
+	otfs_in_package = game.filesystem.FindRecurse("pkg:/fonts/", ".otf")
 	for each font_path in ttfs_in_package
-		gameEngine.font_registry.Register(font_path)
+		game.font_registry.Register(font_path)
 	end for
 	for each font_path in otfs_in_package
-		gameEngine.font_registry.Register(font_path)
+		game.font_registry.Register(font_path)
 	end for
 
 	' Create the default font
-	gameEngine.Fonts["default"] = gameEngine.font_registry.GetDefaultFont(28, false, false)
+	game.Fonts["default"] = game.font_registry.GetDefaultFont(28, false, false)
 
 	' ############### Create Initial Object - End ###############
 
@@ -133,224 +135,238 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 
-	' ################################################################ Update() function - Begin #####################################################################################################
-	gameEngine.Update = function() as Void
-		m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
-		m.screen.Clear(&h000000FF) 
-		if m.background_color <> invalid then
-			m.canvas.bitmap.Clear(m.background_color)
-		end if
+	' ################################################################ Play() function - Begin #####################################################################################################
+	game.Play = function() as Void
+
+		while m.running
 
 
-		m.dt = m.dtTimer.TotalMilliseconds()/1000
-		m.dtTimer.Mark()
-		url_msg = m.url_port.GetMessage()
-        screen_msg = m.screen_port.GetMessage() 
-        music_msg = m.music_port.GetMessage()
-		m.fpsTicker = m.fpsTicker + 1
-		if m.fpsTimer.TotalMilliseconds() > 1000 then
-			m.FPS = m.fpsTicker
-			m.fpsTicker = 0
-			m.fpsTimer.Mark()
-		end if
-
-		' --------------------------Add object to the appropriate position in the draw_depths array-----------------
-		sorted_instances = []
-		for each object_key in m.Instances
-			for each instance_key in m.Instances[object_key]
-				instance = m.Instances[object_key][instance_key]
-				if sorted_instances.Count() > 0 then
-					inserted = false
-					for i = sorted_instances.Count()-1 to 0 step -1
-						if not inserted and instance.depth > sorted_instances[i].depth then
-							ArrayInsert(sorted_instances, i+1, instance)
-							inserted = true
-							exit for
-						end if
-					end for
-					if not inserted then
-						sorted_instances.Unshift(instance)
-					end if
-				else
-					sorted_instances.Unshift(instance)
-				end if
-			end for
-		end for
-
-		' --------------------Begin giant loop for processing all game objects----------------
-		' There is a goto after every call to an override function, this is so if the instance deleted itself no futher calls will be attempted on the instance.
-		for i = sorted_instances.Count()-1 to 0 step -1
-			instance = sorted_instances[i]
-			if instance.id = invalid then : goto end_of_for_loop  : end if
-			
-			' -------------------- Then handle the object movement--------------------
-			instance.x = instance.x + instance.xspeed*m.dt
-			instance.y = instance.y + instance.yspeed*m.dt
+			m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
+			m.screen.Clear(&h000000FF) 
+			if m.background_color <> invalid then
+				m.canvas.bitmap.Clear(m.background_color)
+			end if
 
 
-			' --------------------First process the onButton() function--------------------
-	        if type(screen_msg) = "roUniversalControlEvent" then
-	        	instance.onButton(screen_msg.GetInt())
-	        	if screen_msg.GetInt() < 100
-	        		m.buttonHeld = screen_msg.GetInt()
-	        	else
-	        		m.buttonHeld = -1
-	        	end if
-				if instance.id = invalid then : goto end_of_for_loop  : end if
-	        end if
-	        if m.buttonHeld <> -1 then
-	        	' Button release codes are 100 plus the button press code
-	        	' This shows a button held code as 1000 plus the button press code
-	        	instance.onButton(1000+m.buttonHeld)
-				if instance.id = invalid then : goto end_of_for_loop  : end if
-	        end if
+			m.dt = m.dtTimer.TotalMilliseconds()/1000
+			m.dtTimer.Mark()
+			url_msg = m.url_port.GetMessage()
+	        screen_msg = m.screen_port.GetMessage() 
+	        music_msg = m.music_port.GetMessage()
+			m.fpsTicker = m.fpsTicker + 1
+			if m.fpsTimer.TotalMilliseconds() > 1000 then
+				m.FPS = m.fpsTicker
+				m.fpsTicker = 0
+				m.fpsTimer.Mark()
+			end if
 
-
-
-	        ' -------------------Then send the audioplayer event msg if applicable-------------------
-	        if type(music_msg) = "roAudioPlayerEvent" then
-	        	instance.onAudioEvent(music_msg)
-				if instance.id = invalid then : goto end_of_for_loop  : end if
-	        end if
-
-
-
-	        ' -------------------Then send the urltransfer event msg if applicable-------------------
-	        if type(url_msg) = "roUrlEvent" then
-	        	instance.onUrlEvent(url_msg)
-				if instance.id = invalid then : goto end_of_for_loop  : end if
-	        end if
-
-
-	        ' -------------------Then process the onUpdate() function----------------------
-			instance.onUpdate(m.dt)
-			if instance.id = invalid then : goto end_of_for_loop  : end if
-
-
-			' -------------------Then handle collisions and call onCollision() for each collision---------------------------
-			for each collider_key in instance.colliders
-				collider = instance.colliders[collider_key]
-				if collider <> invalid then
-					if collider.enabled then
-						collider.compositor_object.SetMemberFlags(1)
-						collider.compositor_object.SetCollidableFlags(1)
-						if collider.type = "circle" then
-							collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
-						else if collider.type = "rectangle" then
-							collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
-						end if
-						collider.compositor_object.MoveTo(instance.x, instance.y)
-						multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
-						if multiple_collisions <> invalid
-							for each other_collider in multiple_collisions
-								other_collider_data = other_collider.GetData()
-								if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
-									instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
-									if instance.id = invalid then : goto end_of_for_loop  : end if
-								end if
-							end for
+			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
+			sorted_instances = []
+			for each object_key in m.Instances
+				for each instance_key in m.Instances[object_key]
+					instance = m.Instances[object_key][instance_key]
+					if sorted_instances.Count() > 0 then
+						inserted = false
+						for i = sorted_instances.Count()-1 to 0 step -1
+							if not inserted and instance.depth > sorted_instances[i].depth then
+								ArrayInsert(sorted_instances, i+1, instance)
+								inserted = true
+								exit for
+							end if
+						end for
+						if not inserted then
+							sorted_instances.Unshift(instance)
 						end if
 					else
-						collider.compositor_object.SetMemberFlags(99)
-						collider.compositor_object.SetCollidableFlags(99)
+						sorted_instances.Unshift(instance)
 					end if
-				else
-					if instance.colliders.DoesExist(collider_key)
-						instance.colliders.Delete(collider_key)
-					end if
-				end if
+				end for
 			end for
 
+			' --------------------Begin giant loop for processing all game objects----------------
+			' There is a goto after every call to an override function, this is so if the instance deleted itself no futher calls will be attempted on the instance.
+			for i = sorted_instances.Count()-1 to 0 step -1
+				instance = sorted_instances[i]
+				if instance.id = invalid then : goto end_of_for_loop  : end if
+				if m.paused and instance.pauseable then: goto draw_instance : end if
+				
+				' -------------------- Then handle the object movement--------------------
+				instance.x = instance.x + instance.xspeed*m.dt
+				instance.y = instance.y + instance.yspeed*m.dt
 
-			' -------------------- Then handle image animation------------------------
-			for each image_object in instance.images
-				if image_object.image_count > 1 then
-					image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
-					if image_animation_timing >= 1 then
-						image_object.animation_position = image_object.animation_position+image_animation_timing
-						if image_object.animation_position > image_object.image_count then
-							image_object.animation_position = 0
-							image_object.animation_timer.Mark()
+
+				' --------------------First process the onButton() function--------------------
+		        if type(screen_msg) = "roUniversalControlEvent" then
+		        	instance.onButton(screen_msg.GetInt())
+		        	if screen_msg.GetInt() < 100
+		        		m.buttonHeld = screen_msg.GetInt()
+		        	else
+		        		m.buttonHeld = -1
+		        	end if
+					if instance.id = invalid then : goto end_of_for_loop  : end if
+		        end if
+		        if m.buttonHeld <> -1 then
+		        	' Button release codes are 100 plus the button press code
+		        	' This shows a button held code as 1000 plus the button press code
+		        	instance.onButton(1000+m.buttonHeld)
+					if instance.id = invalid then : goto end_of_for_loop  : end if
+		        end if
+
+
+
+		        ' -------------------Then send the audioplayer event msg if applicable-------------------
+		        if type(music_msg) = "roAudioPlayerEvent" then
+		        	instance.onAudioEvent(music_msg)
+					if instance.id = invalid then : goto end_of_for_loop  : end if
+		        end if
+
+
+
+		        ' -------------------Then send the urltransfer event msg if applicable-------------------
+		        if type(url_msg) = "roUrlEvent" then
+		        	instance.onUrlEvent(url_msg)
+					if instance.id = invalid then : goto end_of_for_loop  : end if
+		        end if
+
+
+		        ' -------------------Then process the onUpdate() function----------------------
+				instance.onUpdate(m.dt)
+				if instance.id = invalid then : goto end_of_for_loop  : end if
+
+
+				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
+				for each collider_key in instance.colliders
+					collider = instance.colliders[collider_key]
+					if collider <> invalid then
+						if collider.enabled then
+							collider.compositor_object.SetMemberFlags(1)
+							collider.compositor_object.SetCollidableFlags(1)
+							if collider.type = "circle" then
+								collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
+							else if collider.type = "rectangle" then
+								collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
+							end if
+							collider.compositor_object.MoveTo(instance.x, instance.y)
+							multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
+							if multiple_collisions <> invalid
+								for each other_collider in multiple_collisions
+									other_collider_data = other_collider.GetData()
+									if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
+										instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
+										if instance.id = invalid then : goto end_of_for_loop  : end if
+									end if
+								end for
+							end if
+						else
+							collider.compositor_object.SetMemberFlags(99)
+							collider.compositor_object.SetCollidableFlags(99)
 						end if
-						image_width = image_object.image.GetWidth()
-						region_position = int(image_object.animation_position)
-						region_width = image_object.region.GetWidth()
-						region_height = image_object.region.GetHeight()
-
-						y_offset = region_position*region_width \ image_width
-						x_offset = region_position*region_width-image_width*y_offset
-						image_object.region = CreateObject("roRegion", image_object.image, x_offset, y_offset*region_height, region_width, region_height)
+					else
+						if instance.colliders.DoesExist(collider_key)
+							instance.colliders.Delete(collider_key)
+						end if
 					end if
-				end if
+				end for
+
+
+				' -------------------- Then handle image animation------------------------
+				for each image_object in instance.images
+					if image_object.image_count > 1 then
+						image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
+						if image_animation_timing >= 1 then
+							image_object.animation_position = image_object.animation_position+image_animation_timing
+							if image_object.animation_position > image_object.image_count then
+								image_object.animation_position = 0
+								image_object.animation_timer.Mark()
+							end if
+							image_width = image_object.image.GetWidth()
+							region_position = int(image_object.animation_position)
+							region_width = image_object.region.GetWidth()
+							region_height = image_object.region.GetHeight()
+
+							y_offset = region_position*region_width \ image_width
+							x_offset = region_position*region_width-image_width*y_offset
+							image_object.region = CreateObject("roRegion", image_object.image, x_offset, y_offset*region_height, region_width, region_height)
+						end if
+					end if
+				end for
+
+
+				draw_instance:
+				' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
+				instance.onDrawBegin(m.canvas.bitmap)
+				if instance.id = invalid then : goto end_of_for_loop  : end if
+				for each image in instance.images
+					if image.enabled then
+						if image.alpha > 255 then : image.alpha = 255 : end if
+						m.canvas.bitmap.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
+					end if
+				end for
+				instance.onDrawEnd(m.canvas.bitmap)
+				if instance.id = invalid then : goto end_of_for_loop  : end if
+
+				end_of_for_loop:
+
 			end for
 
+			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
+			if type(url_msg) = "roUrlEvent"
+				url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
+		    	if m.urltransfers.DoesExist(url_transfer_id_string) then
+		        	m.urltransfers.Delete(url_transfer_id_string)
+					if m.debug then : print "Destroyed UrlTransfer Object - " ; url_transfer_id_string : end if
+		        end if
+		    end if
 
-			' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
-			instance.onDrawBegin(m.canvas.bitmap)
-			if instance.id = invalid then : goto end_of_for_loop  : end if
-			for each image in instance.images
-				if image.enabled then
-					if image.alpha > 255 then : image.alpha = 255 : end if
-					m.canvas.bitmap.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
+
+			' --------------------Then do canvas magic if it's set to follow----------------------------
+			if m.canvas.follow <> invalid
+				if m.canvas.follow.id <> invalid and m.Instances[m.canvas.follow.name].DoesExist(m.canvas.follow.id)
+					m.canvasCenterToInstance(m.canvas.follow, m.canvas.follow_mode)
+				else
+					m.canvas.follow = invalid
+				end if
+			end if
+
+
+			' -------------------Draw everything to the screen----------------------------
+			m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
+			for i = sorted_instances.Count()-1 to 0 step -1
+				instance = sorted_instances[i]
+				if instance.id <> invalid
+					instance.onDrawGui(m.screen)
 				end if
 			end for
-			instance.onDrawEnd(m.canvas.bitmap)
-			if instance.id = invalid then : goto end_of_for_loop  : end if
-
-			end_of_for_loop:
-
-		end for
-
-		' ------------------Destroy the UrlTransfer object if it has returned an event------------------
-		if type(url_msg) = "roUrlEvent"
-			url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
-	    	if m.urltransfers.DoesExist(url_transfer_id_string) then
-	        	m.urltransfers.Delete(url_transfer_id_string)
-				if m.debug then : print "Destroyed UrlTransfer Object - " ; url_transfer_id_string : end if
-	        end if
-	    end if
-
-
-		' --------------------Then do canvas magic if it's set to follow----------------------------
-		if m.canvas.follow <> invalid
-			if m.canvas.follow.id <> invalid and m.Instances[m.canvas.follow.name].DoesExist(m.canvas.follow.id)
-				m.canvasCenterToInstance(m.canvas.follow, m.canvas.follow_mode)
-			else
-				m.canvas.follow = invalid
+			if m.debug then
+				m.screen.DrawRect(10-4, 10, 100, 32, &h000000FF)
+				m.screen.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default)
 			end if
-		end if
+			m.screen.SwapBuffers()
 
 
-		' -------------------Draw everything to the screen----------------------------
-		m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
-		for i = sorted_instances.Count()-1 to 0 step -1
-			instance = sorted_instances[i]
-			if instance.id <> invalid
-				instance.onDrawGui(m.screen)
-			end if
-		end for
-		if m.debug then
-			m.screen.DrawRect(10-4, 10, 100, 32, &h000000FF)
-			m.screen.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default)
-		end if
-		m.screen.SwapBuffers()
+		end while
+
+	m.Instances.Clear()
+	m.currentRoom = invalid
+	m.currentRoomArgs.Clear()
 
 	end function
-	' ################################################################ Update() function - End #####################################################################################################
+	' ################################################################ Play() function - End #####################################################################################################
 
 
 
 	' ################################################################ newEmptyObject() function - Begin #####################################################################################################
-	gameEngine.newEmptyObject = function(object_name as String) as Object
+	game.newEmptyObject = function(object_name as String) as Object
 		m.currentID = m.currentID + 1
 		new_object = {
 			' -----Constants-----
 			name: object_name
 			id: m.currentID.ToStr()
-			gameEngine: m
+			game: m
 
 			' -----Variables-----
 			persistent: false
+			pauseable: true
 			depth: 0
 			x: 0.0
 			y: 0.0
@@ -432,16 +448,16 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 				offset_y: offset_y,
 				compositor_object: invalid
 			}
-			region = CreateObject("roRegion", m.gameEngine.empty_bitmap, 0, 0, 1, 1)
+			region = CreateObject("roRegion", m.game.empty_bitmap, 0, 0, 1, 1)
 			region.SetCollisionType(2)
 			region.SetCollisionCircle(offset_x, offset_y, radius)
-			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
+			collider.compositor_object = m.game.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
 			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider
 			else
-				if m.gameEngine.debug then : print "Collider Name Already Exists" : end if
+				if m.game.debug then : print "Collider Name Already Exists" : end if
 			end if
 		end function
 
@@ -456,16 +472,16 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 				height: height,
 				compositor_object: invalid
 			}
-			region = CreateObject("roRegion", m.gameEngine.empty_bitmap, 0, 0, 1, 1)
+			region = CreateObject("roRegion", m.game.empty_bitmap, 0, 0, 1, 1)
 			region.SetCollisionType(1)
 			region.SetCollisionRectangle(offset_x, offset_y, width, height)
-			collider.compositor_object = m.gameEngine.compositor.NewSprite(m.x, m.y, region)
+			collider.compositor_object = m.game.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
 			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider 
 			else
-				if m.gameEngine.debug then : print "Collider Name Already Exists" : end if
+				if m.game.debug then : print "Collider Name Already Exists" : end if
 			end if
 		end function
 
@@ -474,7 +490,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 				if type(m.colliders[collider_name].compositor_object) = "roSprite" then : m.colliders[collider_name].compositor_object.Remove() : end if
 				m.colliders.Delete(collider_name)
 			else
-				if m.gameEngine.debug then : print "Collider Doesn't Exist" : end if
+				if m.game.debug then : print "Collider Doesn't Exist" : end if
 			end if
 		end function
 
@@ -529,7 +545,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 			if m.images[index] <> invalid then
 				m.images.Delete(index)
 			else
-				if m.gameEngine.debug then : print "removeImage() - Position In Image Array Is Invalid" : end if
+				if m.game.debug then : print "removeImage() - Position In Image Array Is Invalid" : end if
 			end if
 		end function
 
@@ -542,7 +558,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### DrawColliders() function - Begin ###############
-	gameEngine.drawColliders = function(instance as Object, color = &hFF0000FF as Integer) as Void
+	game.drawColliders = function(instance as Object, color = &hFF0000FF as Integer) as Void
 		for each collider_key in instance.colliders
 			collider = instance.colliders[collider_key]
 			if collider.enabled then
@@ -564,8 +580,40 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 
+	' ############### End() function - Begin ###############
+	game.End = function() as Void
+		m.running = false
+	end function
+	' ############### End() function - End ###############
+
+
+
+	' ############### Pause() function - Begin ###############
+	game.Pause = function() as Void
+		m.paused = true
+	end function
+	' ############### Pause() function - End ###############
+
+
+
+	' ############### Resume() function - Begin ###############
+	game.Resume = function() as Void
+		m.paused = false
+	end function
+	' ############### Resume() function - End ###############
+
+
+
+	' ############### isPaused() function - Begin ###############
+	game.isPaused = function() as Void
+		return m.paused
+	end function
+	' ############### isPaused() function - End ###############
+
+
+
 	' ############### setBackgroundColor() function - Begin ###############
-	gameEngine.setBackgroundColor = function(color as Dynamic) as Void
+	game.setBackgroundColor = function(color as Dynamic) as Void
 		m.background_color = color
 	end function
 	' ############### setBackgroundColor() function - Begin ###############
@@ -573,14 +621,14 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### getDeltaTime() function - Begin ###############
-	gameEngine.getDeltaTime = function() as Float
+	game.getDeltaTime = function() as Float
 		return m.dt
 	end function
 	' ############### getDeltaTime() function - Begin ###############
 
 
 	' ############### getRoom() function - Begin ###############
-	gameEngine.getRoom = function() as Object
+	game.getRoom = function() as Object
 		return m.currentRoom
 	end function
 	' ############### getRoom() function - Begin ###############
@@ -588,7 +636,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### getCanvas() function - Begin ###############
-	gameEngine.getCanvas = function() as Object
+	game.getCanvas = function() as Object
 		return m.canvas.bitmap
 	end function
 	' ############### getCanvas() function - Begin ###############
@@ -596,7 +644,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### getScreen() function - Begin ###############
-	gameEngine.getScreen = function() as Object
+	game.getScreen = function() as Object
 		return m.screen
 	end function
 	' ############### getScreen() function - Begin ###############
@@ -604,7 +652,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### getUrlTransfer() function - Begin ###############
-	gameEngine.getUrlTransfer = function() as Object
+	game.getUrlTransfer = function() as Object
 		return m.urltransfer
 	end function
 	' ############### getUrlTransfer() function - Begin ###############
@@ -614,7 +662,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### defineObject() function - Begin ###############
-	gameEngine.defineObject = function(object_name as String, object_creation_function as Function) as Void
+	game.defineObject = function(object_name as String, object_creation_function as Function) as Void
 		m.Objects[object_name] = object_creation_function
 		m.Instances[object_name] = {}
 	end function
@@ -623,7 +671,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### createInstance() function - Begin ###############
-	gameEngine.createInstance = function(object_name as String, args = {} as Object) as Dynamic
+	game.createInstance = function(object_name as String, args = {} as Object) as Dynamic
 		if m.Objects.DoesExist(object_name)
 			new_instance = m.newEmptyObject(object_name)
 			m.Objects[object_name](new_instance)
@@ -640,7 +688,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### getInstanceByID() function - Begin ###############
-	gameEngine.getInstanceByID = function(instance_id as String) as Dynamic
+	game.getInstanceByID = function(instance_id as String) as Dynamic
 		for each object_key in m.Instances
 			if m.Instances[object_key].DoesExist(instance_id) then
 				return m.Instances[instance_id]
@@ -654,7 +702,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### getInstanceByName() function - Begin ###############
-	gameEngine.getInstanceByName = function(object_name as String) as Dynamic
+	game.getInstanceByName = function(object_name as String) as Dynamic
 		if m.Instances.DoesExist(object_name) then
 			for each instance_key in m.Instances[object_name]
 				return m.Instances[object_name][instance_key] ' Obviously only retrieves the first value
@@ -668,7 +716,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### getAllInstances() function - Begin ###############
-	gameEngine.getAllInstances = function(object_name as String) as Dynamic
+	game.getAllInstances = function(object_name as String) as Dynamic
 		if m.Instances.DoesExist(object_name) then
 			array = []
 			for each instance_key in m.Instances[object_name]
@@ -685,7 +733,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### destroyInstance() function - Begin ###############
-	gameEngine.destroyInstance = function(instance as Object) as Void
+	game.destroyInstance = function(instance as Object) as Void
 		if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
 		if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
 			for each collider_key in instance.colliders
@@ -707,7 +755,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### destroyAllInstances() function - Begin ###############
-	gameEngine.destroyAllInstances = function(object_name as String) as Void
+	game.destroyAllInstances = function(object_name as String) as Void
 		for each instance_key in m.Instances[object_name]
 			m.destroyInstance(m.Instances[object_name][instance_key])
 		end for
@@ -717,7 +765,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### instanceCount() function - Begin ###############
-	gameEngine.instanceCount = function(object_name as String) as Integer
+	game.instanceCount = function(object_name as String) as Integer
 		return m.Instances[object_name].Count()
 	end function 
 	' ############### instanceCount() function - End ###############
@@ -727,7 +775,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### defineRoom() function - Begin ###############
-	gameEngine.defineRoom = function(room_name as String, room_creation_function as Function) as Void
+	game.defineRoom = function(room_name as String, room_creation_function as Function) as Void
 		m.Rooms[room_name] = room_creation_function
 		m.Instances[room_name] = {}
 		if m.debug then : print "defineRoom() - Room function has been added" : end if
@@ -737,7 +785,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### changeRoom() function - Begin ###############
-	gameEngine.changeRoom = function(room_name as String, args = {} as Object) as Boolean
+	game.changeRoom = function(room_name as String, args = {} as Object) as Boolean
 		if m.Rooms[room_name] <> invalid then
 			if m.currentRoom <> invalid then 
 				m.destroyInstance(m.currentRoom)
@@ -764,7 +812,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### resetRoom() function - End ###############
-	gameEngine.resetRoom = function() as Void
+	game.resetRoom = function() as Void
 		m.changeRoom(m.currentRoom.name, m.currentRoomArgs)
 	end function
 	' ############### resetRoom() function - End ###############
@@ -774,7 +822,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### loadBitmap() function - Begin ###############
-	gameEngine.loadBitmap = function(bitmap_name as String, path as Dynamic) as Boolean
+	game.loadBitmap = function(bitmap_name as String, path as Dynamic) as Boolean
 		if type(path) = "roAssociativeArray" then
 			if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
@@ -805,7 +853,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### getBitmap() function - Begin ###############
-	gameEngine.getBitmap = function(bitmap_name as String) as Dynamic
+	game.getBitmap = function(bitmap_name as String) as Dynamic
 		if m.Bitmaps.DoesExist(bitmap_name)
 			return m.Bitmaps[bitmap_name]
 		else
@@ -817,7 +865,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### unloadBitmap() function - Begin ###############
-	gameEngine.unloadBitmap = function(bitmap_name as String) as Boolean
+	game.unloadBitmap = function(bitmap_name as String) as Boolean
 		if m.Bitmaps.DoesExist(bitmap_name)
 			m.Bitmaps[bitmap_name] = invalid
 			return true
@@ -832,7 +880,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### registerFont() function - Begin ###############
-	gameEngine.registerFont = function(path as String) as Boolean
+	game.registerFont = function(path as String) as Boolean
 		if m.filesystem.Exists(path) then
 			path_object = CreateObject("roPath", path)
 			parts = path_object.Split()
@@ -854,7 +902,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### loadFont() function - Begin ###############
-	gameEngine.loadFont = function(font_name as String, size as Integer, italic as Boolean, bold as Boolean) as Void
+	game.loadFont = function(font_name as String, size as Integer, italic as Boolean, bold as Boolean) as Void
 		m.Fonts[font_name] = m.font_registry.GetFont(font_name, size, italic, bold)
 	end function
 	' ############### loadFont() function - End ###############
@@ -862,7 +910,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### unloadFont() function - Begin ###############
-	gameEngine.unloadFont = function(font_name as String) as Void
+	game.unloadFont = function(font_name as String) as Void
 		m.Fonts[font_name] = invalid
 	end function
 	' ############### unloadFont() function - End ###############
@@ -870,7 +918,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### getFont() function - Begin ###############
-	gameEngine.getFont = function(font_name as String) as Object
+	game.getFont = function(font_name as String) as Object
 		return m.Fonts[font_name]
 	end function
 	' ############### getFont() function - End ###############
@@ -882,21 +930,21 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### canvasSetSize() function - Begin ###############
-	gameEngine.canvasSetSize = function(canvas_width as Integer, canvas_height as Integer) as Void
+	game.canvasSetSize = function(canvas_width as Integer, canvas_height as Integer) as Void
 		m.canvas.bitmap = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
 	end function
 	' ############### canvasSetSize() function - Begin ###############
 
 
 	' ############### canvasGetOffset() function - Begin ###############
-	gameEngine.canvasGetOffset = function() as Object
+	game.canvasGetOffset = function() as Object
 		return {x: m.canvas.offset_x, y: m.canvas.offset_y}
 	end function
 	' ############### canvasGetOffset() function - Begin ###############
 
 
 	' ############### canvasGetScale() function - Begin ###############
-	gameEngine.canvasGetScale = function() as Object
+	game.canvasGetScale = function() as Object
 		return {x: m.canvas.scale_x, y: m.canvas.scale_y}
 	end function
 	' ############### canvasGetScale() function - Begin ###############
@@ -904,7 +952,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 	' ############### canvasIncreaseOffset() function - Begin ###############
 	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
-	gameEngine.canvasIncreaseOffset = function(x as Float, y as Float) as Void
+	game.canvasIncreaseOffset = function(x as Float, y as Float) as Void
 		m.canvas.offset_x = m.canvas.offset_x + x
 		m.canvas.offset_y = m.canvas.offset_y + y
 	end function
@@ -913,7 +961,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### canvasIncreaseScale() function - Begin ###############
-	gameEngine.canvasIncreaseScale = function(scale_x as Float, scale_y = invalid as Dynamic) as Void
+	game.canvasIncreaseScale = function(scale_x as Float, scale_y = invalid as Dynamic) as Void
 		if scale_y = invalid
 			scale_y = scale_x
 		end if
@@ -928,7 +976,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 	' ############### canvasSetOffset() function - Begin ###############
 	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
-	gameEngine.canvasSetOffset = function(x as Float, y as Float) as Void
+	game.canvasSetOffset = function(x as Float, y as Float) as Void
 		m.canvas.offset_x = x
 		m.canvas.offset_y = y
 	end function
@@ -937,7 +985,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### canvasSetScale() function - Begin ###############
-	gameEngine.canvasSetScale = function(scale_x as Float, scale_y = invalid as Dynamic) as Void
+	game.canvasSetScale = function(scale_x as Float, scale_y = invalid as Dynamic) as Void
 		if scale_y = invalid
 			scale_y = scale_x
 		end if
@@ -949,7 +997,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### canvasSetFollow() function - Begin ###############
-	gameEngine.canvasSetFollow = function(instance as Object, mode = 0 as Integer) as Void
+	game.canvasSetFollow = function(instance as Object, mode = 0 as Integer) as Void
 		m.canvas.follow = instance
 		m.canvas.follow_mode = mode
 	end function
@@ -958,7 +1006,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### canvasUnsetFollow() function - Begin ###############
-	gameEngine.canvasUnsetFollow = function() as Void
+	game.canvasUnsetFollow = function() as Void
 		m.canvas.follow = invalid
 	end function
 	' ############### canvasUnsetFollow() function - End ###############
@@ -966,7 +1014,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### canvasFitToScreen() function - Begin ###############
-	gameEngine.canvasFitToScreen = function() as Void
+	game.canvasFitToScreen = function() as Void
 		canvas_width = m.canvas.bitmap.GetWidth()
 		canvas_height = m.canvas.bitmap.GetHeight()
 		screen_width = m.screen.GetWidth()
@@ -994,7 +1042,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### canvasCenterToScreen() function - Begin ###############
-	gameEngine.canvasCenterToScreen = function() as Void
+	game.canvasCenterToScreen = function() as Void
 		m.canvas.offset_x = m.screen.GetWidth()/2-(m.canvas.scale_x*m.canvas.bitmap.GetWidth())/2
 		m.canvas.offset_y = m.screen.GetHeight()/2-(m.canvas.scale_y*m.canvas.bitmap.GetHeight())/2
 	end function
@@ -1003,7 +1051,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### canvasCenterToInstance() function - Begin ###############
-	gameEngine.canvasCenterToInstance = function(instance as Object, mode = 0 as Integer) as dynamic
+	game.canvasCenterToInstance = function(instance as Object, mode = 0 as Integer) as dynamic
 
 		if instance.id = invalid
 			if m.debug then : print "canvasCenterToInstance() - Provided instance doesn't exist" : end if
@@ -1060,7 +1108,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### musicPlay() function - Begin ###############
-	gameEngine.musicPlay = function(path as String, loop = false as Boolean) as Boolean
+	game.musicPlay = function(path as String, loop = false as Boolean) as Boolean
 		if m.filesystem.Exists(path) then
 			m.audioplayer.stop()
 			m.audioplayer.ClearContent()
@@ -1081,7 +1129,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### musicStop() function - Begin ###############
-	gameEngine.musicStop = function() as Void
+	game.musicStop = function() as Void
 		m.audioplayer.stop()
 	end function
 	' ############### musicStop() function - End ###############
@@ -1089,7 +1137,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### musicPause() function - Begin ###############
-	gameEngine.musicPause = function() as Void
+	game.musicPause = function() as Void
 		m.audioplayer.pause()
 	end function
 	' ############### musicPause() function - End ###############
@@ -1097,7 +1145,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### musicResume() function - Begin ###############
-	gameEngine.musicResume = function() as Void
+	game.musicResume = function() as Void
 		m.audioplayer.resume()
 	end function
 	' ############### musicResume() function - End ###############
@@ -1105,7 +1153,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### loadSound() function - Begin ###############
-	gameEngine.loadSound = function(sound_name as String, path as String) as Void
+	game.loadSound = function(sound_name as String, path as String) as Void
 		m.Sounds[sound_name] = CreateObject("roAudioResource", path)
 	end function
 	' ############### loadSound() function - End ###############
@@ -1113,7 +1161,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### playSound() function - Begin ###############
-	gameEngine.playSound = function(sound_name as String, volume = 100 as Integer) as Boolean
+	game.playSound = function(sound_name as String, volume = 100 as Integer) as Boolean
 		if m.Sounds.DoesExist(sound_name) then
 			m.Sounds[sound_name].trigger(volume)
 			if m.debug then : print "playSound() - Playing sound: " ; sound_name : end if
@@ -1128,7 +1176,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 
 
 	' ############### newAsyncUrlTransfer() function - Begin ###############
-	gameEngine.newAsyncUrlTransfer = function()
+	game.newAsyncUrlTransfer = function()
 		UrlTransfer = CreateObject("roUrlTransfer")
 		UrlTransfer.SetMessagePort(m.url_port)
 		m.urltransfers[UrlTransfer.GetIdentity().ToStr()] = UrlTransfer
@@ -1136,7 +1184,7 @@ function gameEngine_init(canvas_width, canvas_height, debug = false)
 	end function
 	' ############### newAsyncUrlTransfer() function - Begin ###############
 
-	return gameEngine
+	return game
 end function
 
 

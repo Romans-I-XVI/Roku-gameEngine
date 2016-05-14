@@ -13,12 +13,16 @@ Creates the main gameEngine object, the canvas width and height create an empty 
 gameEngine
 ------
 ###### ---General Methods---
-##### Update() as Void
-This method must be called in your main while loop in order for the game to execute.
-##### newEmptyObject(object_name as String) as Object
-This method is primarily for internal use, but may be called manually if desired. It returns an empty game object.
-##### drawColliders(instance as Object) as Void
-This method is for debugging purposes, it will draw the colliders associated with the provided instance.
+##### Play() as Void
+After setting up your game, call this method to execute it.
+##### End() as Void
+This will end your game.
+##### Pause() as Void
+This will pause your game. Note: all instances that have _pauseable = false_ will continue to execute. Also keep in mind that onDrawBegin, onDrawEnd, and onDrawGui are _always_ executed even when the game is paused.
+##### Resume() as Void
+This will resume your paused game.
+##### isPaused()
+Returns true if the game is paused.
 ##### setBackgroundColor(color as Dynamic) as Void
 Set the color the canvas will be cleared with, if set to invalid the canvas will not be cleared.
 ##### getDeltaTime() as Float
@@ -29,6 +33,10 @@ Returns the current room.
 Returns the canvas bitmap object.
 ##### getScreen() as Object
 Returns the screen object.
+##### newEmptyObject(object_name as String) as Object
+This method is primarily for internal use, but may be called manually if desired. It returns an empty game object.
+##### drawColliders(instance as Object) as Void
+This method is for debugging purposes, it will draw the colliders associated with the provided instance.
 
 ###### ---Game Object Methods---
 ##### defineObject(object_name as String, object_creation_function as Function) as Void
@@ -135,6 +143,7 @@ new_object = {
 
 	' -----Variables-----
 	persistent: false
+	pauseable: true
 	depth: 0
 	x: 0.0
 	y: 0.0
@@ -156,6 +165,7 @@ new_object = {
 
 ###### ---Variables---
 * persistent: If true the instance will not be destroyed when the on changeRoom(), default behavior is to destroy all instances on changeRoom().
+* pauseable: If set to false the instance will continue to execute even when the game is paused. Default is set to true, in which case only onDrawBegin(), onDrawEnd() and onDrawGui() will be called when the game is paused.
 * depth: Declares the instance draw depth.
 * x/y: The x and y positions of the instance.
 * xspeed/yspeed: The movement speed of the instance. Note: This is automatically multiplied by delta time.
