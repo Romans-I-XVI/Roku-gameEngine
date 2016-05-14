@@ -350,10 +350,16 @@ function new_game(canvas_width, canvas_height, debug = false)
 		end while
 
 		for each object_key in m.Instances
-			m.Instances[object_key].Clear()
+			for each instance_key in m.Instances[object_key]
+				instance = m.Instances[object_key][instance_key]
+				if instance.id <> invalid and instance.name <> m.currentRoom.name then
+					m.destroyInstance(instance)
+				end if
+			end for
 		end for
-		m.currentRoom = invalid
-		m.currentRoomArgs.Clear()
+		if m.currentRoom <> invalid and m.currentRoom.id <> invalid then 
+			m.destroyInstance(m.currentRoom)
+		end if
 
 	end function
 	' ################################################################ Play() function - End #####################################################################################################
@@ -799,16 +805,17 @@ function new_game(canvas_width, canvas_height, debug = false)
 	' ############### changeRoom() function - Begin ###############
 	game.changeRoom = function(room_name as String, args = {} as Object) as Boolean
 		if m.Rooms[room_name] <> invalid then
-			if m.currentRoom <> invalid then 
-				m.destroyInstance(m.currentRoom)
-			end if
 			for each object_key in m.Instances
 				for each instance_key in m.Instances[object_key]
-					if not m.Instances[object_key][instance_key].persistent then
-						m.destroyInstance(m.Instances[object_key][instance_key])
+					instance = m.Instances[object_key][instance_key]
+					if instance.id <> invalid and not instance.persistent and instance.name <> m.currentRoom.name then
+						m.destroyInstance(instance)
 					end if
 				end for
 			end for
+			if m.currentRoom <> invalid and m.currentRoom.id <> invalid then 
+				m.destroyInstance(m.currentRoom)
+			end if
 			m.currentRoom = m.newEmptyObject(room_name)
 			m.Rooms[room_name](m.currentRoom)
 			m.currentRoomArgs = args

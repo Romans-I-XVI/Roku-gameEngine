@@ -16,7 +16,7 @@ Game
 ##### Play() as Void
 After setting up your game, call this method to execute it.
 ##### End() as Void
-This will end your game.
+This will end your game. All existing instances will be destroyed before exiting (meaning onDestroy() will be called).
 ##### Pause() as Void
 This will pause your game. Note: all instances that have _pauseable = false_ will continue to execute. Also keep in mind that onDrawBegin, onDrawEnd, and onDrawGui are _always_ executed even when the game is paused.
 ##### Resume() as Dynamic
