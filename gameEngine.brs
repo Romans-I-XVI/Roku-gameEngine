@@ -517,7 +517,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 		new_object.addImage = function(image, args = {}, insert_position = invalid)
 			image_object = {
 				' --------------Values That Can Be Changed------------
-				name: ""
+				name: "main" ' Name must be unique
 				offset_x: 0 ' The offset of the image.
 				offset_y: 0 
 				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
@@ -548,6 +548,15 @@ function new_game(canvas_width, canvas_height, debug = false)
 					image_object[key] = args[key]
 				end if
 			end for
+
+			for i = 0 to m.images.Count()-1
+				if image_object.name = m.images[i].name
+					if m.game.debug then : print "addImage() - An image named -"+image_object.name+"- already exists" : end if
+					return false
+				end if
+			end for
+
+
 			image_object.animation_timer = CreateObject("roTimespan")
 
 			if image_object.image_width <> invalid and image_object.image_height <> invalid then
@@ -569,12 +578,11 @@ function new_game(canvas_width, canvas_height, debug = false)
 			else
 				m.images.push(image_object)
 			end if
+
+			return true
 		end function
 
-		new_object.getImage = function(image_name = invalid)
-			if image_name = invalid
-				return m.images[0]
-			end if
+		new_object.getImage = function(image_name = "main")
 			for each image in m.images
 				if image.name = image_name
 					return image
@@ -583,14 +591,17 @@ function new_game(canvas_width, canvas_height, debug = false)
 			return invalid
 		end function
 
-		new_object.removeImage = function(image_name)
+		new_object.removeImage = function(image_name = "main")
 			deleted_something = false
-			for i = m.images.Count()-1 to 0 step -1
-				if m.images[i].name = image_name
-					m.images.Delete(i)
-					deleted_something = true
-				end if
-			end for
+			if m.images.Count() > 0
+				for i = 0 to m.images.Count()-1
+					if m.images[i].name = image_name
+						m.images.Delete(i)
+						deleted_something = true
+						exit for
+					end if
+				end for
+			end if
 			if m.game.debug and not deleted_something then : print "removeImage() - No images found with name "+image_name : end if
 		end function
 

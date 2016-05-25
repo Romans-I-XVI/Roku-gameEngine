@@ -225,13 +225,16 @@ This method will always be called just before the instance is destroyed.
 Adds a rectangle collider to the instance's colliders associative array with the provided name and properties. Enabled is true by default.
 ##### addColliderCircle(collider_name, radius, [offset_x as Integer, offset_y as Integer, enabled as Boolean])
 Adds a circular collider to the instance's colliders associative array with the provided name and properties. By default offset_x is 0, offset_y is 0, and enabled is true.
+##### getCollider(collider_name as String) as Object
+Returns the collider with the provided name, returns invalid if it doesn't exist.
 ##### removeCollider(collider_name)
 Removes the collider with the provided name.
-##### addImage(image as Object, args as Object)
-Adds the provided image to the instance's images array. The image should be of type roBitmap or roRegion. Images are added to an array and are drawn in the order they are added to that array. Args should be an associative array with values to override the defaults. Here are the defaults that can be overridden.
+##### addImage(image as Object, [args as Object, insert_position as Integer])
+Adds the provided image to the instance's images array. The image should be of type roBitmap or roRegion. By default images are added to the end of the images array but you can also choose to insert the image to a specific position in the array with the insert_position argument. Images drawn in the order they exist in the instance's images array. Args is an associative array with values to override the defaults. Here are the defaults that can be overridden.
 
 ```brightscript
 args = {
+	name: "main" ' Name must be unique
 	offset_x: 0 ' The offset of the image.
 	offset_y: 0 
 	origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
@@ -251,8 +254,10 @@ args = {
 	animation_position: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
 }
 ```
-##### removeImage(index as Integer)
-Removes the image in the images array that corresponds to the provided index.
+##### getImage([image_name as String]) as Object
+Returns the image with the provided image name. Defaults to "main" image name.
+##### removeImage([image_name as String])
+Removes the image matching the provided image name. Defaults to "main" image name.
 
 Other Utilities
 ------
