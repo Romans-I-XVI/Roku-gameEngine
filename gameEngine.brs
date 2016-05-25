@@ -468,7 +468,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider
 			else
-				if m.game.debug then : print "Collider Name Already Exists" : end if
+				if m.game.debug then : print "addColliderCircle() - Collider Name Already Exists" : end if
 			end if
 		end function
 
@@ -492,7 +492,16 @@ function new_game(canvas_width, canvas_height, debug = false)
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider 
 			else
-				if m.game.debug then : print "Collider Name Already Exists" : end if
+				if m.game.debug then : print "addColliderRectangle() - Collider Name Already Exists" : end if
+			end if
+		end function
+
+		new_object.getCollider = function(collider_name)
+			if m.colliders.DoesExist(collider_name)
+				return m.colliders[collider_name]
+			else
+				if m.game.debug then : print "getCollider() - Collider with that name doesn't exist" : end if
+				return invalid
 			end if
 		end function
 
@@ -501,11 +510,11 @@ function new_game(canvas_width, canvas_height, debug = false)
 				if type(m.colliders[collider_name].compositor_object) = "roSprite" then : m.colliders[collider_name].compositor_object.Remove() : end if
 				m.colliders.Delete(collider_name)
 			else
-				if m.game.debug then : print "Collider Doesn't Exist" : end if
+				if m.game.debug then : print "removeCollider() - Collider Doesn't Exist" : end if
 			end if
 		end function
 
-		new_object.addImage = function(image, args = {})
+		new_object.addImage = function(image, args = {}, insert_position = invalid)
 			image_object = {
 				' --------------Values That Can Be Changed------------
 				name: ""
@@ -549,15 +558,40 @@ function new_game(canvas_width, canvas_height, debug = false)
 				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, image_object.image.GetWidth(), image_object.image.GetHeight())
 			end if
 
-			m.images.push(image_object)
+			if insert_position = invalid
+				insert_position = m.images.Count()
+			end if
+
+			if insert_position = 0
+				m.images.Unshift(image_object)
+			else if insert_position < m.images.Count()
+				ArrayInsert(m.images, insert_position, image_object)
+			else
+				m.images.push(image_object)
+			end if
 		end function
 
-		new_object.removeImage = function(index)
-			if m.images[index] <> invalid then
-				m.images.Delete(index)
-			else
-				if m.game.debug then : print "removeImage() - Position In Image Array Is Invalid" : end if
+		new_object.getImage = function(image_name = invalid)
+			if image_name = invalid
+				return m.images[0]
 			end if
+			for each image in m.images
+				if image.name = image_name
+					return image
+				end if
+			end for
+			return invalid
+		end function
+
+		new_object.removeImage = function(image_name)
+			deleted_something = false
+			for i = m.images.Count()-1 to 0 step -1
+				if m.images[i].name = image_name
+					m.images.Delete(i)
+					deleted_something = true
+				end if
+			end for
+			if m.game.debug and not deleted_something then : print "removeImage() - No images found with name "+image_name : end if
 		end function
 
 		m.Instances[new_object.name][new_object.id] = new_object
