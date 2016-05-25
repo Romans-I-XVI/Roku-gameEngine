@@ -271,17 +271,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 					end if
 				end for
 
-				draw_instance:
 
-				' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
-				instance.onDrawBegin(m.canvas.bitmap)
-				if instance.id = invalid then : goto end_of_for_loop  : end if
-
-				sorted_image_keys = instance.images.Keys()
-				for each image_key in sorted_image_keys
-					image_object = instance.images[image_key]
-
-					' Animate the image
+				' -------------------- Then handle image animation------------------------
+				for each image_object in instance.images
 					if image_object.image_count > 1 then
 						image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
 						if image_animation_timing >= 1 then
@@ -300,19 +292,21 @@ function new_game(canvas_width, canvas_height, debug = false)
 							image_object.region = CreateObject("roRegion", image_object.image, x_offset, y_offset*region_height, region_width, region_height)
 						end if
 					end if
-
-					' Draw the image
-					if image_object.enabled then
-						if image_object.alpha > 255 then : image_object.alpha = 255 : end if
-						m.canvas.bitmap.DrawScaledObject(instance.x+image_object.offset_x-(image_object.origin_x*image_object.scale_x), instance.y+image_object.offset_y-(image_object.origin_y*image_object.scale_y), image_object.scale_x, image_object.scale_y, image_object.region, (image_object.color << 8)+image_object.alpha)
-					end if
-
 				end for
 
+
+				draw_instance:
+				' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
+				instance.onDrawBegin(m.canvas.bitmap)
+				if instance.id = invalid then : goto end_of_for_loop  : end if
+				for each image in instance.images
+					if image.enabled then
+						if image.alpha > 255 then : image.alpha = 255 : end if
+						m.canvas.bitmap.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
+					end if
+				end for
 				instance.onDrawEnd(m.canvas.bitmap)
 				if instance.id = invalid then : goto end_of_for_loop  : end if
-
-
 
 				end_of_for_loop:
 
@@ -390,7 +384,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 			xspeed: 0.0
 			yspeed: 0.0
 	        colliders: {}
-	        images: {}
+	        images: []
 
 	        ' -----Methods-----
 	        onCreate: invalid
@@ -511,9 +505,10 @@ function new_game(canvas_width, canvas_height, debug = false)
 			end if
 		end function
 
-		new_object.addImage = function(image, args = {}, stack_position = invalid)
+		new_object.addImage = function(image, args = {})
 			image_object = {
 				' --------------Values That Can Be Changed------------
+				name: ""
 				offset_x: 0 ' The offset of the image.
 				offset_y: 0 
 				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
@@ -554,25 +549,14 @@ function new_game(canvas_width, canvas_height, debug = false)
 				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, image_object.image.GetWidth(), image_object.image.GetHeight())
 			end if
 
-			if stack_position = invalid
-				if m.images.Count() = 0
-					stack_position = "0"
-				else
-					image_stack = m.images.Keys()
-					stack_position = (image_stack[image_stack.Count()-1].ToInt()+1).ToStr()
-				end if
-			end if
-			m.images[stack_position] = image_object
-
-			return stack_position
-
+			m.images.push(image_object)
 		end function
 
-		new_object.removeImage = function(image_name)
-			if m.images.DoesExist(image_name) then
-				m.images.Delete(image_name)
+		new_object.removeImage = function(index)
+			if m.images[index] <> invalid then
+				m.images.Delete(index)
 			else
-				if m.game.debug then : print "removeImage() - No image in that position " : end if
+				if m.game.debug then : print "removeImage() - Position In Image Array Is Invalid" : end if
 			end if
 		end function
 
