@@ -227,8 +227,8 @@ Adds a rectangle collider to the instance's colliders associative array with the
 Adds a circular collider to the instance's colliders associative array with the provided name and properties. By default offset_x is 0, offset_y is 0, and enabled is true.
 ##### removeCollider(collider_name)
 Removes the collider with the provided name.
-##### addImage(image as Object, args as Object)
-Adds the provided image to the instance's images array. The image should be of type roBitmap or roRegion. Images are added to an array and are drawn in the order they are added to that array. Args should be an associative array with values to override the defaults. Here are the defaults that can be overridden.
+##### addImage(image as Object, args as Object, [stack_position as String]) as String
+Adds the provided image to the instance's images associative array. Stack position is the key that will be added to the aa and represents the draw order of the images within the instance. Stack position should be an integer as a string, if stack position is not provided it will be automatically added. The image should be of type roBitmap or roRegion. Args should be an associative array with values to override the defaults. Below are the defaults that can be overridden. Returns the stack position key.
 
 ```brightscript
 args = {
