@@ -714,6 +714,18 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 
 
+	' ############### resetScreen() function - Begin ###############
+	game.resetScreen = function() as Void
+		UIResolution = m.device.getUIResolution()
+		m.screen = CreateObject("roScreen", true, UIResolution.width, UIResolution.height)
+		m.compositor.SetDrawTo(m.screen, &h00000000)
+		m.screen.SetMessagePort(m.screen_port)
+		m.screen.SetAlphaEnable(true)
+	end function
+	' ############### resetScreen() function - Begin ###############
+
+
+
 	' ############### getUrlTransfer() function - Begin ###############
 	game.getUrlTransfer = function() as Object
 		return m.urltransfer

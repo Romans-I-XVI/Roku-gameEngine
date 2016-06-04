@@ -33,6 +33,8 @@ Returns the current room.
 Returns the canvas bitmap object.
 ##### getScreen() as Object
 Returns the screen object.
+##### resetScreen() as Void
+*Important* This function is here because of a bug with the Roku. If you ever try to use a component that displays something on the screen aside from roScreen, such as roKeyboardScreen, roMessageDialog, etc. the screen will flicker after you return to your game. You should always call this method after using a screen that's outside of roScreen in order to prevent this bug.
 ##### newEmptyObject(object_name as String) as Object
 This method is primarily for internal use, but may be called manually if desired. It returns an empty game object.
 ##### drawColliders(instance as Object) as Void
