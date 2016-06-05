@@ -636,6 +636,29 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 
 
+	' ############### DrawSafeZones() function - End ###############
+	game.drawSafeZones = function() as Void
+		screen_width = m.screen.GetWidth()
+		screen_height = m.screen.GetHeight()
+		if m.device.GetDisplayAspectRatio() = "4x3" then
+			action_offset = {w: 0.033*screen_width, h: 0.035*screen_height}
+			title_offset = {w: 0.067*screen_width, h: 0.05*screen_height}
+		else
+			action_offset = {w: 0.035*screen_width, h: 0.035*screen_height}
+			title_offset = {w: 0.1*screen_width, h: 0.05*screen_height}
+		end if
+		action_safe_zone = {x1: action_offset.w, y1: action_offset.h, x2: screen_width-action_offset.w, y2: screen_height-action_offset.h}
+		title_safe_zone = {x1: title_offset.w, y1: title_offset.h, x2: screen_width-title_offset.w, y2: screen_height-title_offset.h}
+
+		m.screen.DrawRect(action_safe_zone.x1, action_safe_zone.y1, action_safe_zone.x2-action_safe_zone.x1, action_safe_zone.y2-action_safe_zone.y1, &hFF00003F)
+		m.screen.DrawRect(title_safe_zone.x1, title_safe_zone.y1, title_safe_zone.x2-title_safe_zone.x1, title_safe_zone.y2-title_safe_zone.y1, &h0000FF3F)
+		m.screen.DrawText("Action Safe Zone", m.screen.GetWidth()/2-m.getFont("default").GetOneLineWidth("Action Safe Zone", 1000)/2, action_safe_zone.y1+10, &hFF0000FF, m.getFont("default"))
+		m.screen.DrawText("Title Safe Zone", m.screen.GetWidth()/2-m.getFont("default").GetOneLineWidth("Title Safe Zone", 1000)/2, action_safe_zone.y1+50, &hFF00FFFF, m.getFont("default"))
+	end function
+	' ############### DrawSafeZones() function - End ###############
+
+	
+	
 	' ############### End() function - Begin ###############
 	game.End = function() as Void
 		m.running = false

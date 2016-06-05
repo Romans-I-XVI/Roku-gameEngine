@@ -39,6 +39,8 @@ Returns the screen object.
 This method is primarily for internal use, but may be called manually if desired. It returns an empty game object.
 ##### drawColliders(instance as Object) as Void
 This method is for debugging purposes, it will draw the colliders associated with the provided instance.
+##### drawSafeZones() as Void
+This method is for debugging purposes, when called in an object's onDrawGui() method it will display the Action Safe Zone and Title Safe Zone. Helps with ensuring elements will not be cut off by overscan. 
 
 ###### ---Game Object Methods---
 ##### defineObject(object_name as String, object_creation_function as Function) as Void
