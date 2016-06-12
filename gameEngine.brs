@@ -302,7 +302,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 				for each image in instance.images
 					if image.enabled then
 						if image.alpha > 255 then : image.alpha = 255 : end if
-						m.canvas.bitmap.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
+						image.draw_to.DrawScaledObject(instance.x+image.offset_x-(image.origin_x*image.scale_x), instance.y+image.offset_y-(image.origin_y*image.scale_y), image.scale_x, image.scale_y, image.region, (image.color << 8)+image.alpha)
 					end if
 				end for
 				instance.onDrawEnd(m.canvas.bitmap)
@@ -527,6 +527,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 				color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
 				alpha: 255 ' Change the image alpha (transparency).
 				enabled: true ' Whether or not the image will be drawn.
+				draw_to: m.game.getCanvas()
 
 				' -------------Only To Be Changed For Animation---------------
 				' The following values should only be changed if the image is a spritesheet that needs to be animated.
