@@ -790,7 +790,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 	game.getInstanceByID = function(instance_id as String) as Dynamic
 		for each object_key in m.Instances
 			if m.Instances[object_key].DoesExist(instance_id) then
-				return m.Instances[instance_id]
+				return m.Instances[object_key][instance_id]
 			end if
 		end for
 		if m.debug then : print "getInstanceByID() - No instance exists with id - " ; instance_id : end if
