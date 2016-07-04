@@ -11,6 +11,8 @@ function new_game(canvas_width, canvas_height, debug = false)
 		running: true
 		paused: false
 		buttonHeld: -1
+		input_instance: invalid
+		current_input_instance: invalid
 		dt: 0
 		dtTimer: CreateObject("roTimespan")
 		fpsTimer: CreateObject("roTimespan")
@@ -105,6 +107,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 		loadSound: invalid
 		playSound: invalid
 
+
 	}
 
 	' Set up the screen
@@ -143,7 +146,10 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 		while m.running
 
-
+			if m.input_instance <> invalid and m.getInstanceByID(m.input_instance) = invalid
+				m.input_instance = invalid
+			end if
+			m.current_input_instance = m.input_instance
 			m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 			m.screen.Clear(&h000000FF) 
 			if m.background_color <> invalid then
@@ -200,7 +206,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 				' --------------------First process the onButton() function--------------------
 		        if type(screen_msg) = "roUniversalControlEvent" then
-		        	instance.onButton(screen_msg.GetInt())
+			        if m.current_input_instance = invalid or m.current_input_instance = instance.id
+			        	instance.onButton(screen_msg.GetInt())
+			        end if
 		        	if screen_msg.GetInt() < 100
 		        		m.buttonHeld = screen_msg.GetInt()
 		        	else
@@ -211,7 +219,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 		        if m.buttonHeld <> -1 then
 		        	' Button release codes are 100 plus the button press code
 		        	' This shows a button held code as 1000 plus the button press code
-		        	instance.onButton(1000+m.buttonHeld)
+		        	if m.current_input_instance = invalid or m.current_input_instance = instance.id
+			        	instance.onButton(1000+m.buttonHeld)
+			        end if
 					if instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
 
@@ -1283,6 +1293,21 @@ function new_game(canvas_width, canvas_height, debug = false)
 		return UrlTransfer
 	end function
 	' ############### newAsyncUrlTransfer() function - Begin ###############
+
+	' ############### setInputInstance() function - Begin ###############
+	game.setInputInstance = function(instance)
+		m.input_instance = instance.id
+	end function
+	' ############### setInputInstance() function - Begin ###############
+
+	' ############### unsetInputInstance() function - Begin ###############
+	game.unsetInputInstance = function()
+		m.input_instance = invalid
+	end function
+	' ############### unsetInputInstance() function - Begin ###############
+
+
+
 
 	return game
 end function
