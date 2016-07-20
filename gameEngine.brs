@@ -843,8 +843,8 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 	' ############### destroyInstance() function - Begin ###############
 	game.destroyInstance = function(instance as Object) as Void
-		if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
 		if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
+			if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
 			for each collider_key in instance.colliders
 				collider = instance.colliders[collider_key]
 				if type(collider.compositor_object) = "roSprite" then 
