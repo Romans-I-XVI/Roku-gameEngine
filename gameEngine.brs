@@ -455,6 +455,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 		new_object.onUrlEvent = function(msg)
 		end function
 
+		new_object.onChangeRoom = function(new_room)
+		end function
+
 		new_object.onDestroy = function()
 		end function
 
@@ -896,6 +899,14 @@ function new_game(canvas_width, canvas_height, debug = false)
 	' ############### changeRoom() function - Begin ###############
 	game.changeRoom = function(room_name as String, args = {} as Object) as Boolean
 		if m.Rooms[room_name] <> invalid then
+			for each object_key in m.Instances
+				for each instance_key in m.Instances[object_key]
+					instance = m.Instances[object_key][instance_key]
+					if instance <> invalid and instance.id <> invalid then
+						instance.onChangeRoom(room_name)
+					end if
+				end for
+			end for
 			for each object_key in m.Instances
 				for each instance_key in m.Instances[object_key]
 					instance = m.Instances[object_key][instance_key]

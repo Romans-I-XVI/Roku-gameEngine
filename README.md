@@ -221,6 +221,9 @@ This is called when an audio event is triggered, the message is passed to the me
 ##### onUrlEvent(message)
 This is called when a URL event is triggered by a roUrlTransfer object retrieved from newAsyncUrlTransfer(). The message is passed to the method, then the roUrlTransfer object is automatically destroyed.
 
+##### onChangeRoom(new_room_name)
+This method will be called when the room is changed and recieves the name of the new room
+
 ##### onDestroy()
 This method will always be called just before the instance is destroyed.
 
