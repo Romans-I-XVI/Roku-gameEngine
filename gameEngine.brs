@@ -11,12 +11,14 @@ function new_game(canvas_width, canvas_height, debug = false)
 		running: true
 		paused: false
 		buttonHeld: -1
+		buttonHeldTime: 0
 		input_instance: invalid
 		current_input_instance: invalid
 		dt: 0
 		dtTimer: CreateObject("roTimespan")
 		fpsTimer: CreateObject("roTimespan")
 		pauseTimer: CreateObject("roTimespan")
+		buttonHeldTimer: CreateObject("roTimespan")
 		fpsTicker: 0
 		FPS: 0
 		currentID: 0
@@ -160,7 +162,14 @@ function new_game(canvas_width, canvas_height, debug = false)
 			m.dt = m.dtTimer.TotalMilliseconds()/1000
 			m.dtTimer.Mark()
 			url_msg = m.url_port.GetMessage()
-	        screen_msg = m.screen_port.GetMessage() 
+	        screen_msg = m.screen_port.GetMessage()
+            if type(screen_msg) = "roUniversalControlEvent" then
+            	if screen_msg.GetInt() < 100
+            		m.buttonHeldTimer.Mark()
+            	else
+            		m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
+            	end if
+            end if
 	        music_msg = m.music_port.GetMessage()
 			m.fpsTicker = m.fpsTicker + 1
 			if m.fpsTimer.TotalMilliseconds() > 1000 then
