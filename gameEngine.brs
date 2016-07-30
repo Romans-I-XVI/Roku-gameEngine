@@ -372,12 +372,12 @@ function new_game(canvas_width, canvas_height, debug = false)
 			for each instance_key in m.Instances[object_key]
 				instance = m.Instances[object_key][instance_key]
 				if instance.id <> invalid and instance.name <> m.currentRoom.name then
-					m.destroyInstance(instance)
+					m.destroyInstance(instance, false)
 				end if
 			end for
 		end for
 		if m.currentRoom <> invalid and m.currentRoom.id <> invalid then 
-			m.destroyInstance(m.currentRoom)
+			m.destroyInstance(m.currentRoom, false)
 		end if
 
 	end function
@@ -854,7 +854,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 
 	' ############### destroyInstance() function - Begin ###############
-	game.destroyInstance = function(instance as Object) as Void
+	game.destroyInstance = function(instance as Object, call_on_destroy = true) as Void
 		if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
 			if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
 			for each collider_key in instance.colliders
@@ -863,7 +863,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 					collider.compositor_object.Remove()
 				end if
 			end for
-			instance.onDestroy()
+			if call_on_destroy
+				instance.onDestroy()
+			end if
 			m.Instances[instance.name].Delete(instance.id)
 			instance.Clear()
 			instance.id = invalid
@@ -920,12 +922,12 @@ function new_game(canvas_width, canvas_height, debug = false)
 				for each instance_key in m.Instances[object_key]
 					instance = m.Instances[object_key][instance_key]
 					if instance.id <> invalid and not instance.persistent and instance.name <> m.currentRoom.name then
-						m.destroyInstance(instance)
+						m.destroyInstance(instance, false)
 					end if
 				end for
 			end for
 			if m.currentRoom <> invalid and m.currentRoom.id <> invalid then 
-				m.destroyInstance(m.currentRoom)
+				m.destroyInstance(m.currentRoom, false)
 			end if
 			m.currentRoom = m.newEmptyObject(room_name)
 			m.Rooms[room_name](m.currentRoom)
