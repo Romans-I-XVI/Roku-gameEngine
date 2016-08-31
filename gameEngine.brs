@@ -224,6 +224,11 @@ function new_game(canvas_width, canvas_height, debug = false)
 		        		m.buttonHeld = -1
 		        	end if
 					if instance.id = invalid then : goto end_of_for_loop  : end if
+
+					if screen_msg.GetChar() <> 0 and screen_msg.GetChar() = screen_msg.GetInt()
+						instance.onECPKeyboard(Chr(screen_msg.GetChar()))
+					end if
+					if instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
 		        if m.buttonHeld <> -1 then
 		        	' Button release codes are 100 plus the button press code
@@ -456,6 +461,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 			' Fast  Forward  9  109 1009
 			' Info  10  110 1010
 			' Play  13  113 1013
+		end function
+
+		new_object.onECPKeyboard = function(char)
 		end function
 
 		new_object.onAudioEvent = function(msg)
@@ -866,9 +874,11 @@ function new_game(canvas_width, canvas_height, debug = false)
 			if call_on_destroy
 				instance.onDestroy()
 			end if
-			m.Instances[instance.name].Delete(instance.id)
-			instance.Clear()
-			instance.id = invalid
+			if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
+				m.Instances[instance.name].Delete(instance.id)
+				instance.Clear()
+				instance.id = invalid
+			end if
 		else
 			if m.debug then : print "destroyInstance() - Object was previously destroyed" : end if
 		end if
