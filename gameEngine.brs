@@ -1256,9 +1256,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 			m.audioplayer.ClearContent()
 		    song = {}
 		    song.url = path
-		    audioplayer.AddContent(song)
-		    audioplayer.SetLoop(loop)
-		    audioPlayer.play()
+		    m.audioplayer.AddContent(song)
+		    m.audioplayer.SetLoop(loop)
+		    m.audioPlayer.play()
 			return true
 			if m.debug then : print "musicPlay() - Playing music from path: " ; path : end if
 		else
