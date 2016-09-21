@@ -114,7 +114,11 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 	' Set up the screen
 	UIResolution = game.device.getUIResolution()
-	game.screen = CreateObject("roScreen", true, UIResolution.width, UIResolution.height)
+	if UIResolution.name = "SD"
+		game.screen = CreateObject("roScreen", true, 854, 626)
+	else
+		game.screen = CreateObject("roScreen", true, 1280, 720)
+	end if
 	game.compositor.SetDrawTo(game.screen, &h00000000)
 	game.screen.SetMessagePort(game.screen_port)
 	game.screen.SetAlphaEnable(true)
@@ -771,7 +775,11 @@ function new_game(canvas_width, canvas_height, debug = false)
 	' ############### resetScreen() function - Begin ###############
 	game.resetScreen = function() as Void
 		UIResolution = m.device.getUIResolution()
-		m.screen = CreateObject("roScreen", true, UIResolution.width, UIResolution.height)
+		if UIResolution.name = "SD"
+			m.screen = CreateObject("roScreen", true, 854, 626)
+		else
+			m.screen = CreateObject("roScreen", true, 1280, 720)
+		end if
 		m.compositor.SetDrawTo(m.screen, &h00000000)
 		m.screen.SetMessagePort(m.screen_port)
 		m.screen.SetAlphaEnable(true)
