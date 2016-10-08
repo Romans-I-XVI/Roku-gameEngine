@@ -127,14 +127,14 @@ function new_game(canvas_width, canvas_height, debug = false)
 	game.audioplayer.SetMessagePort(game.music_port)
 
 	' Register all fonts in package
-	ttfs_in_package = game.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
-	otfs_in_package = game.filesystem.FindRecurse("pkg:/fonts/", ".otf")
-	for each font_path in ttfs_in_package
-		game.font_registry.Register(font_path)
-	end for
-	for each font_path in otfs_in_package
-		game.font_registry.Register(font_path)
-	end for
+	' ttfs_in_package = game.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
+	' otfs_in_package = game.filesystem.FindRecurse("pkg:/fonts/", ".otf")
+	' for each font_path in ttfs_in_package
+	' 	game.font_registry.Register(font_path)
+	' end for
+	' for each font_path in otfs_in_package
+	' 	game.font_registry.Register(font_path)
+	' end for
 
 	' Create the default font
 	game.Fonts["default"] = game.font_registry.GetDefaultFont(28, false, false)
