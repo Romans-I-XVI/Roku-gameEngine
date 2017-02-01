@@ -209,7 +209,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 			' There is a goto after every call to an override function, this is so if the instance deleted itself no futher calls will be attempted on the instance.
 			for i = sorted_instances.Count()-1 to 0 step -1
 				instance = sorted_instances[i]
-				if instance.id = invalid then : goto end_of_for_loop  : end if
+				if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 				if m.paused and instance.pauseable then: goto draw_instance : end if
 				
 				' -------------------- Then handle the object movement--------------------
@@ -227,12 +227,12 @@ function new_game(canvas_width, canvas_height, debug = false)
 		        	else
 		        		m.buttonHeld = -1
 		        	end if
-					if instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 
 					if screen_msg.GetChar() <> 0 and screen_msg.GetChar() = screen_msg.GetInt()
 						instance.onECPKeyboard(Chr(screen_msg.GetChar()))
 					end if
-					if instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
 		        if m.buttonHeld <> -1 then
 		        	' Button release codes are 100 plus the button press code
@@ -240,7 +240,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 		        	if m.current_input_instance = invalid or m.current_input_instance = instance.id
 			        	instance.onButton(1000+m.buttonHeld)
 			        end if
-					if instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
 
 
@@ -248,7 +248,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 		        ' -------------------Then send the audioplayer event msg if applicable-------------------
 		        if type(music_msg) = "roAudioPlayerEvent" then
 		        	instance.onAudioEvent(music_msg)
-					if instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
 
 
@@ -256,13 +256,13 @@ function new_game(canvas_width, canvas_height, debug = false)
 		        ' -------------------Then send the urltransfer event msg if applicable-------------------
 		        if type(url_msg) = "roUrlEvent" then
 		        	instance.onUrlEvent(url_msg)
-					if instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
 
 
 		        ' -------------------Then process the onUpdate() function----------------------
 				instance.onUpdate(m.dt)
-				if instance.id = invalid then : goto end_of_for_loop  : end if
+				if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 
 
 				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
@@ -284,7 +284,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 									other_collider_data = other_collider.GetData()
 									if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
 										instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
-										if instance.id = invalid then : goto end_of_for_loop  : end if
+										if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 									end if
 								end for
 							end if
@@ -326,7 +326,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 				draw_instance:
 				' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
 				instance.onDrawBegin(m.canvas.bitmap)
-				if instance.id = invalid then : goto end_of_for_loop  : end if
+				if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 				for each image in instance.images
 					if image.enabled then
 						if image.alpha > 255 then : image.alpha = 255 : end if
@@ -334,7 +334,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 					end if
 				end for
 				instance.onDrawEnd(m.canvas.bitmap)
-				if instance.id = invalid then : goto end_of_for_loop  : end if
+				if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 
 				end_of_for_loop:
 
@@ -1203,7 +1203,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 	' ############### canvasCenterToInstance() function - Begin ###############
 	game.canvasCenterToInstance = function(instance as Object, mode = 0 as Integer) as dynamic
 
-		if instance.id = invalid
+		if instance = invalid or instance.id = invalid
 			if m.debug then : print "canvasCenterToInstance() - Provided instance doesn't exist" : end if
 			return invalid
 		end if
