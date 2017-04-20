@@ -15,6 +15,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 		input_instance: invalid
 		current_input_instance: invalid
 		dt: 0
+		FakeDT: invalid
 		dtTimer: CreateObject("roTimespan")
 		fpsTimer: CreateObject("roTimespan")
 		pauseTimer: CreateObject("roTimespan")
@@ -164,6 +165,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 
 			m.dt = m.dtTimer.TotalMilliseconds()/1000
+			if m.FakeDT <> invalid
+				m.dt = m.FakeDT
+			end if
 			m.dtTimer.Mark()
 			url_msg = m.url_port.GetMessage()
 	        screen_msg = m.screen_port.GetMessage()
