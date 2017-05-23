@@ -213,7 +213,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 			' There is a goto after every call to an override function, this is so if the instance deleted itself no futher calls will be attempted on the instance.
 			for i = sorted_instances.Count()-1 to 0 step -1
 				instance = sorted_instances[i]
-				if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				if instance = invalid or instance.id = invalid or not instance.enabled then : goto end_of_for_loop  : end if
 				if m.paused and instance.pauseable then: goto draw_instance : end if
 				
 				' -------------------- Then handle the object movement--------------------
@@ -408,6 +408,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 			game: m
 
 			' -----Variables-----
+			enabled: true
 			persistent: false
 			pauseable: true
 			depth: 0
