@@ -1,6 +1,6 @@
 ' -------------------------Function To Create Main Game Object------------------------
 
-function new_game(canvas_width, canvas_height, debug = false)
+function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_if_possible = false)
 	
 	' ############### Create Initial Object - Begin ###############
 
@@ -124,9 +124,12 @@ function new_game(canvas_width, canvas_height, debug = false)
 	game.compositor.SetDrawTo(game.screen, &h00000000)
 	game.screen.SetMessagePort(game.screen_port)
 	game.screen.SetAlphaEnable(true)
-	if game.screen.GetWidth() = game.canvas.bitmap.GetWidth() and game.screen.GetHeight() = game.canvas.bitmap.GetHeight()
-		game.canvas.bitmap = game.screen
-		game.canvas_is_screen = true
+
+	if canvas_as_screen_if_possible
+		if game.screen.GetWidth() = game.canvas.bitmap.GetWidth() and game.screen.GetHeight() = game.canvas.bitmap.GetHeight()
+			game.canvas.bitmap = game.screen
+			game.canvas_is_screen = true
+		end if
 	end if
 
 	' Set up the audioplayer
