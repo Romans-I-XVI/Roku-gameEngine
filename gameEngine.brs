@@ -166,9 +166,17 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 			m.current_input_instance = m.input_instance
 			m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
-			m.screen.Clear(&h000000FF) 
-			if m.background_color <> invalid then
-				m.canvas.bitmap.Clear(m.background_color)
+			if not m.canvas_is_screen
+				m.screen.Clear(&h000000FF) 
+				if m.background_color <> invalid then
+					m.canvas.bitmap.Clear(m.background_color)
+				end if
+			else
+				if m.background_color <> invalid then
+					m.screen.Clear(m.background_color)
+				else
+					m.screen.Clear(&h000000FF)
+				end if
 			end if
 
 
