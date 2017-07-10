@@ -806,6 +806,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.compositor.SetDrawTo(m.screen, &h00000000)
 		m.screen.SetMessagePort(m.screen_port)
 		m.screen.SetAlphaEnable(true)
+		if m.canvas_is_screen
+			m.canvas.bitmap = m.screen
+		end if
 	end function
 	' ############### resetScreen() function - Begin ###############
 
