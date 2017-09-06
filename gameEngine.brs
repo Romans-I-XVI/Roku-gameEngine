@@ -1,6 +1,6 @@
 ' -------------------------Function To Create Main Game Object------------------------
 
-function new_game(canvas_width, canvas_height, debug = false)
+function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_if_possible = false)
 	
 	' ############### Create Initial Object - Begin ###############
 
@@ -8,6 +8,7 @@ function new_game(canvas_width, canvas_height, debug = false)
 	game = {
 		' ****BEGIN - For Internal Use, Do Not Manually Alter****
 		debug: debug
+		canvas_is_screen: false
 		running: true
 		paused: false
 		buttonHeld: -1
@@ -124,6 +125,13 @@ function new_game(canvas_width, canvas_height, debug = false)
 	game.screen.SetMessagePort(game.screen_port)
 	game.screen.SetAlphaEnable(true)
 
+	if canvas_as_screen_if_possible
+		if game.screen.GetWidth() = game.canvas.bitmap.GetWidth() and game.screen.GetHeight() = game.canvas.bitmap.GetHeight()
+			game.canvas.bitmap = game.screen
+			game.canvas_is_screen = true
+		end if
+	end if
+
 	' Set up the audioplayer
 	game.audioplayer.SetMessagePort(game.music_port)
 
@@ -158,9 +166,17 @@ function new_game(canvas_width, canvas_height, debug = false)
 			end if
 			m.current_input_instance = m.input_instance
 			m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
-			m.screen.Clear(&h000000FF) 
-			if m.background_color <> invalid then
-				m.canvas.bitmap.Clear(m.background_color)
+			if not m.canvas_is_screen
+				m.screen.Clear(&h000000FF) 
+				if m.background_color <> invalid then
+					m.canvas.bitmap.Clear(m.background_color)
+				end if
+			else
+				if m.background_color <> invalid then
+					m.screen.Clear(m.background_color)
+				else
+					m.screen.Clear(&h000000FF)
+				end if
 			end if
 
 
@@ -365,7 +381,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 
 
 			' -------------------Draw everything to the screen----------------------------
-			m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
+			if not m.canvas_is_screen
+				m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
+			end if
 			for i = sorted_instances.Count()-1 to 0 step -1
 				instance = sorted_instances[i]
 				if instance.id <> invalid
@@ -788,6 +806,9 @@ function new_game(canvas_width, canvas_height, debug = false)
 		m.compositor.SetDrawTo(m.screen, &h00000000)
 		m.screen.SetMessagePort(m.screen_port)
 		m.screen.SetAlphaEnable(true)
+		if m.canvas_is_screen
+			m.canvas.bitmap = m.screen
+		end if
 	end function
 	' ############### resetScreen() function - Begin ###############
 
