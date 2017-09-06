@@ -232,10 +232,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				if instance = invalid or instance.id = invalid or not instance.enabled then : goto end_of_for_loop  : end if
 				if m.paused and instance.pauseable then: goto draw_instance : end if
 				
-				' -------------------- Then handle the object movement--------------------
-				instance.x = instance.x + instance.xspeed*m.dt
-				instance.y = instance.y + instance.yspeed*m.dt
-
 
 				' --------------------First process the onButton() function--------------------
 		        if type(screen_msg) = "roUniversalControlEvent" then
@@ -264,7 +260,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		        end if
 
 
-
 		        ' -------------------Then send the audioplayer event msg if applicable-------------------
 		        if type(music_msg) = "roAudioPlayerEvent" then
 		        	instance.onAudioEvent(music_msg)
@@ -283,6 +278,11 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		        ' -------------------Then process the onUpdate() function----------------------
 				instance.onUpdate(m.dt)
 				if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+
+		        
+				' -------------------- Then handle the object movement--------------------
+				instance.x = instance.x + instance.xspeed*m.dt
+				instance.y = instance.y + instance.yspeed*m.dt
 
 
 				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
