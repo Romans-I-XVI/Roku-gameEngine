@@ -499,6 +499,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		new_object.onUrlEvent = function(msg)
 		end function
 
+		new_object.onGameEvent = function(event, data)
+		end function
+
 		new_object.onChangeRoom = function(new_room)
 		end function
 
@@ -1358,22 +1361,32 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.urltransfers[UrlTransfer.GetIdentity().ToStr()] = UrlTransfer
 		return UrlTransfer
 	end function
-	' ############### newAsyncUrlTransfer() function - Begin ###############
+	' ############### newAsyncUrlTransfer() function - End ###############
 
 	' ############### setInputInstance() function - Begin ###############
 	game.setInputInstance = function(instance)
 		m.input_instance = instance.id
 	end function
-	' ############### setInputInstance() function - Begin ###############
+	' ############### setInputInstance() function - End ###############
 
 	' ############### unsetInputInstance() function - Begin ###############
 	game.unsetInputInstance = function()
 		m.input_instance = invalid
 	end function
-	' ############### unsetInputInstance() function - Begin ###############
+	' ############### unsetInputInstance() function - End ###############
 
-
-
+	' ############### postGameEvent() function - Begin ###############
+	game.postGameEvent = function(event, data = {})
+		for each object_key in m.Instances
+			for each instance_key in m.Instances[object_key]
+				instance = m.Instances[object_key][instance_key]
+				if instance <> invalid and instance.id <> invalid
+					instance.onGameEvent(event, data)
+				end if
+			end for
+		end for
+	end function
+	' ############### postGameEvent() function - End ###############
 
 	return game
 end function
