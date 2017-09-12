@@ -304,9 +304,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 									other_collider_data = other_collider.GetData()
 									if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
 										instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
-										if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+										if instance = invalid or instance.id = invalid then : exit for : end if
 									end if
 								end for
+								if instance = invalid or instance.id = invalid then : exit for : end if
 							end if
 						else
 							collider.compositor_object.SetMemberFlags(99)
@@ -318,7 +319,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 						end if
 					end if
 				end for
-
+				if instance = invalid or instance.id = invalid then : goto end_of_for_loop : end if
 
 				' -------------------- Then handle image animation------------------------
 				for each image_object in instance.images
