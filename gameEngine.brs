@@ -24,6 +24,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		fpsTicker: 0
 		FPS: 0
 		currentID: 0
+		shouldUseIntegerMovement: false
 		empty_bitmap: CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
 		device: CreateObject("roDeviceInfo")
 		urltransfers: {}
@@ -281,8 +282,14 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 		        
 				' -------------------- Then handle the object movement--------------------
-				instance.x = instance.x + instance.xspeed*m.dt
-				instance.y = instance.y + instance.yspeed*m.dt
+				if m.shouldUseIntegerMovement
+					instance.x = instance.x + cint(instance.xspeed*m.dt)
+					instance.y = instance.y + cint(instance.yspeed*m.dt)
+				else
+					instance.x = instance.x + instance.xspeed*m.dt
+					instance.y = instance.y + instance.yspeed*m.dt
+				end if
+
 
 
 				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
