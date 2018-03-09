@@ -158,6 +158,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	' ################################################################ Play() function - Begin #####################################################################################################
 	game.Play = function() as Void
 
+		sorted_instances = []
 		m.running = true
 
 		while m.running
@@ -204,7 +205,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 
 			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
-			sorted_instances = []
+			sorted_instances.Clear()
 			for each object_key in m.Instances
 				for each instance_key in m.Instances[object_key]
 					instance = m.Instances[object_key][instance_key]
@@ -404,7 +405,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				m.screen.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default)
 			end if
 			m.screen.SwapBuffers()
-
 
 		end while
 
