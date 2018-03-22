@@ -52,6 +52,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		currentRoom: invalid
 		currentRoomArgs: {}
 		Instances: {} ' This holds all of the game object instances
+		Statics: {} ' This holds all static variables for a given object type
 		Objects: {} ' This holds the object definitions by name (the object creation functions)
 		Rooms: {} ' This holds the room definitions by name (the room creation functions)
 		Bitmaps: {} ' This holds the loaded bitmaps by name
@@ -675,6 +676,20 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			if m.game.debug and not deleted_something then : print "removeImage() - No images found with name "+image_name : end if
 		end function
 
+		new_object.getStaticVariable = function(static_variable_name as string)
+			if m.game.Statics.DoesExist(m.name) and m.game.Statics[m.name].DoesExist(static_variable_name)
+				return m.game.Statics[m.name][static_variable_name]
+			else
+				return invalid
+			end if
+		end function
+
+		new_object.setStaticVariable = function(static_variable_name as string, static_variable_value)
+			if m.game.Statics.DoesExist(m.name)
+				m.game.Statics[m.name][static_variable_name] = static_variable_value
+			end if
+		end function
+
 		m.Instances[new_object.name][new_object.id] = new_object
 
 		return new_object
@@ -825,14 +840,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	' ############### resetScreen() function - Begin ###############
 
 
-
-	' ############### getUrlTransfer() function - Begin ###############
-	game.getUrlTransfer = function() as Object
-		return m.urltransfer
-	end function
-	' ############### getUrlTransfer() function - Begin ###############
-
-
 	' --------------------------------Begin Object Functions----------------------------------------
 
 
@@ -840,6 +847,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game.defineObject = function(object_name as String, object_creation_function as Function) as Void
 		m.Objects[object_name] = object_creation_function
 		m.Instances[object_name] = {}
+		m.Statics[object_name] = {}
 	end function
 	' ############### defineObject() function - End ###############
 
