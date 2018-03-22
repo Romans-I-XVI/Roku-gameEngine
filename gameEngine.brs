@@ -1372,7 +1372,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### newAsyncUrlTransfer() function - Begin ###############
-	game.newAsyncUrlTransfer = function()
+	game.newAsyncUrlTransfer = function() as Object
 		UrlTransfer = CreateObject("roUrlTransfer")
 		UrlTransfer.SetMessagePort(m.url_port)
 		m.urltransfers[UrlTransfer.GetIdentity().ToStr()] = UrlTransfer
@@ -1381,19 +1381,19 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	' ############### newAsyncUrlTransfer() function - End ###############
 
 	' ############### setInputInstance() function - Begin ###############
-	game.setInputInstance = function(instance)
+	game.setInputInstance = function(instance as Object) as Void
 		m.input_instance = instance.id
 	end function
 	' ############### setInputInstance() function - End ###############
 
 	' ############### unsetInputInstance() function - Begin ###############
-	game.unsetInputInstance = function()
+	game.unsetInputInstance = function() as Void
 		m.input_instance = invalid
 	end function
 	' ############### unsetInputInstance() function - End ###############
 
 	' ############### postGameEvent() function - Begin ###############
-	game.postGameEvent = function(event, data = {})
+	game.postGameEvent = function(event as String, data = {} as Object) as Void
 		for each object_key in m.Instances
 			for each instance_key in m.Instances[object_key]
 				instance = m.Instances[object_key][instance_key]
