@@ -333,7 +333,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 				' -------------------- Then handle image animation------------------------
 				for each image_object in instance.images
-					if image_object.image_count > 1 then
+					if image_object.image_count > 1 and image_object.animation_speed > 0 then
 						image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
 						if image_animation_timing >= 1 then
 							image_object.animation_position = image_object.animation_position+image_animation_timing
@@ -341,15 +341,18 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 								image_object.animation_position = 0
 								image_object.animation_timer.Mark()
 							end if
-							image_width = image_object.image.GetWidth()
-							region_position = int(image_object.animation_position)
-							region_width = image_object.region.GetWidth()
-							region_height = image_object.region.GetHeight()
-
-							y_offset = region_position*region_width \ image_width
-							x_offset = region_position*region_width-image_width*y_offset
-							image_object.region = CreateObject("roRegion", image_object.image, x_offset, y_offset*region_height, region_width, region_height)
 						end if
+					end if
+					if image_object.animation_position <> image_object.previous_animation_position
+						image_width = image_object.image.GetWidth()
+						region_position = int(image_object.animation_position)
+						region_width = image_object.region.GetWidth()
+						region_height = image_object.region.GetHeight()
+
+						y_offset = region_position*region_width \ image_width
+						x_offset = region_position*region_width-image_width*y_offset
+						image_object.region = CreateObject("roRegion", image_object.image, x_offset, y_offset*region_height, region_width, region_height)
+						image_object.previous_animation_position = image_object.animation_position
 					end if
 				end for
 
@@ -613,6 +616,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				image: image,
 				region: invalid
 				animation_timer: invalid
+				previous_animation_position: 0
 			}
 			for each key in image_object
 				if args.DoesExist(key) then
