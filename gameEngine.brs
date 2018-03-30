@@ -969,6 +969,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game.defineRoom = function(room_name as String, room_creation_function as Function) as Void
 		m.Rooms[room_name] = room_creation_function
 		m.Instances[room_name] = {}
+		m.Statics[room_name] = {}
 		if m.debug then : print "defineRoom() - Room function has been added" : end if
 	end function
 	' ############### defineRoom() function - Begin ###############
