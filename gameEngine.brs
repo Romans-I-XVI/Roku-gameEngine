@@ -337,7 +337,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 						image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
 						if image_animation_timing >= 1 then
 							image_object.animation_position = image_object.animation_position+image_animation_timing
-							if image_object.animation_position > image_object.image_count then
+							if image_object.animation_position >= image_object.image_count then
 								image_object.animation_position = 0
 								image_object.animation_timer.Mark()
 							end if
