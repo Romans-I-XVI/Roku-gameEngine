@@ -61,13 +61,15 @@ function registryWrite(registry_section as String, key as String, value as Dynam
     section.Flush()
 end function
 
-function registryRead(registry_section as String, key as String, default_value = "" as Dynamic) as Dynamic
+function registryRead(registry_section as String, key as String, default_value = invalid as Dynamic) as Dynamic
 	section = CreateObject("roRegistrySection", registry_section)
     if section.Exists(key) then
         return ParseJson(section.Read(key))
     else
-    	section.Write(key, FormatJson(default_value))
-    	section.Flush()
+    	if default_value <> invalid
+	    	section.Write(key, FormatJson(default_value))
+	    	section.Flush()
+	    end if
     	return default_value
     end if
 end function
