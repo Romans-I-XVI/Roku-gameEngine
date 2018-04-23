@@ -300,8 +300,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					collider = instance.colliders[collider_key]
 					if collider <> invalid then
 						if collider.enabled then
-							collider.compositor_object.SetMemberFlags(1)
-							collider.compositor_object.SetCollidableFlags(1)
+							collider.compositor_object.SetMemberFlags(collider.member_flags)
+							collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
 							if collider.type = "circle" then
 								collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
 							else if collider.type = "rectangle" then
@@ -530,6 +530,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				radius: radius,
 				offset_x: offset_x,
 				offset_y: offset_y,
+				member_flags: 1
+				collidable_flags: 1
 				compositor_object: invalid
 			}
 			region = CreateObject("roRegion", m.game.empty_bitmap, 0, 0, 1, 1)
@@ -554,6 +556,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				offset_y: offset_y,
 				width: width,
 				height: height,
+				member_flags: 1
+				collidable_flags: 1
 				compositor_object: invalid
 			}
 			region = CreateObject("roRegion", m.game.empty_bitmap, 0, 0, 1, 1)
