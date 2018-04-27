@@ -1403,8 +1403,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 	' ############### postGameEvent() function - Begin ###############
 	game.postGameEvent = function(event as String, data = {} as Object) as Void
-		for each object_key in m.Instances
-			for each instance_key in m.Instances[object_key]
+		object_keys = m.Instances.Keys()
+		for each object_key in object_keys
+			instance_keys = m.Instances[object_key].Keys()
+			for each instance_key in instance_keys
 				instance = m.Instances[object_key][instance_key]
 				if instance <> invalid and instance.id <> invalid
 					instance.onGameEvent(event, data)
