@@ -206,24 +206,32 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 
 			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
-			sorted_instances.Clear()
 			for each object_key in m.Instances
 				for each instance_key in m.Instances[object_key]
 					instance = m.Instances[object_key][instance_key]
-					if sorted_instances.Count() > 0 then
-						inserted = false
-						for i = sorted_instances.Count()-1 to 0 step -1
-							if not inserted and instance.depth > sorted_instances[i].depth then
-								ArrayInsert(sorted_instances, i+1, instance)
-								inserted = true
-								exit for
+					if instance.depth <> instance.e_previous_sort_depth
+						if sorted_instances.Count() > 0 then
+							for i = sorted_instances.Count()-1 to 0 step -1
+								if sorted_instances[i] = invalid or sorted_instances[i].id = invalid or instance.id = sorted_instances[i].id then
+									sorted_instances.Delete(i)
+								end if
+							end for
+							inserted = false
+							for i = sorted_instances.Count()-1 to 0 step -1
+								if not inserted and instance.depth > sorted_instances[i].depth then
+									ArrayInsert(sorted_instances, i+1, instance)
+									inserted = true
+									exit for
+								end if
+							end for
+							if not inserted then
+								sorted_instances.Unshift(instance)
 							end if
-						end for
-						if not inserted then
+						else
 							sorted_instances.Unshift(instance)
 						end if
-					else
-						sorted_instances.Unshift(instance)
+
+						instance.e_previous_sort_depth = instance.depth
 					end if
 				end for
 			end for
@@ -376,6 +384,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 				end_of_for_loop:
 
+				if instance = invalid or instance.id = invalid then
+					sorted_instances.Delete(i)
+				end if
+
 			end for
 
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
@@ -441,6 +453,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			name: object_name
 			id: m.currentID.ToStr()
 			game: m
+			e_previous_sort_depth: invalid
 
 			' -----Variables-----
 			enabled: true
