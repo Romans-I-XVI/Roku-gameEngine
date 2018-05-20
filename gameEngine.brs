@@ -364,7 +364,11 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				for each image in instance.images
 					if image.enabled then
 						if image.alpha > 255 then : image.alpha = 255 : end if
-						image.draw_to.DrawScaledObject(cint(instance.x+image.offset_x-(image.origin_x*image.scale_x)), cint(instance.y+image.offset_y-(image.origin_y*image.scale_y)), image.scale_x, image.scale_y, image.region, (image.color << 8)+int(image.alpha))
+						image_pos_x = cint(instance.x+image.offset_x-(image.origin_x*image.scale_x))
+						image_pos_y = cint(instance.y+image.offset_y-(image.origin_y*image.scale_y))
+						if image_pos_x + image.region.GetWidth() * image.scale_x > 0 and image_pos_x < image.draw_to.GetWidth() and image_pos_y + image.region.GetHeight() * image.scale_y > 0 and image_pos_y < image.draw_to.GetHeight()
+							image.draw_to.DrawScaledObject(image_pos_x, image_pos_y, image.scale_x, image.scale_y, image.region, (image.color << 8)+int(image.alpha))
+						end if
 					end if
 				end for
 				instance.onDrawEnd(m.canvas.bitmap)
