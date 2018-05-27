@@ -18,11 +18,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		dt: 0
 		FakeDT: invalid
 		dtTimer: CreateObject("roTimespan")
-		fpsTimer: CreateObject("roTimespan")
 		pauseTimer: CreateObject("roTimespan")
 		buttonHeldTimer: CreateObject("roTimespan")
-		fpsTicker: 0
-		FPS: 0
 		currentID: 0
 		shouldUseIntegerMovement: false
 		empty_bitmap: CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
@@ -198,12 +195,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
             	end if
             end if
 	        music_msg = m.music_port.GetMessage()
-			m.fpsTicker = m.fpsTicker + 1
-			if m.fpsTimer.TotalMilliseconds() > 1000 then
-				m.FPS = m.fpsTicker
-				m.fpsTicker = 0
-				m.fpsTimer.Mark()
-			end if
 
 			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
 			for each object_key in m.Instances
@@ -420,10 +411,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					instance.onDrawGui(m.screen)
 				end if
 			end for
-			if m.debug then
-				m.screen.DrawRect(10-4, 10, 100, 32, &h000000FF)
-				m.screen.DrawText("FPS: "+m.FPS.ToStr(), 10, 10, &hFFFFFFFF, m.Fonts.default)
-			end if
 			m.screen.SwapBuffers()
 
 		end while
