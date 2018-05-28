@@ -238,33 +238,33 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 				' --------------------First process the onButton() function--------------------
 		        if type(screen_msg) = "roUniversalControlEvent" then
-			        if m.current_input_instance = invalid or m.current_input_instance = instance.id
+			        if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
 			        	instance.onButton(screen_msg.GetInt())
+						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 			        end if
 		        	if screen_msg.GetInt() < 100
 		        		m.buttonHeld = screen_msg.GetInt()
 		        	else
 		        		m.buttonHeld = -1
 		        	end if
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 
-					if screen_msg.GetChar() <> 0 and screen_msg.GetChar() = screen_msg.GetInt()
+					if instance.onECPKeyboard <> invalid and screen_msg.GetChar() <> 0 and screen_msg.GetChar() = screen_msg.GetInt()
 						instance.onECPKeyboard(Chr(screen_msg.GetChar()))
+						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 					end if
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
 		        if m.buttonHeld <> -1 then
 		        	' Button release codes are 100 plus the button press code
 		        	' This shows a button held code as 1000 plus the button press code
-		        	if m.current_input_instance = invalid or m.current_input_instance = instance.id
+		        	if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
 			        	instance.onButton(1000+m.buttonHeld)
+						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 			        end if
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
 
 
 		        ' -------------------Then send the audioplayer event msg if applicable-------------------
-		        if type(music_msg) = "roAudioPlayerEvent" then
+		        if instance.onAudioEvent <> invalid and type(music_msg) = "roAudioPlayerEvent" then
 		        	instance.onAudioEvent(music_msg)
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
@@ -272,15 +272,17 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 		        ' -------------------Then send the urltransfer event msg if applicable-------------------
-		        if type(url_msg) = "roUrlEvent" then
+		        if instance.onUrlEvent <> invalid and type(url_msg) = "roUrlEvent" then
 		        	instance.onUrlEvent(url_msg)
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 		        end if
 
 
 		        ' -------------------Then process the onUpdate() function----------------------
-				instance.onUpdate(m.dt)
-				if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				if instance.onUpdate <> invalid
+					instance.onUpdate(m.dt)
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				end if
 
 		        
 				' -------------------- Then handle the object movement--------------------
@@ -307,16 +309,18 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 								collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
 							end if
 							collider.compositor_object.MoveTo(instance.x, instance.y)
-							multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
-							if multiple_collisions <> invalid
-								for each other_collider in multiple_collisions
-									other_collider_data = other_collider.GetData()
-									if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
-										instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
-										if instance = invalid or instance.id = invalid then : exit for : end if
-									end if
-								end for
-								if instance = invalid or instance.id = invalid then : exit for : end if
+							if instance.onCollision <> invalid
+								multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
+								if multiple_collisions <> invalid
+									for each other_collider in multiple_collisions
+										other_collider_data = other_collider.GetData()
+										if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
+											instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
+											if instance = invalid or instance.id = invalid then : exit for : end if
+										end if
+									end for
+									if instance = invalid or instance.id = invalid then : exit for : end if
+								end if
 							end if
 						else
 							collider.compositor_object.SetMemberFlags(99)
@@ -358,8 +362,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 				draw_instance:
 				' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
-				instance.onDrawBegin(m.canvas.bitmap)
-				if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				if instance.onDrawBegin <> invalid
+					instance.onDrawBegin(m.canvas.bitmap)
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				end if
 				for each image in instance.images
 					if image.enabled then
 						if image.alpha > 255 then : image.alpha = 255 : end if
@@ -372,8 +378,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 						end if
 					end if
 				end for
-				instance.onDrawEnd(m.canvas.bitmap)
-				if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				if instance.onDrawEnd <> invalid
+					instance.onDrawEnd(m.canvas.bitmap)
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				end if
 
 				end_of_for_loop:
 
@@ -409,7 +417,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 			for i = sorted_instances.Count()-1 to 0 step -1
 				instance = sorted_instances[i]
-				if instance.id <> invalid
+				if instance.id <> invalid and instance.onDrawGui <> invalid
 					instance.onDrawGui(m.screen)
 				end if
 			end for
@@ -457,14 +465,17 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	        images: []
 
 	        ' -----Methods-----
-	        onCreate: invalid
 	        onUpdate: invalid
 	        onCollision: invalid
 	        onDrawBegin: invalid
 	        onDrawEnd: invalid
+	        onDrawGui: invalid
 	        onButton: invalid
+	        onECPKeyboard: invalid
 	        onAudioEvent: invalid
 	        onUrlEvent: invalid
+	        onGameEvent: invalid
+	        onChangeRoom: invalid
 	        onDestroy: invalid
 	        addColliderCircle: invalid
 	        addColliderRectangle: invalid
@@ -473,59 +484,60 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	        removeImage: invalid
 		}
 
-		' These empty functions are placeholders, they are to be overwritten by the user
 		new_object.onCreate = function(args)
 		end function
 
-		new_object.onUpdate = function(deltaTime)
-		end function
+		' This is the structure of the methods that can be added to an object
+		
+		' new_object.onUpdate = function(deltaTime)
+		' end function
 
-		new_object.onCollision = function(collider, other_collider, other_instance)
-		end function
+		' new_object.onCollision = function(collider, other_collider, other_instance)
+		' end function
 
-		new_object.onDrawBegin = function(canvas)
-		end function
+		' new_object.onDrawBegin = function(canvas)
+		' end function
 
-		new_object.onDrawEnd = function(canvas)
-		end function
+		' new_object.onDrawEnd = function(canvas)
+		' end function
 
-		new_object.onDrawGui = function(screen)
-		end function
+		' new_object.onDrawGui = function(screen)
+		' end function
 
-		new_object.onButton = function(code)
-			' -------Button Code Reference--------
-			' Button  When pressed  When released When Held
+		' new_object.onButton = function(code)
+		' 	' -------Button Code Reference--------
+		' 	' Button  When pressed  When released When Held
 
-			' Back  0  100 1000
-			' Up  2  102 1002
-			' Down  3  103 1003
-			' Left  4  104 1004
-			' Right  5  105 1005
-			' Select  6  106 1006
-			' Instant Replay  7  107 1007
-			' Rewind  8  108 1008
-			' Fast  Forward  9  109 1009
-			' Info  10  110 1010
-			' Play  13  113 1013
-		end function
+		' 	' Back  0  100 1000
+		' 	' Up  2  102 1002
+		' 	' Down  3  103 1003
+		' 	' Left  4  104 1004
+		' 	' Right  5  105 1005
+		' 	' Select  6  106 1006
+		' 	' Instant Replay  7  107 1007
+		' 	' Rewind  8  108 1008
+		' 	' Fast  Forward  9  109 1009
+		' 	' Info  10  110 1010
+		' 	' Play  13  113 1013
+		' end function
 
-		new_object.onECPKeyboard = function(char)
-		end function
+		' new_object.onECPKeyboard = function(char)
+		' end function
 
-		new_object.onAudioEvent = function(msg)
-		end function
+		' new_object.onAudioEvent = function(msg)
+		' end function
 
-		new_object.onUrlEvent = function(msg)
-		end function
+		' new_object.onUrlEvent = function(msg)
+		' end function
 
-		new_object.onGameEvent = function(event, data)
-		end function
+		' new_object.onGameEvent = function(event, data)
+		' end function
 
-		new_object.onChangeRoom = function(new_room)
-		end function
+		' new_object.onChangeRoom = function(new_room)
+		' end function
 
-		new_object.onDestroy = function()
-		end function
+		' new_object.onDestroy = function()
+		' end function
 
 
 		new_object.addColliderCircle = function(collider_name, radius, offset_x = 0, offset_y = 0, enabled = true)
@@ -939,7 +951,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					collider.compositor_object.Remove()
 				end if
 			end for
-			if call_on_destroy
+			if instance.onDestroy <> invalid and call_on_destroy
 				instance.onDestroy()
 			end if
 			if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
@@ -992,7 +1004,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			for each object_key in m.Instances
 				for each instance_key in m.Instances[object_key]
 					instance = m.Instances[object_key][instance_key]
-					if instance <> invalid and instance.id <> invalid then
+					if instance <> invalid and instance.id <> invalid and instance.onChangeRoom <> invalid then
 						instance.onChangeRoom(room_name)
 					end if
 				end for
@@ -1414,7 +1426,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			instance_keys = m.Instances[object_key].Keys()
 			for each instance_key in instance_keys
 				instance = m.Instances[object_key][instance_key]
-				if instance <> invalid and instance.id <> invalid
+				if instance <> invalid and instance.id <> invalid and instance.onGameEvent <> invalid
 					instance.onGameEvent(event, data)
 				end if
 			end for
