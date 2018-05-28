@@ -415,12 +415,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			if not m.canvas_is_screen
 				m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
 			end if
-			for i = sorted_instances.Count()-1 to 0 step -1
-				instance = sorted_instances[i]
-				if instance.id <> invalid and instance.onDrawGui <> invalid
-					instance.onDrawGui(m.screen)
-				end if
-			end for
 			m.screen.SwapBuffers()
 
 		end while
@@ -469,7 +463,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	        onCollision: invalid
 	        onDrawBegin: invalid
 	        onDrawEnd: invalid
-	        onDrawGui: invalid
 	        onButton: invalid
 	        onECPKeyboard: invalid
 	        onAudioEvent: invalid
@@ -499,9 +492,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		' end function
 
 		' new_object.onDrawEnd = function(canvas)
-		' end function
-
-		' new_object.onDrawGui = function(screen)
 		' end function
 
 		' new_object.onButton = function(code)
