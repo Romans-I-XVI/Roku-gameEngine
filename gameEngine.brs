@@ -157,6 +157,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game.Play = function() as Void
 
 		sorted_instances = []
+		expired_instances = []
 		m.running = true
 
 		while m.running
@@ -387,9 +388,21 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 				if instance = invalid or instance.id = invalid then
 					sorted_instances.Delete(i)
+				else if instance.expired
+					expired_instances.Push(instance)
 				end if
 
 			end for
+
+			' ------------------Destroy any expired instances--------------------
+			if expired_instances.Count() > 0
+				for each instance in expired_instances
+					if instance <> invalid and instance.id <> invalid
+						m.destroyInstance(instance, instance.expired_should_call_on_destroy)
+					end if
+				end for
+				expired_instances.Clear()
+			end if
 
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
 			if type(url_msg) = "roUrlEvent"
@@ -457,6 +470,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			yspeed: 0.0
 	        colliders: {}
 	        images: []
+			expired: false
+			expired_should_call_on_destroy: true
 
 	        ' -----Methods-----
 	        onUpdate: invalid
