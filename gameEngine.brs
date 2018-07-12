@@ -383,6 +383,31 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 				end if
 
+				' --------------Adjust compositor collider again at end of loop so collider is accurate for collision checking from other objects-------------
+				' ---------------------------------(in case positions were adjust since original collision checking)------------------------------------------
+				for each collider_key in instance.colliders
+					collider = instance.colliders[collider_key]
+					if collider <> invalid then
+						if collider.enabled then
+							collider.compositor_object.SetMemberFlags(collider.member_flags)
+							collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
+							if collider.type = "circle" then
+								collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
+							else if collider.type = "rectangle" then
+								collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
+							end if
+							collider.compositor_object.MoveTo(instance.x, instance.y)
+						else
+							collider.compositor_object.SetMemberFlags(99)
+							collider.compositor_object.SetCollidableFlags(99)
+						end if
+					else
+						if instance.colliders.DoesExist(collider_key)
+							instance.colliders.Delete(collider_key)
+						end if
+					end if
+				end for
+
 				end_of_for_loop:
 
 				if instance = invalid or instance.id = invalid then
