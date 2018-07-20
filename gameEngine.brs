@@ -444,18 +444,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 		end while
 
-		for each object_key in m.Instances
-			for each instance_key in m.Instances[object_key]
-				instance = m.Instances[object_key][instance_key]
-				if instance.id <> invalid and instance.name <> m.currentRoom.name then
-					m.destroyInstance(instance, false)
-				end if
-			end for
-		end for
-		if m.currentRoom <> invalid and m.currentRoom.id <> invalid then 
-			m.destroyInstance(m.currentRoom, false)
-		end if
-
 	end function
 	' ################################################################ Play() function - End #####################################################################################################
 
@@ -876,6 +864,20 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.screen.SetAlphaEnable(true)
 		if m.canvas_is_screen
 			m.canvas.bitmap = m.screen
+
+			' This is so all instances that have images that draw to the screen get updated with the new screen.
+			for each object_key in m.Instances
+				for each instance_key in m.Instances[object_key]
+					instance = m.Instances[object_key][instance_key]
+					if instance <> invalid and instance.id <> invalid and instance.DoesExist("images")
+						for each image in instance.images
+							if type(image.draw_to) = "roScreen"
+								image.draw_to = m.screen
+							end if
+						end for
+					end if
+				end for
+			end for
 		end if
 	end function
 	' ############### resetScreen() function - Begin ###############
