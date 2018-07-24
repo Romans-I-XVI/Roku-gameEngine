@@ -294,7 +294,11 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					instance.y = instance.y + instance.yspeed*m.dt
 				end if
 
-
+				' ---------------- Give a space for any processing to happen just before collision checking occurs ------------
+				if instance.onPreCollision <> invalid
+					instance.onPreCollision()
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				end if
 
 				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
 				for each collider_key in instance.colliders
@@ -333,6 +337,12 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					end if
 				end for
 				if instance = invalid or instance.id = invalid then : goto end_of_for_loop : end if
+
+				' ---------------- Give a space for any processing to happen just after collision checking occurs ------------
+				if instance.onPostCollision <> invalid
+					instance.onPostCollision()
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				end if
 
 				' -------------------- Then handle image animation------------------------
 				for each image_object in instance.images
@@ -473,7 +483,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 	        ' -----Methods-----
 	        onUpdate: invalid
+	        onPreCollision: invalid
 	        onCollision: invalid
+	        onPostCollision: invalid
 	        onDrawBegin: invalid
 	        onDrawEnd: invalid
 	        onButton: invalid
@@ -488,6 +500,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	        removeCollider: invalid
 	        addImage: invalid
 	        removeImage: invalid
+	        getStaticVariable: invalid
+	        setStaticVariable: invalid
 		}
 
 		new_object.onCreate = function(args)

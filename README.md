@@ -186,17 +186,20 @@ This method will always be called when the instance is created. Put creation cod
 ##### onUpdate(deltaTime)
 This method is called every frame. Put code to be constantly ran here. 
 
+##### onPreCollision()
+This method is called just before collision checking occurs, any important pre-collision check adjustments can be made here.
+
 ##### onCollision(collider, other_collider, other_instance)
 This method is called when two object instances collide. collider and other_collider are strings refering to the specific colliders that are in collision. other_instance is the object instance that has been collided with.
+
+##### onPostCollision()
+This method is called just after collision checking occurs, any post-collision processing can be put here.
 
 ##### onDrawBegin(canvas)
 This is called before the instance is drawn and receives the canvas as a object that can be drawn to. 
 
 ##### onDrawEnd(canvas)
 This is called after the instance is drawn and receives the canvas as a object that can be drawn to. 
-
-##### onDrawGui(screen)
-This is called after the game has been drawn to the screen and receives the screen object. This can be used to draw interface elements that will not be affected by the canvas position/scale. Note: The screen is always the same resolution as the device resolution.
 
 ##### onButton(code)
 This is called whenever a button is pressed, released, or held.
@@ -215,11 +218,17 @@ This is called whenever a button is pressed, released, or held.
 | Info | 10 | 110 | 1010 |
 | Play | 13 | 113 | 1013 |
 
+##### onECPKeyboard(character)
+This can be used to receive text input from ECP keyboard events.
+
 ##### onAudioEvent(message)
 This is called when an audio event is triggered, the message is passed to the method.
 
 ##### onUrlEvent(message)
 This is called when a URL event is triggered by a roUrlTransfer object retrieved from newAsyncUrlTransfer(). The message is passed to the method, then the roUrlTransfer object is automatically destroyed.
+
+##### onGameEvent(event, data)
+This method will be called on all objects whenever PostGameEvent(event as String, data = {} as Object) is called. It is a basic event system for objects to inform other objects of events.
 
 ##### onChangeRoom(new_room_name)
 This method will be called when the room is changed and recieves the name of the new room
@@ -265,6 +274,10 @@ args = {
 Returns the image with the provided image name. Defaults to "main" image name.
 ##### removeImage([image_name as String])
 Removes the image matching the provided image name. Defaults to "main" image name.
+##### setStaticVariable(variable_name as String, variable_value)
+Sets a variable for an object type that is persistent across all objects of this type (based on the concept of static variables)
+##### getStaticVariable(variable_name as String)
+Returns a static variable, returns invalid if static variable has not been set.
 
 Other Utilities
 ------
@@ -283,3 +296,5 @@ These registry functions make it easy to read and write to the registry, they sh
 Writes to the provided registry section the provided key/value pair. Data types supported are booleans, integer and floating point numbers, strings, roArray, and roAssociativeArray objects.
 ##### registryRead(registry_section as String, key as String, [default_value as Dynamic]) as Dynamic
 Reads the provided key from the provided registry section. The default value will be written if the registry section and key have no value yet.
+##### DrawText(draw2d as Object, text as String, x as Integer, y as Integer, font as Object, alignment = "left" as String, color = &hEBEBEBFF as Integer)
+Gives a convenient way to draw text with halignement set as "left", "right", or "center"
