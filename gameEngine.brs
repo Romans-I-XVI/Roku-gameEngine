@@ -22,6 +22,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		buttonHeldTimer: CreateObject("roTimespan")
 		currentID: 0
 		shouldUseIntegerMovement: false
+		enableAudioGuideSuppression: true
 		empty_bitmap: CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
 		device: CreateObject("roDeviceInfo")
 		urltransfers: {}
@@ -157,6 +158,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game.Play = function() as Void
 
 		sorted_instances = []
+		audio_guide_suppression_roURLTransfer = CreateObject("roURLTransfer")
+		audio_guide_suppression_roURLTransfer.SetUrl("http://localhost:8060/keydown/Backspace")
+		audio_guide_suppression_ticker = 0
+
 		m.running = true
 
 		while m.running
@@ -186,14 +191,32 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 			m.dtTimer.Mark()
 			url_msg = m.url_port.GetMessage()
+			get_screen_msg:
 	        screen_msg = m.screen_port.GetMessage()
-            if type(screen_msg) = "roUniversalControlEvent" then
-            	if screen_msg.GetInt() < 100
-            		m.buttonHeldTimer.Mark()
-            	else
-            		m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
-            	end if
-            end if
+
+			if type(screen_msg) = "roUniversalControlEvent" then
+				if screen_msg.GetInt() = 11
+					screen_msg = invalid
+					goto get_screen_msg
+				end if
+
+				if screen_msg.GetInt() < 100
+					m.buttonHeldTimer.Mark()
+				else
+					if m.enableAudioGuideSuppression
+						if screen_msg.GetInt() = 110
+							audio_guide_suppression_ticker++
+							if audio_guide_suppression_ticker = 3
+								audio_guide_suppression_roURLTransfer.AsyncPostFromString("")
+								audio_guide_suppression_ticker = 0
+							end if
+						else
+							audio_guide_suppression_ticker = 0
+						end if
+					end if
+					m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
+				end if
+			end if
 	        music_msg = m.music_port.GetMessage()
 
 			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
