@@ -83,3 +83,36 @@ function DrawText(draw2d as Object, text as String, x as Integer, y as Integer, 
 		draw2d.DrawText(text, x-font.GetOneLineWidth(text, 10000)/2, y, color, font)
 	end if
 end function
+
+Function CreateObject_GameTimeSpan() as Object
+	timer = {
+		internal_roku_timer: CreateObject("roTimespan")
+		total_milliseconds_modifier: 0
+	}
+	timer.Mark = function()
+		m.internal_roku_timer.Mark()
+		m.total_milliseconds_modifier = 0
+	end function
+
+	timer.TotalMilliseconds = function()
+		return m.internal_roku_timer.TotalMilliseconds() + m.total_milliseconds_modifier
+	end function
+
+	timer.TotalSeconds = function()
+		return m.internal_roku_timer.TotalSeconds() + cint(m.total_milliseconds_modifier / 1000)
+	end function
+
+	timer.GetSecondsToISO8601Date = function(date as String)
+		return m.internal_roku_timer.GetSecondsToISO8601Date(date)
+	end function
+
+	timer.AddTime = function(milliseconds as Integer)
+		m.total_milliseconds_modifier += milliseconds
+	end function
+
+	timer.RemoveTime = function(milliseconds as Integer)
+		m.total_milliseconds_modifier -= milliseconds
+	end function
+
+	return timer
+End Function
