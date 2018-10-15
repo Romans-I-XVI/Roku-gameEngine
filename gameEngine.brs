@@ -514,6 +514,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	        onButton: invalid
 	        onECPKeyboard: invalid
 	        onAudioEvent: invalid
+	        onPause: invalid
+	        onResume: invalid
 	        onUrlEvent: invalid
 	        onGameEvent: invalid
 	        onChangeRoom: invalid
@@ -565,6 +567,12 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		' end function
 
 		' new_object.onAudioEvent = function(msg)
+		' end function
+
+		' new_object.onPause = function()
+		' end function
+
+		' new_object.onResume = function(pause_time)
 		' end function
 
 		' new_object.onUrlEvent = function(msg)
@@ -822,6 +830,16 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game.Pause = function() as Void
 		if not m.paused then
 			m.paused = true
+
+			for each object_key in m.Instances
+				for each instance_key in m.Instances[object_key]
+					instance = m.Instances[object_key][instance_key]
+					if instance <> invalid and instance.id <> invalid and instance.onPause <> invalid
+						instance.onPause()
+					end if
+				end for
+			end for
+
 			m.pauseTimer.Mark()
 		end if
 	end function
@@ -833,7 +851,18 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game.Resume = function() as Dynamic
 		if m.paused then
 			m.paused = false
-			return m.pauseTimer.TotalMilliseconds()
+			paused_time = m.pauseTimer.TotalMilliseconds()
+
+			for each object_key in m.Instances
+				for each instance_key in m.Instances[object_key]
+					instance = m.Instances[object_key][instance_key]
+					if instance <> invalid and instance.id <> invalid and instance.onResume <> invalid
+						instance.onResume(paused_time)
+					end if
+				end for
+			end for
+
+			return paused_time
 		end if
 		return invalid
 	end function

@@ -224,6 +224,12 @@ This can be used to receive text input from ECP keyboard events.
 ##### onAudioEvent(message)
 This is called when an audio event is triggered, the message is passed to the method.
 
+##### onPause()
+This is called when the game is paused via Pause()
+
+##### onResume(pause_time)
+This is called when the game is resumed via Resume, the amount of time the game was paused (in milliseconds) is passed to the method.
+
 ##### onUrlEvent(message)
 This is called when a URL event is triggered by a roUrlTransfer object retrieved from newAsyncUrlTransfer(). The message is passed to the method, then the roUrlTransfer object is automatically destroyed.
 
