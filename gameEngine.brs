@@ -22,6 +22,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		buttonHeldTimer: CreateObject("roTimespan")
 		currentID: 0
 		shouldUseIntegerMovement: false
+		enableAudioGuideSuppression: true
 		empty_bitmap: CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
 		device: CreateObject("roDeviceInfo")
 		urltransfers: {}
@@ -158,6 +159,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 		sorted_instances = []
 		expired_instances = []
+		audio_guide_suppression_roURLTransfer = CreateObject("roURLTransfer")
+		audio_guide_suppression_roURLTransfer.SetUrl("http://localhost:8060/keydown/Backspace")
+		audio_guide_suppression_ticker = 0
+
 		m.running = true
 
 		while m.running
@@ -187,14 +192,32 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 			m.dtTimer.Mark()
 			url_msg = m.url_port.GetMessage()
+			get_screen_msg:
 	        screen_msg = m.screen_port.GetMessage()
-            if type(screen_msg) = "roUniversalControlEvent" then
-            	if screen_msg.GetInt() < 100
-            		m.buttonHeldTimer.Mark()
-            	else
-            		m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
-            	end if
-            end if
+
+			if type(screen_msg) = "roUniversalControlEvent" then
+				if screen_msg.GetInt() = 11
+					screen_msg = invalid
+					goto get_screen_msg
+				end if
+
+				if screen_msg.GetInt() < 100
+					m.buttonHeldTimer.Mark()
+				else
+					if m.enableAudioGuideSuppression
+						if screen_msg.GetInt() = 110
+							audio_guide_suppression_ticker++
+							if audio_guide_suppression_ticker = 3
+								audio_guide_suppression_roURLTransfer.AsyncPostFromString("")
+								audio_guide_suppression_ticker = 0
+							end if
+						else
+							audio_guide_suppression_ticker = 0
+						end if
+					end if
+					m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
+				end if
+			end if
 	        music_msg = m.music_port.GetMessage()
 
 			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
@@ -295,7 +318,11 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					instance.y = instance.y + instance.yspeed*m.dt
 				end if
 
-
+				' ---------------- Give a space for any processing to happen just before collision checking occurs ------------
+				if instance.onPreCollision <> invalid
+					instance.onPreCollision()
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				end if
 
 				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
 				for each collider_key in instance.colliders
@@ -334,6 +361,12 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					end if
 				end for
 				if instance = invalid or instance.id = invalid then : goto end_of_for_loop : end if
+
+				' ---------------- Give a space for any processing to happen just after collision checking occurs ------------
+				if instance.onPostCollision <> invalid
+					instance.onPostCollision()
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				end if
 
 				' -------------------- Then handle image animation------------------------
 				for each image_object in instance.images
@@ -384,6 +417,31 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 				end if
 
+				' --------------Adjust compositor collider again at end of loop so collider is accurate for collision checking from other objects-------------
+				' ---------------------------------(in case positions were adjust since original collision checking)------------------------------------------
+				for each collider_key in instance.colliders
+					collider = instance.colliders[collider_key]
+					if collider <> invalid then
+						if collider.enabled then
+							collider.compositor_object.SetMemberFlags(collider.member_flags)
+							collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
+							if collider.type = "circle" then
+								collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
+							else if collider.type = "rectangle" then
+								collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
+							end if
+							collider.compositor_object.MoveTo(instance.x, instance.y)
+						else
+							collider.compositor_object.SetMemberFlags(99)
+							collider.compositor_object.SetCollidableFlags(99)
+						end if
+					else
+						if instance.colliders.DoesExist(collider_key)
+							instance.colliders.Delete(collider_key)
+						end if
+					end if
+				end for
+
 				end_of_for_loop:
 
 				if instance = invalid or instance.id = invalid then
@@ -432,18 +490,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 		end while
 
-		for each object_key in m.Instances
-			for each instance_key in m.Instances[object_key]
-				instance = m.Instances[object_key][instance_key]
-				if instance.id <> invalid and instance.name <> m.currentRoom.name then
-					m.destroyInstance(instance, false)
-				end if
-			end for
-		end for
-		if m.currentRoom <> invalid and m.currentRoom.id <> invalid then 
-			m.destroyInstance(m.currentRoom, false)
-		end if
-
 	end function
 	' ################################################################ Play() function - End #####################################################################################################
 
@@ -475,12 +521,16 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 	        ' -----Methods-----
 	        onUpdate: invalid
+	        onPreCollision: invalid
 	        onCollision: invalid
+	        onPostCollision: invalid
 	        onDrawBegin: invalid
 	        onDrawEnd: invalid
 	        onButton: invalid
 	        onECPKeyboard: invalid
 	        onAudioEvent: invalid
+	        onPause: invalid
+	        onResume: invalid
 	        onUrlEvent: invalid
 	        onGameEvent: invalid
 	        onChangeRoom: invalid
@@ -490,6 +540,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	        removeCollider: invalid
 	        addImage: invalid
 	        removeImage: invalid
+	        getStaticVariable: invalid
+	        setStaticVariable: invalid
 		}
 
 		new_object.onCreate = function(args)
@@ -530,6 +582,12 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		' end function
 
 		' new_object.onAudioEvent = function(msg)
+		' end function
+
+		' new_object.onPause = function()
+		' end function
+
+		' new_object.onResume = function(pause_time)
 		' end function
 
 		' new_object.onUrlEvent = function(msg)
@@ -787,6 +845,16 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game.Pause = function() as Void
 		if not m.paused then
 			m.paused = true
+
+			for each object_key in m.Instances
+				for each instance_key in m.Instances[object_key]
+					instance = m.Instances[object_key][instance_key]
+					if instance <> invalid and instance.id <> invalid and instance.onPause <> invalid
+						instance.onPause()
+					end if
+				end for
+			end for
+
 			m.pauseTimer.Mark()
 		end if
 	end function
@@ -798,7 +866,18 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game.Resume = function() as Dynamic
 		if m.paused then
 			m.paused = false
-			return m.pauseTimer.TotalMilliseconds()
+			paused_time = m.pauseTimer.TotalMilliseconds()
+
+			for each object_key in m.Instances
+				for each instance_key in m.Instances[object_key]
+					instance = m.Instances[object_key][instance_key]
+					if instance <> invalid and instance.id <> invalid and instance.onResume <> invalid
+						instance.onResume(paused_time)
+					end if
+				end for
+			end for
+
+			return paused_time
 		end if
 		return invalid
 	end function
@@ -866,6 +945,20 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.screen.SetAlphaEnable(true)
 		if m.canvas_is_screen
 			m.canvas.bitmap = m.screen
+
+			' This is so all instances that have images that draw to the screen get updated with the new screen.
+			for each object_key in m.Instances
+				for each instance_key in m.Instances[object_key]
+					instance = m.Instances[object_key][instance_key]
+					if instance <> invalid and instance.id <> invalid and instance.DoesExist("images")
+						for each image in instance.images
+							if type(image.draw_to) = "roScreen"
+								image.draw_to = m.screen
+							end if
+						end for
+					end if
+				end for
+			end for
 		end if
 	end function
 	' ############### resetScreen() function - Begin ###############

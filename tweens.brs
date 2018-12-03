@@ -19,7 +19,7 @@ Function CreateTweenObject(start_data as object, dest_data as object, duration a
     for each key in dest_data
         tween_data.dest[key] = dest_data[key]
     end for
-    tween_data.timer = CreateObject("roTimespan")
+    tween_data.timer = CreateObject_GameTimespan()
 
     return tween_data
 End Function
