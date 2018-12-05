@@ -404,7 +404,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 						if image.alpha > 255 then : image.alpha = 255 : end if
 						image_pos_x = cint(instance.x+image.offset_x-(image.origin_x*image.scale_x))
 						image_pos_y = cint(instance.y+image.offset_y-(image.origin_y*image.scale_y))
-						if image.scale_x <> 1 and image.scale_y <> 1
+						if image.scale_x <> 1 or image.scale_y <> 1
 							image.draw_to.DrawScaledObject(image_pos_x, image_pos_y, image.scale_x, image.scale_y, image.region, (image.color << 8)+int(image.alpha))
 						else
 							image.draw_to.DrawObject(image_pos_x, image_pos_y, image.region, (image.color << 8)+int(image.alpha))
