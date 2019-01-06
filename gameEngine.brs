@@ -294,19 +294,19 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				end if
 
 				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
-				for each collider_key in instance.colliders
-					collider = instance.colliders[collider_key]
-					if collider <> invalid then
-						if collider.enabled then
-							collider.compositor_object.SetMemberFlags(collider.member_flags)
-							collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
-							if collider.type = "circle" then
-								collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
-							else if collider.type = "rectangle" then
-								collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
-							end if
-							collider.compositor_object.MoveTo(instance.x, instance.y)
-							if instance.onCollision <> invalid
+				if instance.onCollision <> invalid
+					for each collider_key in instance.colliders
+						collider = instance.colliders[collider_key]
+						if collider <> invalid then
+							if collider.enabled then
+								collider.compositor_object.SetMemberFlags(collider.member_flags)
+								collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
+								if collider.type = "circle" then
+									collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
+								else if collider.type = "rectangle" then
+									collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
+								end if
+								collider.compositor_object.MoveTo(instance.x, instance.y)
 								multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
 								if multiple_collisions <> invalid
 									for each other_collider in multiple_collisions
@@ -318,17 +318,17 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 									end for
 									if instance = invalid or instance.id = invalid then : exit for : end if
 								end if
+							else
+								collider.compositor_object.SetMemberFlags(0)
+								collider.compositor_object.SetCollidableFlags(0)
 							end if
 						else
-							collider.compositor_object.SetMemberFlags(99)
-							collider.compositor_object.SetCollidableFlags(99)
+							if instance.colliders.DoesExist(collider_key)
+								instance.colliders.Delete(collider_key)
+							end if
 						end if
-					else
-						if instance.colliders.DoesExist(collider_key)
-							instance.colliders.Delete(collider_key)
-						end if
-					end if
-				end for
+					end for
+				end if
 				if instance = invalid or instance.id = invalid then : goto end_of_for_loop : end if
 
 				' ---------------- Give a space for any processing to happen just after collision checking occurs ------------
@@ -386,8 +386,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 				end if
 
-				' --------------Adjust compositor collider again at end of loop so collider is accurate for collision checking from other objects-------------
-				' ---------------------------------(in case positions were adjust since original collision checking)------------------------------------------
+				' --------------Adjust compositor collider at end of loop so collider is accurate for collision checking from other objects-------------
 				for each collider_key in instance.colliders
 					collider = instance.colliders[collider_key]
 					if collider <> invalid then
@@ -401,8 +400,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 							end if
 							collider.compositor_object.MoveTo(instance.x, instance.y)
 						else
-							collider.compositor_object.SetMemberFlags(99)
-							collider.compositor_object.SetCollidableFlags(99)
+							collider.compositor_object.SetMemberFlags(0)
+							collider.compositor_object.SetCollidableFlags(0)
 						end if
 					else
 						if instance.colliders.DoesExist(collider_key)
