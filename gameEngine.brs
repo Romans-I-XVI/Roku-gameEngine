@@ -195,40 +195,30 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			universal_control_events = []
 			screen_msg = m.screen_port.GetMessage()
 			while screen_msg <> invalid
-				if type(screen_msg) = "roUniversalControlEvent"
+				if type(screen_msg) = "roUniversalControlEvent" and screen_msg.GetInt() <> 11
 					universal_control_events.Push(screen_msg)
 					if screen_msg.GetInt() < 100
 						m.buttonHeld = screen_msg.GetInt()
+						m.buttonHeldTimer.Mark()
 					else
 						m.buttonHeld = -1
+						if m.enableAudioGuideSuppression
+							if screen_msg.GetInt() = 110
+								audio_guide_suppression_ticker++
+								if audio_guide_suppression_ticker = 3
+									audio_guide_suppression_roURLTransfer.AsyncPostFromString("")
+									audio_guide_suppression_ticker = 0
+								end if
+							else
+								audio_guide_suppression_ticker = 0
+							end if
+						end if
+						m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
 					end if
 				end if
 				screen_msg = m.screen_port.GetMessage()
 			end while
 
-			if type(screen_msg) = "roUniversalControlEvent" then
-				if screen_msg.GetInt() = 11
-					screen_msg = invalid
-					goto get_screen_msg
-				end if
-
-				if screen_msg.GetInt() < 100
-					m.buttonHeldTimer.Mark()
-				else
-					if m.enableAudioGuideSuppression
-						if screen_msg.GetInt() = 110
-							audio_guide_suppression_ticker++
-							if audio_guide_suppression_ticker = 3
-								audio_guide_suppression_roURLTransfer.AsyncPostFromString("")
-								audio_guide_suppression_ticker = 0
-							end if
-						else
-							audio_guide_suppression_ticker = 0
-						end if
-					end if
-					m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
-				end if
-			end if
 	        music_msg = m.music_port.GetMessage()
 
 			' -------------------Sort the instances according to depth before processing---------------------
