@@ -192,7 +192,19 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			m.dtTimer.Mark()
 			url_msg = m.url_port.GetMessage()
 			get_screen_msg:
-	        screen_msg = m.screen_port.GetMessage()
+			universal_control_events = []
+			screen_msg = m.screen_port.GetMessage()
+			while screen_msg <> invalid
+				if type(screen_msg) = "roUniversalControlEvent"
+					universal_control_events.Push(screen_msg)
+					if screen_msg.GetInt() < 100
+						m.buttonHeld = screen_msg.GetInt()
+					else
+						m.buttonHeld = -1
+					end if
+				end if
+				screen_msg = m.screen_port.GetMessage()
+			end while
 
 			if type(screen_msg) = "roUniversalControlEvent" then
 				if screen_msg.GetInt() = 11
@@ -219,7 +231,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 	        music_msg = m.music_port.GetMessage()
 
-			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
+			' -------------------Sort the instances according to depth before processing---------------------
 			m.sorted_instances.SortBy("depth")
 
 
@@ -233,22 +245,17 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				
 
 				' --------------------First process the onButton() function--------------------
-		        if type(screen_msg) = "roUniversalControlEvent" then
-			        if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
-			        	instance.onButton(screen_msg.GetInt())
-						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
-			        end if
-		        	if screen_msg.GetInt() < 100
-		        		m.buttonHeld = screen_msg.GetInt()
-		        	else
-		        		m.buttonHeld = -1
-		        	end if
-
-					if instance.onECPKeyboard <> invalid and screen_msg.GetChar() <> 0 and screen_msg.GetChar() = screen_msg.GetInt()
-						instance.onECPKeyboard(Chr(screen_msg.GetChar()))
+				for each msg in universal_control_events
+					if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
+						instance.onButton(msg.GetInt())
 						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 					end if
-		        end if
+
+					if instance.onECPKeyboard <> invalid and msg.GetChar() <> 0 and msg.GetChar() = msg.GetInt()
+						instance.onECPKeyboard(Chr(msg.GetChar()))
+						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+					end if
+				end for
 		        if m.buttonHeld <> -1 then
 		        	' Button release codes are 100 plus the button press code
 		        	' This shows a button held code as 1000 plus the button press code
