@@ -42,8 +42,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			offset_y: 0
 			scale_x: 1.0
 			scale_y: 1.0
-			follow: invalid
-			follow_mode: 0
 		}
 		' ****END - For Internal Use, Do Not Manually Alter****
 
@@ -95,12 +93,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		canvasSetSize: invalid
 		canvasGetOffset: invalid
 		canvasGetScale: invalid
-		canvasIncreaseOffset: invalid
-		canvasIncreaseScale: invalid
 		canvasSetOffset: invalid
 		canvasSetScale: invalid
-		canvasSetFollow: invalid
-		canvasUnsetFollow: invalid
 		canvasFitToScreen: invalid
 		canvasCentertoScreen: invalid
 		canvasCenterToInstance: Invalid
@@ -228,6 +222,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			' --------------------Begin giant loop for processing all game objects----------------
 			' There is a goto after every call to an override function, this is so if the instance deleted itself no futher calls will be attempted on the instance.
 			started_paused = m.paused
+			timer = CreateObject("roTimeSpan")
 			for i = m.sorted_instances.Count()-1 to 0 step -1
 				instance = m.sorted_instances[i]
 				if instance = invalid or instance.id = invalid or not instance.enabled then : goto end_of_for_loop  : end if
@@ -417,6 +412,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				end if
 
 			end for
+			print timer.TotalMilliseconds()
 
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
 			if type(url_msg) = "roUrlEvent"
@@ -426,17 +422,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					if m.debug then : print "Destroyed UrlTransfer Object - " ; url_transfer_id_string : end if
 		        end if
 		    end if
-
-
-			' --------------------Then do canvas magic if it's set to follow----------------------------
-			if m.canvas.follow <> invalid
-				if m.canvas.follow.id <> invalid and m.Instances[m.canvas.follow.name].DoesExist(m.canvas.follow.id)
-					m.canvasCenterToInstance(m.canvas.follow, m.canvas.follow_mode)
-				else
-					m.canvas.follow = invalid
-				end if
-			end if
-
 
 			' -------------------Draw everything to the screen----------------------------
 			if not m.canvas_is_screen
@@ -1201,9 +1186,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' --------------------------------Begin Canvas Functions----------------------------------------
-	' Note, canvas functions can be complicated to use manually, because the "canvas" is actually a single
-	' bitmap that is being scaled and positioned. 
-
 
 	' ############### canvasSetSize() function - Begin ###############
 	game.canvasSetSize = function(canvas_width as Integer, canvas_height as Integer) as Void
@@ -1226,30 +1208,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	' ############### canvasGetScale() function - Begin ###############
 
 
-	' ############### canvasIncreaseOffset() function - Begin ###############
-	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
-	game.canvasIncreaseOffset = function(x as Float, y as Float) as Void
-		m.canvas.offset_x = m.canvas.offset_x + x
-		m.canvas.offset_y = m.canvas.offset_y + y
-	end function
-	' ############### canvasIncreaseOffset() function - End ###############
-
-
-
-	' ############### canvasIncreaseScale() function - Begin ###############
-	game.canvasIncreaseScale = function(scale_x as Float, scale_y = invalid as Dynamic) as Void
-		if scale_y = invalid
-			scale_y = scale_x
-		end if
-		m.canvas.scale_x = m.canvas.scale_x + scale_x
-		m.canvas.scale_y = m.canvas.scale_y + scale_y
-		if m.canvas.scale_x < 0 then : m.canvas.scale_x = 0 : end if
-		if m.canvas.scale_y < 0 then : m.canvas.scale_y = 0 : end if
-	end function
-	' ############### canvasIncreaseScale() function - End ###############
-
-
-
 	' ############### canvasSetOffset() function - Begin ###############
 	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
 	game.canvasSetOffset = function(x as Float, y as Float) as Void
@@ -1257,7 +1215,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.canvas.offset_y = y
 	end function
 	' ############### canvasSetOffset() function - End ###############
-
 
 
 	' ############### canvasSetScale() function - Begin ###############
@@ -1269,24 +1226,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.canvas.scale_y = scale_y
 	end function
 	' ############### canvasSetScale() function - End ###############
-
-
-
-	' ############### canvasSetFollow() function - Begin ###############
-	game.canvasSetFollow = function(instance as Object, mode = 0 as Integer) as Void
-		m.canvas.follow = instance
-		m.canvas.follow_mode = mode
-	end function
-	' ############### canvasSetFollow() function - End ###############
-
-
-
-	' ############### canvasUnsetFollow() function - Begin ###############
-	game.canvasUnsetFollow = function() as Void
-		m.canvas.follow = invalid
-	end function
-	' ############### canvasUnsetFollow() function - End ###############
-
 
 
 	' ############### canvasFitToScreen() function - Begin ###############
@@ -1323,61 +1262,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.canvas.offset_y = m.screen.GetHeight()/2-(m.canvas.scale_y*m.canvas.bitmap.GetHeight())/2
 	end function
 	' ############### canvasCenterToScreen() function - End ###############
-
-
-
-	' ############### canvasCenterToInstance() function - Begin ###############
-	game.canvasCenterToInstance = function(instance as Object, mode = 0 as Integer) as dynamic
-
-		if instance = invalid or instance.id = invalid
-			if m.debug then : print "canvasCenterToInstance() - Provided instance doesn't exist" : end if
-			return invalid
-		end if
-		canvas_width = m.canvas.bitmap.GetWidth()
-		canvas_height = m.canvas.bitmap.GetHeight()
-		screen_width = m.screen.GetWidth()
-		screen_height = m.screen.GetHeight()
-
-		offset_x = 0-instance.x*m.canvas.scale_x+screen_width/2
-		offset_y = 0-instance.y*m.canvas.scale_y+screen_height/2
-
-		if mode = 0
-			minimum_offset_x = -((canvas_width*m.canvas.scale_x)-screen_width)
-			minimum_offset_y = -((canvas_height*m.canvas.scale_y)-screen_height)
-
-			if offset_x >= minimum_offset_x and offset_x <= 0
-				m.canvas.offset_x = offset_x
-			else if not offset_x >= minimum_offset_x
-				m.canvas.offset_x = minimum_offset_x
-			else if not offset_x <= 0 
-				m.canvas.offset_x = 0
-			end if
-
-			if offset_y >= minimum_offset_y and offset_y <=0
-				m.canvas.offset_y = offset_y
-			else if not offset_y >= minimum_offset_y
-				m.canvas.offset_y = minimum_offset_y
-			else if not offset_y <= 0
-				m.canvas.offset_y = 0
-			end if
-
-			if canvas_width*m.canvas.scale_x < screen_width
-				m.canvas.offset_x = (screen_width-canvas_width*m.canvas.scale_x)/2
-			end if
-
-			if canvas_height*m.canvas.scale_y < screen_height
-				m.canvas.offset_y = (screen_height-canvas_height*m.canvas.scale_y)/2
-			end if
-
-		else if mode = 1
-
-			m.canvas.offset_x = offset_x
-			m.canvas.offset_y = offset_y
-			
-		end if
-
-	end function
-	' ############### canvasCenterToInstance() function - End ###############
 
 
 	' --------------------------------Begin Audio Functions----------------------------------------
