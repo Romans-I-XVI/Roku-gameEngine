@@ -11,6 +11,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		canvas_is_screen: false
 		running: true
 		paused: false
+		sorted_instances: []
 		buttonHeld: -1
 		buttonHeldTime: 0
 		input_instance: invalid
@@ -157,7 +158,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	' ################################################################ Play() function - Begin #####################################################################################################
 	game.Play = function() as Void
 
-		sorted_instances = []
 		audio_guide_suppression_roURLTransfer = CreateObject("roURLTransfer")
 		audio_guide_suppression_roURLTransfer.SetUrl("http://localhost:8060/keydown/Backspace")
 		audio_guide_suppression_ticker = 0
@@ -220,41 +220,14 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	        music_msg = m.music_port.GetMessage()
 
 			' --------------------------Add object to the appropriate position in the draw_depths array-----------------
-			for each object_key in m.Instances
-				for each instance_key in m.Instances[object_key]
-					instance = m.Instances[object_key][instance_key]
-					if instance.depth <> instance.e_previous_sort_depth
-						if sorted_instances.Count() > 0 then
-							for i = sorted_instances.Count()-1 to 0 step -1
-								if sorted_instances[i] = invalid or sorted_instances[i].id = invalid or instance.id = sorted_instances[i].id then
-									sorted_instances.Delete(i)
-								end if
-							end for
-							inserted = false
-							for i = sorted_instances.Count()-1 to 0 step -1
-								if not inserted and instance.depth > sorted_instances[i].depth then
-									ArrayInsert(sorted_instances, i+1, instance)
-									inserted = true
-									exit for
-								end if
-							end for
-							if not inserted then
-								sorted_instances.Unshift(instance)
-							end if
-						else
-							sorted_instances.Unshift(instance)
-						end if
+			m.sorted_instances.SortBy("depth")
 
-						instance.e_previous_sort_depth = instance.depth
-					end if
-				end for
-			end for
 
 			' --------------------Begin giant loop for processing all game objects----------------
 			' There is a goto after every call to an override function, this is so if the instance deleted itself no futher calls will be attempted on the instance.
 			started_paused = m.paused
-			for i = sorted_instances.Count()-1 to 0 step -1
-				instance = sorted_instances[i]
+			for i = m.sorted_instances.Count()-1 to 0 step -1
+				instance = m.sorted_instances[i]
 				if instance = invalid or instance.id = invalid or not instance.enabled then : goto end_of_for_loop  : end if
 				if started_paused and instance.pauseable then: goto draw_instance : end if
 				
@@ -444,7 +417,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				end_of_for_loop:
 
 				if instance = invalid or instance.id = invalid then
-					sorted_instances.Delete(i)
+					m.sorted_instances.Delete(i)
 				end if
 
 			end for
@@ -765,6 +738,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		end function
 
 		m.Instances[new_object.name][new_object.id] = new_object
+		m.sorted_instances.Push(new_object)
 
 		return new_object
 	end function
