@@ -222,7 +222,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			' --------------------Begin giant loop for processing all game objects----------------
 			' There is a goto after every call to an override function, this is so if the instance deleted itself no futher calls will be attempted on the instance.
 			started_paused = m.paused
-			timer = CreateObject("roTimeSpan")
 			for i = m.sorted_instances.Count()-1 to 0 step -1
 				instance = m.sorted_instances[i]
 				if instance = invalid or instance.id = invalid or not instance.enabled then : goto end_of_for_loop  : end if
@@ -412,7 +411,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				end if
 
 			end for
-			print timer.TotalMilliseconds()
 
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
 			if type(url_msg) = "roUrlEvent"
