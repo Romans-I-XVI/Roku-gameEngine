@@ -726,7 +726,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### DrawColliders() function - Begin ###############
-	game.drawColliders = function(instance as Object, color = &hFF0000FF as Integer) as Void
+	game.drawColliders = function(instance as object, color = &hFF0000FF as integer) as void
 		for each collider_key in instance.colliders
 			collider = instance.colliders[collider_key]
 			if collider.enabled then
@@ -749,7 +749,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### DrawSafeZones() function - End ###############
-	game.drawSafeZones = function() as Void
+	game.drawSafeZones = function() as void
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
 		if m.device.GetDisplayAspectRatio() = "4x3" then
@@ -769,10 +769,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	end function
 	' ############### DrawSafeZones() function - End ###############
 
-	
-	
+
+
 	' ############### End() function - Begin ###############
-	game.End = function() as Void
+	game.End = function() as void
 		m.running = false
 	end function
 	' ############### End() function - End ###############
@@ -780,7 +780,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### Pause() function - Begin ###############
-	game.Pause = function() as Void
+	game.Pause = function() as void
 		if not m.paused then
 			m.paused = true
 
@@ -801,7 +801,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### Resume() function - Begin ###############
-	game.Resume = function() as Dynamic
+	game.Resume = function() as dynamic
 		if m.paused then
 			m.paused = false
 			paused_time = m.pauseTimer.TotalMilliseconds()
@@ -824,7 +824,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### isPaused() function - Begin ###############
-	game.isPaused = function() as Boolean
+	game.isPaused = function() as boolean
 		return m.paused
 	end function
 	' ############### isPaused() function - End ###############
@@ -832,7 +832,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### setBackgroundColor() function - Begin ###############
-	game.setBackgroundColor = function(color as Dynamic) as Void
+	game.setBackgroundColor = function(color as dynamic) as void
 		m.background_color = color
 	end function
 	' ############### setBackgroundColor() function - Begin ###############
@@ -840,14 +840,14 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getDeltaTime() function - Begin ###############
-	game.getDeltaTime = function() as Float
+	game.getDeltaTime = function() as float
 		return m.dt
 	end function
 	' ############### getDeltaTime() function - Begin ###############
 
 
 	' ############### getRoom() function - Begin ###############
-	game.getRoom = function() as Object
+	game.getRoom = function() as object
 		return m.currentRoom
 	end function
 	' ############### getRoom() function - Begin ###############
@@ -855,7 +855,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getCanvas() function - Begin ###############
-	game.getCanvas = function() as Object
+	game.getCanvas = function() as object
 		return m.canvas.bitmap
 	end function
 	' ############### getCanvas() function - Begin ###############
@@ -863,7 +863,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getScreen() function - Begin ###############
-	game.getScreen = function() as Object
+	game.getScreen = function() as object
 		return m.screen
 	end function
 	' ############### getScreen() function - Begin ###############
@@ -871,7 +871,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### resetScreen() function - Begin ###############
-	game.resetScreen = function() as Void
+	game.resetScreen = function() as void
 		UIResolution = m.device.getUIResolution()
 		if UIResolution.name = "SD"
 			m.screen = CreateObject("roScreen", true, 854, 626)
