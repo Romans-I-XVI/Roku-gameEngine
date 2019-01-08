@@ -94,24 +94,14 @@ Modifies the canvas size with the provided width and height.
 Returns an associative array with the current canvas offset. Will contain values for x and y.
 ##### canvasGetScale() as Object
 Returns an associative array with the current canvas scale. Will contain values for x and y.
-##### canvasIncreaseOffset(x as Float, y as Float) as Void
-Increase the canvas x and y positions by the provided amounts.
-##### canvasIncreaseScale(scale_x as Float, [scale_y as Float]) as Void
-Increases the canvas scale by the given amount, if only scale_x is given, scale_y will be set to the same amount. The scale_y parameter is only necessary if you want to stretch the canvas.
 ##### canvasSetOffset(x as Float, y as Float) as Void
 Set the canvas x and y positions. Note: positions are absolute and not in relation to the current scale, you should take scale into account when manually setting the positions.
 ##### canvasSetScale(scale_x as Float, [scale_y as Float]) as Void
 Sets the canvas scale to the given amount, if only scale_x is given, scale_y will be set to the same amount. The scale_y parameter is only necessary if you want to stretch the canvas.
-##### canvasSetFollow(instance as Object, [mode as Integer]) as Void
-Sets the canvas to follow the provided instance. Mode can be 0 or 1, the default is 0. In mode 0, the canvas will not move beyond the canvas boundaries. In mode 1, the canvas will keep the instance centered no matter what, meaning if the instance is towards the edge of the canvas, black will be shown.
-##### canvasUnsetFollow() as Void
-Stops following the instance if one was being followed.
 ##### canvasFitToScreen() as Void
 This fits the game canvas to the screen regardless of the screen aspect ratio. This makes it so a game can be made at any size and black bars will be shown on the top/bottom or left/right if the game aspect ratio is not the same as the TV's.
 ##### canvasCenterToScreen() as Void
 This centers the game canvas.
-##### canvasCenterToInstance(instance as Object, [mode as Integer]) as Void
-This function is used internally when the canvas is set to follow an instance, however it can be used manually if you want to center to an object only once. See canvasSetFollow() for a description of mode options.
 
 ###### ---Audio Methods---
 ##### musicPlay(path as String, [loop as Boolean]) as Boolean
