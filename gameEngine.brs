@@ -435,7 +435,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ################################################################ newEmptyObject() function - Begin #####################################################################################################
-	game.newEmptyObject = function(object_name as String) as Object
+	game.newEmptyObject = function(object_name as string) as object
 		m.currentID = m.currentID + 1
 		new_object = {
 			' -----Constants-----
@@ -453,39 +453,39 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			y: 0.0
 			xspeed: 0.0
 			yspeed: 0.0
-	        colliders: {}
-	        images: []
+			colliders: {}
+			images: []
 
-	        ' -----Methods-----
-	        onUpdate: invalid
-	        onPreCollision: invalid
-	        onCollision: invalid
-	        onPostCollision: invalid
-	        onDrawBegin: invalid
-	        onDrawEnd: invalid
-	        onButton: invalid
-	        onECPKeyboard: invalid
-	        onAudioEvent: invalid
-	        onPause: invalid
-	        onResume: invalid
-	        onUrlEvent: invalid
-	        onGameEvent: invalid
-	        onChangeRoom: invalid
-	        onDestroy: invalid
-	        addColliderCircle: invalid
-	        addColliderRectangle: invalid
-	        removeCollider: invalid
-	        addImage: invalid
-	        removeImage: invalid
-	        getStaticVariable: invalid
-	        setStaticVariable: invalid
+			' -----Methods-----
+			onUpdate: invalid
+			onPreCollision: invalid
+			onCollision: invalid
+			onPostCollision: invalid
+			onDrawBegin: invalid
+			onDrawEnd: invalid
+			onButton: invalid
+			onECPKeyboard: invalid
+			onAudioEvent: invalid
+			onPause: invalid
+			onResume: invalid
+			onUrlEvent: invalid
+			onGameEvent: invalid
+			onChangeRoom: invalid
+			onDestroy: invalid
+			addColliderCircle: invalid
+			addColliderRectangle: invalid
+			removeCollider: invalid
+			addImage: invalid
+			removeImage: invalid
+			getStaticVariable: invalid
+			setStaticVariable: invalid
 		}
 
 		new_object.onCreate = function(args)
 		end function
 
 		' This is the structure of the methods that can be added to an object
-		
+
 		' new_object.onUpdate = function(deltaTime)
 		' end function
 
@@ -585,7 +585,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			collider.compositor_object.SetDrawableFlag(false)
 			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
 			if m.colliders[collider_name] = invalid then
-				m.colliders[collider_name] = collider 
+				m.colliders[collider_name] = collider
 			else
 				if m.game.debug then : print "addColliderRectangle() - Collider Name Already Exists" : end if
 			end if
@@ -614,7 +614,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				' --------------Values That Can Be Changed------------
 				name: "main" ' Name must be unique
 				offset_x: 0 ' The offset of the image.
-				offset_y: 0 
+				offset_y: 0
 				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
 				origin_y: 0
 				scale_x: 1.0 ' The image scale.
@@ -658,7 +658,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 			if image_object.image_width <> invalid and image_object.image_height <> invalid then
 				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, args.image_width, args.image_height)
-			else if type(image) = "roRegion" then 
+			else if type(image) = "roRegion" then
 				image_object.region = image
 			else
 				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, image_object.image.GetWidth(), image_object.image.GetHeight())
