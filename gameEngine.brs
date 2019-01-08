@@ -1,7 +1,7 @@
 ' -------------------------Function To Create Main Game Object------------------------
 
 function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_if_possible = false)
-	
+
 	' ############### Create Initial Object - Begin ###############
 
 	' Create the main game engine object
@@ -97,7 +97,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		canvasSetScale: invalid
 		canvasFitToScreen: invalid
 		canvasCentertoScreen: invalid
-		canvasCenterToInstance: Invalid
+		canvasCenterToInstance: invalid
 
 		musicPlay: invalid
 		musicStop: invalid
@@ -150,7 +150,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ################################################################ Play() function - Begin #####################################################################################################
-	game.Play = function() as Void
+	game.Play = function() as void
 
 		audio_guide_suppression_roURLTransfer = CreateObject("roURLTransfer")
 		audio_guide_suppression_roURLTransfer.SetUrl("http://localhost:8060/keydown/Backspace")
@@ -166,7 +166,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			m.current_input_instance = m.input_instance
 			m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 			if not m.canvas_is_screen
-				m.screen.Clear(&h000000FF) 
+				m.screen.Clear(&h000000FF)
 				if m.background_color <> invalid then
 					m.canvas.bitmap.Clear(m.background_color)
 				end if
@@ -213,7 +213,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				screen_msg = m.screen_port.GetMessage()
 			end while
 
-	        music_msg = m.music_port.GetMessage()
+			music_msg = m.music_port.GetMessage()
 
 			' -------------------Sort the instances according to depth before processing---------------------
 			m.sorted_instances.SortBy("depth")
@@ -226,7 +226,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				instance = m.sorted_instances[i]
 				if instance = invalid or instance.id = invalid or not instance.enabled then : goto end_of_for_loop  : end if
 				if started_paused and instance.pauseable then: goto draw_instance : end if
-				
+
 
 				' --------------------First process the onButton() function--------------------
 				for each msg in universal_control_events
@@ -240,38 +240,38 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 					end if
 				end for
-		        if m.buttonHeld <> -1 then
-		        	' Button release codes are 100 plus the button press code
-		        	' This shows a button held code as 1000 plus the button press code
-		        	if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
-			        	instance.onButton(1000+m.buttonHeld)
+				if m.buttonHeld <> -1 then
+					' Button release codes are 100 plus the button press code
+					' This shows a button held code as 1000 plus the button press code
+					if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
+						instance.onButton(1000+m.buttonHeld)
 						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
-			        end if
-		        end if
+					end if
+				end if
 
 
-		        ' -------------------Then send the audioplayer event msg if applicable-------------------
-		        if instance.onAudioEvent <> invalid and type(music_msg) = "roAudioPlayerEvent" then
-		        	instance.onAudioEvent(music_msg)
+				' -------------------Then send the audioplayer event msg if applicable-------------------
+				if instance.onAudioEvent <> invalid and type(music_msg) = "roAudioPlayerEvent" then
+					instance.onAudioEvent(music_msg)
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
-		        end if
+				end if
 
 
 
-		        ' -------------------Then send the urltransfer event msg if applicable-------------------
-		        if instance.onUrlEvent <> invalid and type(url_msg) = "roUrlEvent" then
-		        	instance.onUrlEvent(url_msg)
+				' -------------------Then send the urltransfer event msg if applicable-------------------
+				if instance.onUrlEvent <> invalid and type(url_msg) = "roUrlEvent" then
+					instance.onUrlEvent(url_msg)
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
-		        end if
+				end if
 
 
-		        ' -------------------Then process the onUpdate() function----------------------
+				' -------------------Then process the onUpdate() function----------------------
 				if instance.onUpdate <> invalid
 					instance.onUpdate(m.dt)
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 				end if
 
-		        
+
 				' -------------------- Then handle the object movement--------------------
 				if m.shouldUseIntegerMovement
 					instance.x = instance.x + cint(instance.xspeed*m.dt)
@@ -415,11 +415,11 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
 			if type(url_msg) = "roUrlEvent"
 				url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
-		    	if m.urltransfers.DoesExist(url_transfer_id_string) then
-		        	m.urltransfers.Delete(url_transfer_id_string)
+				if m.urltransfers.DoesExist(url_transfer_id_string) then
+					m.urltransfers.Delete(url_transfer_id_string)
 					if m.debug then : print "Destroyed UrlTransfer Object - " ; url_transfer_id_string : end if
-		        end if
-		    end if
+				end if
+			end if
 
 			' -------------------Draw everything to the screen----------------------------
 			if not m.canvas_is_screen
