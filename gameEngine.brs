@@ -905,13 +905,13 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	' --------------------------------Begin Object Functions----------------------------------------
 
 
-	' ' ############### defineObject() function - Begin ###############
-	' game.defineObject = function(object_name as string, object_creation_function as function) as void
-	' 	m.Objects[object_name] = object_creation_function
-	' 	m.Instances[object_name] = {}
-	' 	m.Statics[object_name] = {}
-	' end function
-	' ' ############### defineObject() function - End ###############
+	' ############### defineObject() function - Begin ###############
+	game.defineObject = function(object_name as string, object_creation_function as function) as void
+		m.Objects[object_name] = object_creation_function
+		m.Instances[object_name] = {}
+		m.Statics[object_name] = {}
+	end function
+	' ############### defineObject() function - End ###############
 
 
 
