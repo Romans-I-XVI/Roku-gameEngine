@@ -1,7 +1,7 @@
 ' -------------------------Function To Create Main Game Object------------------------
 
 function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_if_possible = false)
-	
+
 	' ############### Create Initial Object - Begin ###############
 
 	' Create the main game engine object
@@ -97,7 +97,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		canvasSetScale: invalid
 		canvasFitToScreen: invalid
 		canvasCentertoScreen: invalid
-		canvasCenterToInstance: Invalid
+		canvasCenterToInstance: invalid
 
 		musicPlay: invalid
 		musicStop: invalid
@@ -150,7 +150,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ################################################################ Play() function - Begin #####################################################################################################
-	game.Play = function() as Void
+	game.Play = function() as void
 
 		audio_guide_suppression_roURLTransfer = CreateObject("roURLTransfer")
 		audio_guide_suppression_roURLTransfer.SetUrl("http://localhost:8060/keydown/Backspace")
@@ -166,7 +166,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			m.current_input_instance = m.input_instance
 			m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 			if not m.canvas_is_screen
-				m.screen.Clear(&h000000FF) 
+				m.screen.Clear(&h000000FF)
 				if m.background_color <> invalid then
 					m.canvas.bitmap.Clear(m.background_color)
 				end if
@@ -213,7 +213,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				screen_msg = m.screen_port.GetMessage()
 			end while
 
-	        music_msg = m.music_port.GetMessage()
+			music_msg = m.music_port.GetMessage()
 
 			' -------------------Sort the instances according to depth before processing---------------------
 			m.sorted_instances.SortBy("depth")
@@ -226,7 +226,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				instance = m.sorted_instances[i]
 				if instance = invalid or instance.id = invalid or not instance.enabled then : goto end_of_for_loop  : end if
 				if started_paused and instance.pauseable then: goto draw_instance : end if
-				
+
 
 				' --------------------First process the onButton() function--------------------
 				for each msg in universal_control_events
@@ -240,38 +240,38 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 					end if
 				end for
-		        if m.buttonHeld <> -1 then
-		        	' Button release codes are 100 plus the button press code
-		        	' This shows a button held code as 1000 plus the button press code
-		        	if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
-			        	instance.onButton(1000+m.buttonHeld)
+				if m.buttonHeld <> -1 then
+					' Button release codes are 100 plus the button press code
+					' This shows a button held code as 1000 plus the button press code
+					if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
+						instance.onButton(1000+m.buttonHeld)
 						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
-			        end if
-		        end if
+					end if
+				end if
 
 
-		        ' -------------------Then send the audioplayer event msg if applicable-------------------
-		        if instance.onAudioEvent <> invalid and type(music_msg) = "roAudioPlayerEvent" then
-		        	instance.onAudioEvent(music_msg)
+				' -------------------Then send the audioplayer event msg if applicable-------------------
+				if instance.onAudioEvent <> invalid and type(music_msg) = "roAudioPlayerEvent" then
+					instance.onAudioEvent(music_msg)
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
-		        end if
+				end if
 
 
 
-		        ' -------------------Then send the urltransfer event msg if applicable-------------------
-		        if instance.onUrlEvent <> invalid and type(url_msg) = "roUrlEvent" then
-		        	instance.onUrlEvent(url_msg)
+				' -------------------Then send the urltransfer event msg if applicable-------------------
+				if instance.onUrlEvent <> invalid and type(url_msg) = "roUrlEvent" then
+					instance.onUrlEvent(url_msg)
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
-		        end if
+				end if
 
 
-		        ' -------------------Then process the onUpdate() function----------------------
+				' -------------------Then process the onUpdate() function----------------------
 				if instance.onUpdate <> invalid
 					instance.onUpdate(m.dt)
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 				end if
 
-		        
+
 				' -------------------- Then handle the object movement--------------------
 				if m.shouldUseIntegerMovement
 					instance.x = instance.x + cint(instance.xspeed*m.dt)
@@ -415,11 +415,11 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
 			if type(url_msg) = "roUrlEvent"
 				url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
-		    	if m.urltransfers.DoesExist(url_transfer_id_string) then
-		        	m.urltransfers.Delete(url_transfer_id_string)
+				if m.urltransfers.DoesExist(url_transfer_id_string) then
+					m.urltransfers.Delete(url_transfer_id_string)
 					if m.debug then : print "Destroyed UrlTransfer Object - " ; url_transfer_id_string : end if
-		        end if
-		    end if
+				end if
+			end if
 
 			' -------------------Draw everything to the screen----------------------------
 			if not m.canvas_is_screen
@@ -435,7 +435,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ################################################################ newEmptyObject() function - Begin #####################################################################################################
-	game.newEmptyObject = function(object_name as String) as Object
+	game.newEmptyObject = function(object_name as string) as object
 		m.currentID = m.currentID + 1
 		new_object = {
 			' -----Constants-----
@@ -453,39 +453,39 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			y: 0.0
 			xspeed: 0.0
 			yspeed: 0.0
-	        colliders: {}
-	        images: []
+			colliders: {}
+			images: []
 
-	        ' -----Methods-----
-	        onUpdate: invalid
-	        onPreCollision: invalid
-	        onCollision: invalid
-	        onPostCollision: invalid
-	        onDrawBegin: invalid
-	        onDrawEnd: invalid
-	        onButton: invalid
-	        onECPKeyboard: invalid
-	        onAudioEvent: invalid
-	        onPause: invalid
-	        onResume: invalid
-	        onUrlEvent: invalid
-	        onGameEvent: invalid
-	        onChangeRoom: invalid
-	        onDestroy: invalid
-	        addColliderCircle: invalid
-	        addColliderRectangle: invalid
-	        removeCollider: invalid
-	        addImage: invalid
-	        removeImage: invalid
-	        getStaticVariable: invalid
-	        setStaticVariable: invalid
+			' -----Methods-----
+			onUpdate: invalid
+			onPreCollision: invalid
+			onCollision: invalid
+			onPostCollision: invalid
+			onDrawBegin: invalid
+			onDrawEnd: invalid
+			onButton: invalid
+			onECPKeyboard: invalid
+			onAudioEvent: invalid
+			onPause: invalid
+			onResume: invalid
+			onUrlEvent: invalid
+			onGameEvent: invalid
+			onChangeRoom: invalid
+			onDestroy: invalid
+			addColliderCircle: invalid
+			addColliderRectangle: invalid
+			removeCollider: invalid
+			addImage: invalid
+			removeImage: invalid
+			getStaticVariable: invalid
+			setStaticVariable: invalid
 		}
 
 		new_object.onCreate = function(args)
 		end function
 
 		' This is the structure of the methods that can be added to an object
-		
+
 		' new_object.onUpdate = function(deltaTime)
 		' end function
 
@@ -585,7 +585,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			collider.compositor_object.SetDrawableFlag(false)
 			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
 			if m.colliders[collider_name] = invalid then
-				m.colliders[collider_name] = collider 
+				m.colliders[collider_name] = collider
 			else
 				if m.game.debug then : print "addColliderRectangle() - Collider Name Already Exists" : end if
 			end if
@@ -614,7 +614,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				' --------------Values That Can Be Changed------------
 				name: "main" ' Name must be unique
 				offset_x: 0 ' The offset of the image.
-				offset_y: 0 
+				offset_y: 0
 				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
 				origin_y: 0
 				scale_x: 1.0 ' The image scale.
@@ -658,7 +658,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 			if image_object.image_width <> invalid and image_object.image_height <> invalid then
 				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, args.image_width, args.image_height)
-			else if type(image) = "roRegion" then 
+			else if type(image) = "roRegion" then
 				image_object.region = image
 			else
 				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, image_object.image.GetWidth(), image_object.image.GetHeight())
@@ -726,7 +726,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### DrawColliders() function - Begin ###############
-	game.drawColliders = function(instance as Object, color = &hFF0000FF as Integer) as Void
+	game.drawColliders = function(instance as object, color = &hFF0000FF as integer) as void
 		for each collider_key in instance.colliders
 			collider = instance.colliders[collider_key]
 			if collider.enabled then
@@ -749,7 +749,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### DrawSafeZones() function - End ###############
-	game.drawSafeZones = function() as Void
+	game.drawSafeZones = function() as void
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
 		if m.device.GetDisplayAspectRatio() = "4x3" then
@@ -769,10 +769,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	end function
 	' ############### DrawSafeZones() function - End ###############
 
-	
-	
+
+
 	' ############### End() function - Begin ###############
-	game.End = function() as Void
+	game.End = function() as void
 		m.running = false
 	end function
 	' ############### End() function - End ###############
@@ -780,7 +780,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### Pause() function - Begin ###############
-	game.Pause = function() as Void
+	game.Pause = function() as void
 		if not m.paused then
 			m.paused = true
 
@@ -801,7 +801,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### Resume() function - Begin ###############
-	game.Resume = function() as Dynamic
+	game.Resume = function() as dynamic
 		if m.paused then
 			m.paused = false
 			paused_time = m.pauseTimer.TotalMilliseconds()
@@ -824,7 +824,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### isPaused() function - Begin ###############
-	game.isPaused = function() as Boolean
+	game.isPaused = function() as boolean
 		return m.paused
 	end function
 	' ############### isPaused() function - End ###############
@@ -832,7 +832,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### setBackgroundColor() function - Begin ###############
-	game.setBackgroundColor = function(color as Dynamic) as Void
+	game.setBackgroundColor = function(color as dynamic) as void
 		m.background_color = color
 	end function
 	' ############### setBackgroundColor() function - Begin ###############
@@ -840,14 +840,14 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getDeltaTime() function - Begin ###############
-	game.getDeltaTime = function() as Float
+	game.getDeltaTime = function() as float
 		return m.dt
 	end function
 	' ############### getDeltaTime() function - Begin ###############
 
 
 	' ############### getRoom() function - Begin ###############
-	game.getRoom = function() as Object
+	game.getRoom = function() as object
 		return m.currentRoom
 	end function
 	' ############### getRoom() function - Begin ###############
@@ -855,7 +855,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getCanvas() function - Begin ###############
-	game.getCanvas = function() as Object
+	game.getCanvas = function() as object
 		return m.canvas.bitmap
 	end function
 	' ############### getCanvas() function - Begin ###############
@@ -863,7 +863,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getScreen() function - Begin ###############
-	game.getScreen = function() as Object
+	game.getScreen = function() as object
 		return m.screen
 	end function
 	' ############### getScreen() function - Begin ###############
@@ -871,7 +871,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### resetScreen() function - Begin ###############
-	game.resetScreen = function() as Void
+	game.resetScreen = function() as void
 		UIResolution = m.device.getUIResolution()
 		if UIResolution.name = "SD"
 			m.screen = CreateObject("roScreen", true, 854, 626)
@@ -906,7 +906,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### defineObject() function - Begin ###############
-	game.defineObject = function(object_name as String, object_creation_function as Function) as Void
+	game.defineObject = function(object_name as string, object_creation_function as function) as void
 		m.Objects[object_name] = object_creation_function
 		m.Instances[object_name] = {}
 		m.Statics[object_name] = {}
@@ -916,7 +916,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### createInstance() function - Begin ###############
-	game.createInstance = function(object_name as String, args = {} as Object) as Dynamic
+	game.createInstance = function(object_name as string, args = {} as object) as dynamic
 		if m.Objects.DoesExist(object_name)
 			new_instance = m.newEmptyObject(object_name)
 			m.Objects[object_name](new_instance)
@@ -933,7 +933,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getInstanceByID() function - Begin ###############
-	game.getInstanceByID = function(instance_id as String) as Dynamic
+	game.getInstanceByID = function(instance_id as string) as dynamic
 		for each object_key in m.Instances
 			if m.Instances[object_key].DoesExist(instance_id) then
 				return m.Instances[object_key][instance_id]
@@ -947,7 +947,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getInstanceByName() function - Begin ###############
-	game.getInstanceByName = function(object_name as String) as Dynamic
+	game.getInstanceByName = function(object_name as string) as dynamic
 		if m.Instances.DoesExist(object_name) then
 			for each instance_key in m.Instances[object_name]
 				return m.Instances[object_name][instance_key] ' Obviously only retrieves the first value
@@ -961,7 +961,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getAllInstances() function - Begin ###############
-	game.getAllInstances = function(object_name as String) as Dynamic
+	game.getAllInstances = function(object_name as string) as dynamic
 		if m.Instances.DoesExist(object_name) then
 			array = []
 			for each instance_key in m.Instances[object_name]
@@ -978,12 +978,12 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### destroyInstance() function - Begin ###############
-	game.destroyInstance = function(instance as Object, call_on_destroy = true) as Void
+	game.destroyInstance = function(instance as object, call_on_destroy = true) as void
 		if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
 			if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
 			for each collider_key in instance.colliders
 				collider = instance.colliders[collider_key]
-				if type(collider.compositor_object) = "roSprite" then 
+				if type(collider.compositor_object) = "roSprite" then
 					collider.compositor_object.Remove()
 				end if
 			end for
@@ -1004,7 +1004,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### destroyAllInstances() function - Begin ###############
-	game.destroyAllInstances = function(object_name as String) as Void
+	game.destroyAllInstances = function(object_name as string) as void
 		for each instance_key in m.Instances[object_name]
 			m.destroyInstance(m.Instances[object_name][instance_key])
 		end for
@@ -1014,9 +1014,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### instanceCount() function - Begin ###############
-	game.instanceCount = function(object_name as String) as Integer
+	game.instanceCount = function(object_name as string) as integer
 		return m.Instances[object_name].Count()
-	end function 
+	end function
 	' ############### instanceCount() function - End ###############
 
 
@@ -1024,7 +1024,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### defineRoom() function - Begin ###############
-	game.defineRoom = function(room_name as String, room_creation_function as Function) as Void
+	game.defineRoom = function(room_name as string, room_creation_function as function) as void
 		m.Rooms[room_name] = room_creation_function
 		m.Instances[room_name] = {}
 		m.Statics[room_name] = {}
@@ -1035,7 +1035,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### changeRoom() function - Begin ###############
-	game.changeRoom = function(room_name as String, args = {} as Object) as Boolean
+	game.changeRoom = function(room_name as string, args = {} as object) as boolean
 		if m.Rooms[room_name] <> invalid then
 			for each object_key in m.Instances
 				for each instance_key in m.Instances[object_key]
@@ -1053,7 +1053,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					end if
 				end for
 			end for
-			if m.currentRoom <> invalid and m.currentRoom.id <> invalid then 
+			if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
 				m.destroyInstance(m.currentRoom, false)
 			end if
 			m.currentRoom = m.newEmptyObject(room_name)
@@ -1071,7 +1071,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### resetRoom() function - End ###############
-	game.resetRoom = function() as Void
+	game.resetRoom = function() as void
 		m.changeRoom(m.currentRoom.name, m.currentRoomArgs)
 	end function
 	' ############### resetRoom() function - End ###############
@@ -1081,7 +1081,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### loadBitmap() function - Begin ###############
-	game.loadBitmap = function(bitmap_name as String, path as Dynamic) as Boolean
+	game.loadBitmap = function(bitmap_name as string, path as dynamic) as boolean
 		if type(path) = "roAssociativeArray" then
 			if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
@@ -1112,7 +1112,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getBitmap() function - Begin ###############
-	game.getBitmap = function(bitmap_name as String) as Dynamic
+	game.getBitmap = function(bitmap_name as string) as dynamic
 		if m.Bitmaps.DoesExist(bitmap_name)
 			return m.Bitmaps[bitmap_name]
 		else
@@ -1124,7 +1124,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### unloadBitmap() function - Begin ###############
-	game.unloadBitmap = function(bitmap_name as String) as Boolean
+	game.unloadBitmap = function(bitmap_name as string) as boolean
 		if m.Bitmaps.DoesExist(bitmap_name)
 			m.Bitmaps[bitmap_name] = invalid
 			return true
@@ -1139,7 +1139,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### registerFont() function - Begin ###############
-	game.registerFont = function(path as String) as Boolean
+	game.registerFont = function(path as string) as boolean
 		if m.filesystem.Exists(path) then
 			path_object = CreateObject("roPath", path)
 			parts = path_object.Split()
@@ -1161,7 +1161,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### loadFont() function - Begin ###############
-	game.loadFont = function(font_name as String, font as String, size as Integer, italic as Boolean, bold as Boolean) as Void
+	game.loadFont = function(font_name as string, font as string, size as integer, italic as boolean, bold as boolean) as void
 		m.Fonts[font_name] = m.font_registry.GetFont(font, size, italic, bold)
 	end function
 	' ############### loadFont() function - End ###############
@@ -1169,7 +1169,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### unloadFont() function - Begin ###############
-	game.unloadFont = function(font_name as String) as Void
+	game.unloadFont = function(font_name as string) as void
 		m.Fonts[font_name] = invalid
 	end function
 	' ############### unloadFont() function - End ###############
@@ -1177,7 +1177,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getFont() function - Begin ###############
-	game.getFont = function(font_name as String) as Object
+	game.getFont = function(font_name as string) as object
 		return m.Fonts[font_name]
 	end function
 	' ############### getFont() function - End ###############
@@ -1186,21 +1186,21 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	' --------------------------------Begin Canvas Functions----------------------------------------
 
 	' ############### canvasSetSize() function - Begin ###############
-	game.canvasSetSize = function(canvas_width as Integer, canvas_height as Integer) as Void
+	game.canvasSetSize = function(canvas_width as integer, canvas_height as integer) as void
 		m.canvas.bitmap = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
 	end function
 	' ############### canvasSetSize() function - Begin ###############
 
 
 	' ############### canvasGetOffset() function - Begin ###############
-	game.canvasGetOffset = function() as Object
+	game.canvasGetOffset = function() as object
 		return {x: m.canvas.offset_x, y: m.canvas.offset_y}
 	end function
 	' ############### canvasGetOffset() function - Begin ###############
 
 
 	' ############### canvasGetScale() function - Begin ###############
-	game.canvasGetScale = function() as Object
+	game.canvasGetScale = function() as object
 		return {x: m.canvas.scale_x, y: m.canvas.scale_y}
 	end function
 	' ############### canvasGetScale() function - Begin ###############
@@ -1208,7 +1208,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 	' ############### canvasSetOffset() function - Begin ###############
 	' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
-	game.canvasSetOffset = function(x as Float, y as Float) as Void
+	game.canvasSetOffset = function(x as float, y as float) as void
 		m.canvas.offset_x = x
 		m.canvas.offset_y = y
 	end function
@@ -1216,7 +1216,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### canvasSetScale() function - Begin ###############
-	game.canvasSetScale = function(scale_x as Float, scale_y = invalid as Dynamic) as Void
+	game.canvasSetScale = function(scale_x as float, scale_y = invalid as dynamic) as void
 		if scale_y = invalid
 			scale_y = scale_x
 		end if
@@ -1227,7 +1227,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### canvasFitToScreen() function - Begin ###############
-	game.canvasFitToScreen = function() as Void
+	game.canvasFitToScreen = function() as void
 		canvas_width = m.canvas.bitmap.GetWidth()
 		canvas_height = m.canvas.bitmap.GetHeight()
 		screen_width = m.screen.GetWidth()
@@ -1255,7 +1255,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### canvasCenterToScreen() function - Begin ###############
-	game.canvasCenterToScreen = function() as Void
+	game.canvasCenterToScreen = function() as void
 		m.canvas.offset_x = m.screen.GetWidth()/2-(m.canvas.scale_x*m.canvas.bitmap.GetWidth())/2
 		m.canvas.offset_y = m.screen.GetHeight()/2-(m.canvas.scale_y*m.canvas.bitmap.GetHeight())/2
 	end function
@@ -1266,15 +1266,15 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### musicPlay() function - Begin ###############
-	game.musicPlay = function(path as String, loop = false as Boolean) as Boolean
+	game.musicPlay = function(path as string, loop = false as boolean) as boolean
 		if m.filesystem.Exists(path) then
 			m.audioplayer.stop()
 			m.audioplayer.ClearContent()
-		    song = {}
-		    song.url = path
-		    m.audioplayer.AddContent(song)
-		    m.audioplayer.SetLoop(loop)
-		    m.audioPlayer.play()
+			song = {}
+			song.url = path
+			m.audioplayer.AddContent(song)
+			m.audioplayer.SetLoop(loop)
+			m.audioPlayer.play()
 			return true
 			if m.debug then : print "musicPlay() - Playing music from path: " ; path : end if
 		else
@@ -1287,7 +1287,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### musicStop() function - Begin ###############
-	game.musicStop = function() as Void
+	game.musicStop = function() as void
 		m.audioplayer.stop()
 	end function
 	' ############### musicStop() function - End ###############
@@ -1295,7 +1295,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### musicPause() function - Begin ###############
-	game.musicPause = function() as Void
+	game.musicPause = function() as void
 		m.audioplayer.pause()
 	end function
 	' ############### musicPause() function - End ###############
@@ -1303,7 +1303,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### musicResume() function - Begin ###############
-	game.musicResume = function() as Void
+	game.musicResume = function() as void
 		m.audioplayer.resume()
 	end function
 	' ############### musicResume() function - End ###############
@@ -1311,7 +1311,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### loadSound() function - Begin ###############
-	game.loadSound = function(sound_name as String, path as String) as Void
+	game.loadSound = function(sound_name as string, path as string) as void
 		m.Sounds[sound_name] = CreateObject("roAudioResource", path)
 	end function
 	' ############### loadSound() function - End ###############
@@ -1319,7 +1319,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### playSound() function - Begin ###############
-	game.playSound = function(sound_name as String, volume = 100 as Integer) as Boolean
+	game.playSound = function(sound_name as string, volume = 100 as integer) as boolean
 		if m.Sounds.DoesExist(sound_name) then
 			m.Sounds[sound_name].trigger(volume)
 			if m.debug then : print "playSound() - Playing sound: " ; sound_name : end if
@@ -1334,7 +1334,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### newAsyncUrlTransfer() function - Begin ###############
-	game.newAsyncUrlTransfer = function() as Object
+	game.newAsyncUrlTransfer = function() as object
 		UrlTransfer = CreateObject("roUrlTransfer")
 		UrlTransfer.SetMessagePort(m.url_port)
 		m.urltransfers[UrlTransfer.GetIdentity().ToStr()] = UrlTransfer
@@ -1343,19 +1343,19 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	' ############### newAsyncUrlTransfer() function - End ###############
 
 	' ############### setInputInstance() function - Begin ###############
-	game.setInputInstance = function(instance as Object) as Void
+	game.setInputInstance = function(instance as object) as void
 		m.input_instance = instance.id
 	end function
 	' ############### setInputInstance() function - End ###############
 
 	' ############### unsetInputInstance() function - Begin ###############
-	game.unsetInputInstance = function() as Void
+	game.unsetInputInstance = function() as void
 		m.input_instance = invalid
 	end function
 	' ############### unsetInputInstance() function - End ###############
 
 	' ############### postGameEvent() function - Begin ###############
-	game.postGameEvent = function(event as String, data = {} as Object) as Void
+	game.postGameEvent = function(event as string, data = {} as object) as void
 		object_keys = m.Instances.Keys()
 		for each object_key in object_keys
 			instance_keys = m.Instances[object_key].Keys()
