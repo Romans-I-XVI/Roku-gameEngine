@@ -906,7 +906,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### defineObject() function - Begin ###############
-	game.defineObject = function(object_name as String, object_creation_function as Function) as Void
+	game.defineObject = function(object_name as string, object_creation_function as function) as void
 		m.Objects[object_name] = object_creation_function
 		m.Instances[object_name] = {}
 		m.Statics[object_name] = {}
@@ -916,7 +916,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### createInstance() function - Begin ###############
-	game.createInstance = function(object_name as String, args = {} as Object) as Dynamic
+	game.createInstance = function(object_name as string, args = {} as object) as dynamic
 		if m.Objects.DoesExist(object_name)
 			new_instance = m.newEmptyObject(object_name)
 			m.Objects[object_name](new_instance)
@@ -933,7 +933,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getInstanceByID() function - Begin ###############
-	game.getInstanceByID = function(instance_id as String) as Dynamic
+	game.getInstanceByID = function(instance_id as string) as dynamic
 		for each object_key in m.Instances
 			if m.Instances[object_key].DoesExist(instance_id) then
 				return m.Instances[object_key][instance_id]
@@ -947,7 +947,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getInstanceByName() function - Begin ###############
-	game.getInstanceByName = function(object_name as String) as Dynamic
+	game.getInstanceByName = function(object_name as string) as dynamic
 		if m.Instances.DoesExist(object_name) then
 			for each instance_key in m.Instances[object_name]
 				return m.Instances[object_name][instance_key] ' Obviously only retrieves the first value
@@ -961,7 +961,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### getAllInstances() function - Begin ###############
-	game.getAllInstances = function(object_name as String) as Dynamic
+	game.getAllInstances = function(object_name as string) as dynamic
 		if m.Instances.DoesExist(object_name) then
 			array = []
 			for each instance_key in m.Instances[object_name]
@@ -978,12 +978,12 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### destroyInstance() function - Begin ###############
-	game.destroyInstance = function(instance as Object, call_on_destroy = true) as Void
+	game.destroyInstance = function(instance as object, call_on_destroy = true) as void
 		if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
 			if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
 			for each collider_key in instance.colliders
 				collider = instance.colliders[collider_key]
-				if type(collider.compositor_object) = "roSprite" then 
+				if type(collider.compositor_object) = "roSprite" then
 					collider.compositor_object.Remove()
 				end if
 			end for
@@ -1004,7 +1004,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### destroyAllInstances() function - Begin ###############
-	game.destroyAllInstances = function(object_name as String) as Void
+	game.destroyAllInstances = function(object_name as string) as void
 		for each instance_key in m.Instances[object_name]
 			m.destroyInstance(m.Instances[object_name][instance_key])
 		end for
@@ -1014,9 +1014,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### instanceCount() function - Begin ###############
-	game.instanceCount = function(object_name as String) as Integer
+	game.instanceCount = function(object_name as string) as integer
 		return m.Instances[object_name].Count()
-	end function 
+	end function
 	' ############### instanceCount() function - End ###############
 
 
