@@ -52,6 +52,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		Statics: {} ' This holds all static variables for a given object type
 		Objects: {} ' This holds the object definitions by name (the object creation functions)
 		Rooms: {} ' This holds the room definitions by name (the room creation functions)
+		Interfaces: {} ' This holds the interface definitions by name.
 		Bitmaps: {} ' This holds the loaded bitmaps by name
 		Sounds: {} ' This holds the loaded sounds by name
 		Fonts: {} ' This holds the loaded fonts by name
@@ -479,6 +480,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			removeImage: invalid
 			getStaticVariable: invalid
 			setStaticVariable: invalid
+			addInterface: invalid
+			hasInterface: invalid
 		}
 
 		new_object.onCreate = function(args)
@@ -716,6 +719,16 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 		end function
 
+		new_object.addInterface = function(interface_name as string) as void
+			interface = {owner: m}
+			m.game.Interfaces[interface_name](interface)
+			m[interface_name] = interface
+		end function
+
+		new_object.hasInterface = function(interface_name as string) as boolean
+			return (m.DoesExist(interface_name) and m[interface_name] <> invalid)
+		end function
+
 		m.Instances[new_object.name][new_object.id] = new_object
 		m.sorted_instances.Push(new_object)
 
@@ -912,6 +925,14 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.Statics[object_name] = {}
 	end function
 	' ############### defineObject() function - End ###############
+
+
+
+	' ############### defineInterface() function - Begin ###############
+	game.defineInterface = function(interface_name as string, interface_creation_function as function) as void
+		m.Interfaces[interface_name] = interface_creation_function
+	end function
+	' ############### defineInterface() function - End ###############
 
 
 
