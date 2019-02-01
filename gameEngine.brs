@@ -480,6 +480,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			removeImage: invalid
 			getStaticVariable: invalid
 			setStaticVariable: invalid
+			addInterface: invalid
+			hasInterface: invalid
 		}
 
 		new_object.onCreate = function(args)
@@ -717,13 +719,13 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 		end function
 
-		new_object.addInterface = function(interface_name as string)
-			interface = {parent: m}
+		new_object.addInterface = function(interface_name as string) as void
+			interface = {owner: m}
 			m.game.Interfaces[interface_name](interface)
 			m[interface_name] = interface
 		end function
 
-		new_object.hasInterface = function(interface_name as string)
+		new_object.hasInterface = function(interface_name as string) as boolean
 			return (m.DoesExist(interface_name) and m[interface_name] <> invalid)
 		end function
 

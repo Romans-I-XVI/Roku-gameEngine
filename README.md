@@ -45,6 +45,8 @@ This method is for debugging purposes, when called in an object's onDrawGui() me
 ###### ---Game Object Methods---
 ##### defineObject(object_name as String, object_creation_function as Function) as Void
 Define a new game object. The function provided will be called when an instance of the object is created, the function provided receives an empty object and modifies it as necessary.
+##### defineInterface(interface_name as String, interface_creation_function as Function) as Void
+Define a new interface. The function provided will be called when an instance of a game object calls addInterface, a roAssociativeArray with the property "owner" will be passed in to the defined function.
 ##### createInstance(object_name as String, [args as AssociativeArray]) as Dynamic
 Creates a new instance of an object that has been defined using defineObject(). The args AssociativeArray is optional, it will be passed to the onCreate() method.
 
@@ -274,6 +276,10 @@ Removes the image matching the provided image name. Defaults to "main" image nam
 Sets a variable for an object type that is persistent across all objects of this type (based on the concept of static variables)
 ##### getStaticVariable(variable_name as String)
 Returns a static variable, returns invalid if static variable has not been set.
+##### addInterface(interface_name as String) as Void
+Adds a previously defined interface to the instance.
+##### hasInterface(interface_name as String) as Boolean
+Returns true if the instance has the interface.
 
 Other Utilities
 ------
