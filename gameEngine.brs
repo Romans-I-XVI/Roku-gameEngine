@@ -656,8 +656,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				end if
 			end for
 
-
-			image_object.animation_timer = CreateObject("roTimespan")
+			image_object.animation_timer = CreateObject_GameTimeSpan()
 
 			if image_object.image_width <> invalid and image_object.image_height <> invalid then
 				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, args.image_width, args.image_height)
@@ -822,6 +821,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			for each object_key in m.Instances
 				for each instance_key in m.Instances[object_key]
 					instance = m.Instances[object_key][instance_key]
+					for each image in instance.images
+						image.animation_timer.RemoveTime(paused_time)
+					end for
 					if instance <> invalid and instance.id <> invalid and instance.onResume <> invalid
 						instance.onResume(paused_time)
 					end if
