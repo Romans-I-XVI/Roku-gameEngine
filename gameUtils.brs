@@ -1,19 +1,5 @@
 function atan2(y, x)
-	if x > 0
-		collision_angle = Atn(y/x)
-	else if y >= 0 and x < 0
-		collision_angle = Atn(y/x)+3.14159265359
-	else if y < 0 and x < 0
-		collision_angle = Atn(y/x)-3.14159265359
-	else if y > 0 and x = 0
-		collision_angle = 3.14159265359/2
-	else if y < 0 and x = 0
-		collision_angle = (3.14159265359/2)*-1
-	else
-		collision_angle = 0
-	end if
-
-	return collision_angle
+	return Math_Atan2(y, x)
 end function
 
 function HSVtoRGB(h%,s%,v%,a = invalid) as integer
@@ -81,6 +67,17 @@ function DrawText(draw2d as object, text as string, x as integer, y as integer, 
 		draw2d.DrawText(text, x-font.GetOneLineWidth(text, 10000), y, color, font)
 	else if alignment = "center"
 		draw2d.DrawText(text, x-font.GetOneLineWidth(text, 10000)/2, y, color, font)
+	end if
+end function
+
+function DrawScaledAndRotatedObject(draw2d as object, x as float, y as float, scale_x as float, scale_y as float, theta as float, drawable as object, color = &hFFFFFFFF as integer) as void
+	new_width = Abs(int(drawable.GetWidth() * scale_x))
+	new_height = Abs(int(drawable.GetHeight() * scale_y))
+	if new_width <> 0 and new_height <> 0
+		new_drawable = CreateObject("roBitmap", {width: new_width, height: new_height, AlphaEnable: true})
+		new_drawable.DrawScaledObject(0, 0, scale_x, scale_y, drawable)
+		draw2d.ifDraw2D.DrawRotatedObject(x, y, theta, new_drawable, color)
+		new_drawable = invalid
 	end if
 end function
 

@@ -367,12 +367,23 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				for each image in instance.images
 					if image.enabled then
 						if image.alpha > 255 then : image.alpha = 255 : end if
-						image_pos_x = cint(instance.x+image.offset_x-(image.origin_x*image.scale_x))
-						image_pos_y = cint(instance.y+image.offset_y-(image.origin_y*image.scale_y))
-						if image.scale_x <> 1 or image.scale_y <> 1
-							image.draw_to.DrawScaledObject(image_pos_x, image_pos_y, image.scale_x, image.scale_y, image.region, (image.color << 8)+int(image.alpha))
-						else
+						origin_offset_x = -(image.origin_x*image.scale_x)
+						origin_offset_y = -(image.origin_y*image.scale_y)
+						image_pos_x = cint(instance.x + image.offset_x + origin_offset_x)
+						image_pos_y = cint(instance.y + image.offset_y + origin_offset_y)
+						if image.scale_x = 1 and image.scale_y = 1 and image.rotation = 0
 							image.draw_to.DrawObject(image_pos_x, image_pos_y, image.region, (image.color << 8)+int(image.alpha))
+						else if image.rotation = 0 and (image.scale_x <> 1 or image.scale_y <> 1)
+							image.draw_to.DrawScaledObject(image_pos_x, image_pos_y, image.scale_x, image.scale_y, image.region, (image.color << 8)+int(image.alpha))
+						else if image.rotation <> 0
+							draw_pos = Math_NewVector(image_pos_x, image_pos_y)
+							origin_pos = Math_NewVector(image_pos_x - origin_offset_x, image_pos_y - origin_offset_y)
+							rotated_pos = Math_RotateVectorAroundVector(draw_pos, origin_pos, Math_DegreesToRadians(image.rotation))
+							if image.scale_x = 1 and image.scale_y = 1
+								image.draw_to.DrawRotatedObject(rotated_pos.x, rotated_pos.y, image.rotation, image.region, (image.color << 8)+int(image.alpha))
+							else
+								DrawScaledAndRotatedObject(image.draw_to, rotated_pos.x, rotated_pos.y, image.scale_x, image.scale_y, image.rotation, image.region, (image.color << 8)+int(image.alpha))
+							end if
 						end if
 					end if
 				end for
@@ -622,6 +633,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				origin_y: 0
 				scale_x: 1.0 ' The image scale.
 				scale_y: 1.0
+				rotation: 0
 				color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
 				alpha: 255 ' Change the image alpha (transparency).
 				enabled: true ' Whether or not the image will be drawn.
