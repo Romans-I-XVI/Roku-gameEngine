@@ -255,6 +255,7 @@ args = {
 	origin_y: 0
 	scale_x: 1.0 ' The image scale.
 	scale_y: 1.0
+	rotation: 0 ' The image rotation in degrees
 	color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
 	alpha: 255 ' Change the image alpha (transparency).
 	enabled: true ' Whether or not the image will be drawn.
@@ -268,6 +269,8 @@ args = {
 	animation_position: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
 }
 ```
+Note: Rotating and scaling an image at the same time has serious performance implications as Roku does not provide a method to draw an object with both scale and rotation. It is handled internally by creating an roBitmap to act as a canvas for the scaled drawing, the image is then drawn with rotation to the screen, then the roBitmap is removed.
+
 ##### getImage([image_name as String]) as Object
 Returns the image with the provided image name. Defaults to "main" image name.
 ##### removeImage([image_name as String])
