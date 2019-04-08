@@ -46,7 +46,7 @@ function Math_RadiansToDegrees(radians as float) as float
 	return (180 / Math_PI()) * radians
 end function
 
-function Math_RandomRange(lowest_int as integer, highest_int as integer)
+function Math_RandomRange(lowest_int as integer, highest_int as integer) as integer
 	return rnd(highest_int - (lowest_int - 1)) + (lowest_int - 1)
 end function
 
@@ -108,4 +108,17 @@ end function
 
 function Math_NewCircle(x as integer, y as integer, radius as float) as object
 	return {x: x, y: y, radius: radius}
+end function
+
+function Math_TotalDistance(vector1 as object, vector2 as object) as object
+	x_distance = vector1.x - vector2.x
+	y_distance = vector1.y - vector2.y
+	total_distance = Sqr(x_distance * x_distance + y_distance * y_distance)
+	return total_distance
+end function
+
+function Math_GetAngle(vector1 as object, vector2 as object) as float
+	x_distance = vector1.x - vector2.x
+	y_distance = vector1.y - vector2.y
+	return Math_Atan2(y_distance, x_distance) + Math_PI()
 end function
