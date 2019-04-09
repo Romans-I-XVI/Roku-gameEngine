@@ -75,7 +75,15 @@ function DrawScaledAndRotatedObject(draw2d as object, x as float, y as float, sc
 	new_height = Abs(int(drawable.GetHeight() * scale_y))
 	if new_width <> 0 and new_height <> 0
 		new_drawable = CreateObject("roBitmap", {width: new_width, height: new_height, AlphaEnable: true})
-		new_drawable.DrawScaledObject(0, 0, scale_x, scale_y, drawable)
+		scaled_draw_x = 0
+		scaled_draw_y = 0
+		if scale_x < 0
+			scaled_draw_x = new_width
+		end if
+		if scale_y < 0
+			scaled_draw_y = new_height
+		end if
+		new_drawable.DrawScaledObject(scaled_draw_x, scaled_draw_y, scale_x, scale_y, drawable)
 		draw2d.ifDraw2D.DrawRotatedObject(x, y, theta, new_drawable, color)
 		new_drawable = invalid
 	end if

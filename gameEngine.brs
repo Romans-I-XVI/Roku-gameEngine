@@ -378,6 +378,12 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 						else if image.rotation <> 0
 							draw_pos = Math_NewVector(image_pos_x, image_pos_y)
 							origin_pos = Math_NewVector(image_pos_x - origin_offset_x, image_pos_y - origin_offset_y)
+							if image.scale_x < 0
+								draw_pos.x += (image.region.GetWidth() * image.scale_x)
+							end if
+							if image.scale_y < 0
+								draw_pos.y += (image.region.GetHeight() * image.scale_y)
+							end if
 							rotated_pos = Math_RotateVectorAroundVector(draw_pos, origin_pos, Math_DegreesToRadians(image.rotation))
 							if image.scale_x = 1 and image.scale_y = 1
 								image.draw_to.DrawRotatedObject(rotated_pos.x, rotated_pos.y, image.rotation, image.region, (image.color << 8)+int(image.alpha))
