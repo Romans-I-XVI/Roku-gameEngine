@@ -661,7 +661,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				animation_timer: invalid
 				previous_animation_position: 0
 			}
-			image_object.image = image_object.bitmap ' This is just for backwards compatability
 
 			for each key in image_object
 				if args.DoesExist(key) then
