@@ -344,15 +344,15 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 							end if
 						end if
 					end if
-					if image_object.animation_position <> image_object.previous_animation_position
-						image_width = image_object.image.GetWidth()
+					if image_object.animation_position <> image_object.previous_animation_position and image_object.image_width <> invalid and image_object.image_height <> invalid
+						bitmap_width = image_object.bitmap.GetWidth()
 						region_position = int(image_object.animation_position)
-						region_width = image_object.region.GetWidth()
-						region_height = image_object.region.GetHeight()
+						region_width = image_object.image_width
+						region_height = image_object.image_height
 
-						y_offset = region_position*region_width \ image_width
-						x_offset = region_position*region_width-image_width*y_offset
-						image_object.region = CreateObject("roRegion", image_object.image, x_offset, y_offset*region_height, region_width, region_height)
+						y_offset = region_position*region_width \ bitmap_width
+						x_offset = region_position*region_width-bitmap_width*y_offset
+						image_object.region = CreateObject("roRegion", image_object.bitmap, x_offset, y_offset*region_height, region_width, region_height)
 						image_object.previous_animation_position = image_object.animation_position
 					end if
 				end for
@@ -629,7 +629,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end if
 		end function
 
-		new_object.addImage = function(image, args = {}, insert_position = invalid)
+		new_object.addImage = function(bitmap, args = {}, insert_position = invalid)
 			image_object = {
 				' --------------Values That Can Be Changed------------
 				name: "main" ' Name must be unique
@@ -656,11 +656,13 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 				' -------------Never To Be Manually Changed-----------------
 				' These values should never need to be manually changed.
-				image: image,
+				bitmap: bitmap
 				region: invalid
 				animation_timer: invalid
 				previous_animation_position: 0
 			}
+			image_object.image = image_object.bitmap ' This is just for backwards compatability
+
 			for each key in image_object
 				if args.DoesExist(key) then
 					image_object[key] = args[key]
@@ -677,11 +679,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			image_object.animation_timer = CreateObject_GameTimeSpan()
 
 			if image_object.image_width <> invalid and image_object.image_height <> invalid then
-				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, args.image_width, args.image_height)
-			else if type(image) = "roRegion" then
-				image_object.region = image
+				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, args.image_width, args.image_height)
 			else
-				image_object.region = CreateObject("roRegion", image_object.image, 0, 0, image_object.image.GetWidth(), image_object.image.GetHeight())
+				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, image_object.bitmap.GetWidth(), image_object.bitmap.GetHeight())
 			end if
 
 			if insert_position = invalid
