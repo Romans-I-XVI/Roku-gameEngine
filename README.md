@@ -243,15 +243,15 @@ Adds a circular collider to the instance's colliders associative array with the 
 Returns the collider with the provided name, returns invalid if it doesn't exist.
 ##### removeCollider(collider_name)
 Removes the collider with the provided name.
-##### addImage(image as Object, [args as Object, insert_position as Integer])
-Adds the provided image to the instance's images array. The image should be of type roBitmap or roRegion. By default images are added to the end of the images array but you can also choose to insert the image to a specific position in the array with the insert_position argument. Images drawn in the order they exist in the instance's images array. Args is an associative array with values to override the defaults. Here are the defaults that can be overridden.
+##### addImage(bitmap as Object, [args as Object, insert_position as Integer])
+Adds the provided image to the instance's images array. The image should be of type roBitmap. By default images are added to the end of the images array but you can also choose to insert the image to a specific position in the array with the insert_position argument. Images are drawn in the order they exist in the instance's images array. Args is an associative array with values to override the defaults. Here are the defaults that can be overridden.
 
 ```brightscript
 args = {
 	name: "main" ' Name must be unique
 	offset_x: 0 ' The offset of the image.
 	offset_y: 0 
-	origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
+	origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling and rotating.
 	origin_y: 0
 	scale_x: 1.0 ' The image scale.
 	scale_y: 1.0
