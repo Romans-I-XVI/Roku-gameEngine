@@ -11,6 +11,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		debugging: {
 			draw_colliders: false
 			draw_safe_zones: false
+			limit_frame_rate: 0
 		}
 		canvas_is_screen: false
 		running: true
@@ -464,6 +465,12 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 			m.screen.SwapBuffers()
 
+			if m.debugging.limit_frame_rate > 0 and m.dtTimer.TotalMilliseconds() > 0
+				while 1000 / m.dtTimer.TotalMilliseconds() > m.debugging.limit_frame_rate
+					sleep(1)
+				end while
+			end if
+
 		end while
 
 	end function
@@ -784,6 +791,12 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.debugging.draw_safe_zones = enabled
 	end function
 	' ############### DebugDrawSafeZones() function - End ###############
+
+	' ############### DebugLimitFrameRate() function - Begin ###############
+	game.debugLimitFrameRate = function(limit_frame_rate as integer) as void
+		m.debugging.limit_frame_rate = limit_frame_rate
+	end function
+	' ############### DebugLimitFrameRate() function - End ###############
 
 	' ############### DrawColliders() function - Begin ###############
 	game.drawColliders = function(instance as object, color = &hFF0000FF as integer) as void
