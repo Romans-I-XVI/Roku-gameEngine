@@ -8,6 +8,10 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game = {
 		' ****BEGIN - For Internal Use, Do Not Manually Alter****
 		debug: debug
+		debugging: {
+			draw_colliders: false
+			draw_safe_zones: false
+		}
 		canvas_is_screen: false
 		running: true
 		paused: false
@@ -443,6 +447,21 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			if not m.canvas_is_screen
 				m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
 			end if
+
+			' Draw Debug Related Items
+			if m.debugging.draw_colliders
+				for i = m.sorted_instances.Count()-1 to 0 step -1
+					instance = m.sorted_instances[i]
+					if instance <> invalid and instance.id <> invalid and instance.colliders <> invalid
+						m.drawColliders(instance)
+					end if
+				end for
+			end if
+
+			if m.debugging.draw_safe_zones
+				m.drawSafeZones()
+			end if
+
 			m.screen.SwapBuffers()
 
 		end while
@@ -753,6 +772,18 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	' ################################################################ newEmptyObject() function - End #####################################################################################################
 
 
+
+	' ############### DebugDrawColliders() function - Begin ###############
+	game.debugDrawColliders = function(enabled as boolean) as void
+		m.debugging.draw_colliders = enabled
+	end function
+	' ############### DebugDrawColliders() function - End ###############
+
+	' ############### DebugDrawSafeZones() function - Begin ###############
+	game.debugDrawSafeZones = function(enabled as boolean) as void
+		m.debugging.draw_safe_zones = enabled
+	end function
+	' ############### DebugDrawSafeZones() function - End ###############
 
 	' ############### DrawColliders() function - Begin ###############
 	game.drawColliders = function(instance as object, color = &hFF0000FF as integer) as void
