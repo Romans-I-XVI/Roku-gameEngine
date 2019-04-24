@@ -115,7 +115,13 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	if UIResolution.name = "SD"
 		game.screen = CreateObject("roScreen", true, 854, 626)
 	else
-		game.screen = CreateObject("roScreen", true, 1280, 720)
+		if canvas_width <= 854
+			game.screen = CreateObject("roScreen", true, 854, 480)
+		else if canvas_width <= 1280
+			game.screen = CreateObject("roScreen", true, 1280, 720)
+		else
+			game.screen = CreateObject("roScreen", true, 1920, 1080)
+		end if
 	end if
 	game.compositor.SetDrawTo(game.screen, &h00000000)
 	game.screen.SetMessagePort(game.screen_port)
