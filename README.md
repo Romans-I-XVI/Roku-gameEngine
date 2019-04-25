@@ -6,8 +6,8 @@ The purpose of this project is to make it easy to develop games for the Roku in 
 
 First start by creating the gameEngine object
 
-##### game = new_game(canvas_width as Integer, canvas_height as Integer, debug as Boolean) as Object
-Creates the main game object, the canvas width and height create an empty bitmap of that size that the game is drawn to. If debug is enabled various information will be printed to the console.
+##### game = new_game(canvas_width as Integer, canvas_height as Integer, canvas_as_screen_if_possible = false as Boolean) as Object
+Creates the main game object, the canvas width and height create an empty bitmap of that size that the game is drawn to. If canvas_as_screen_if_possible is set the game will draw to the roScreen directly if the canvas dimensions are the same as the screen dimensions, this improves performance but makes it so you can't do various canvas manipulations (such as screen shake or taking screenshots).
 
 
 Game
@@ -37,6 +37,12 @@ Returns the screen object.
 *Important* This function is here because of a bug with the Roku. If you ever try to use a component that displays something on the screen aside from roScreen, such as roKeyboardScreen, roMessageDialog, etc. the screen will flicker after you return to your game. You should always call this method after using a screen that's outside of roScreen in order to prevent this bug.
 ##### newEmptyObject(object_name as String) as Object
 This method is primarily for internal use, but may be called manually if desired. It returns an empty game object.
+##### debugDrawColliders(enabled as Boolean) as Void
+This enables or disables the drawing of all colliders.
+##### debugDrawSafeZones(enabled as Boolean) as Void
+This enables or disables the drawing of safe zones.
+##### debugLimitFrameRate(limit_frame_rate as Integer) as Void
+This sets the frame rate limit for the testing game behavior under such circumstances. Default is 0, which is no limit.
 ##### drawColliders(instance as Object) as Void
 This method is for debugging purposes, it will draw the colliders associated with the provided instance.
 ##### drawSafeZones() as Void
