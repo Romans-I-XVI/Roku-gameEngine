@@ -1,13 +1,12 @@
 ' -------------------------Function To Create Main Game Object------------------------
 
-function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_if_possible = false)
+function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = false)
 
 	' ############### Create Initial Object - Begin ###############
 
 	' Create the main game engine object
 	game = {
 		' ****BEGIN - For Internal Use, Do Not Manually Alter****
-		debug: debug
 		debugging: {
 			draw_colliders: false
 			draw_safe_zones: false
@@ -446,7 +445,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
 				if m.urltransfers.DoesExist(url_transfer_id_string) then
 					m.urltransfers.Delete(url_transfer_id_string)
-					if m.debug then : print "Destroyed UrlTransfer Object - " ; url_transfer_id_string : end if
 				end if
 			end if
 
@@ -613,7 +611,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider
 			else
-				if m.game.debug then : print "addColliderCircle() - Collider Name Already Exists" : end if
+				print "addColliderCircle() - Collider Name Already Exists: " + collider_name
 			end if
 		end function
 
@@ -639,7 +637,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			if m.colliders[collider_name] = invalid then
 				m.colliders[collider_name] = collider
 			else
-				if m.game.debug then : print "addColliderRectangle() - Collider Name Already Exists" : end if
+				print "addColliderRectangle() - Collider Name Already Exists: " + collider_name
 			end if
 		end function
 
@@ -647,7 +645,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			if m.colliders.DoesExist(collider_name)
 				return m.colliders[collider_name]
 			else
-				if m.game.debug then : print "getCollider() - Collider with that name doesn't exist" : end if
 				return invalid
 			end if
 		end function
@@ -656,8 +653,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			if m.colliders[collider_name] <> invalid then
 				if type(m.colliders[collider_name].compositor_object) = "roSprite" then : m.colliders[collider_name].compositor_object.Remove() : end if
 				m.colliders.Delete(collider_name)
-			else
-				if m.game.debug then : print "removeCollider() - Collider Doesn't Exist" : end if
 			end if
 		end function
 
@@ -702,7 +697,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 			for i = 0 to m.images.Count()-1
 				if image_object.name = m.images[i].name
-					if m.game.debug then : print "addImage() - An image named -"+image_object.name+"- already exists" : end if
+					print "addImage() - An image named -"+image_object.name+"- already exists"
 					return false
 				end if
 			end for
@@ -750,7 +745,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 					end if
 				end for
 			end if
-			if m.game.debug and not deleted_something then : print "removeImage() - No images found with name "+image_name : end if
 		end function
 
 		new_object.getStaticVariable = function(static_variable_name as string)
@@ -1011,10 +1005,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			new_instance = m.newEmptyObject(object_name)
 			m.Objects[object_name](new_instance)
 			new_instance.onCreate(args)
-			if m.debug then : print "createInstance() - Creating instance: "+new_instance.id : end if
 			return new_instance
 		else
-			if m.debug then : print "createInstance() - No objects registered with the name - " ; object_name : end if
 			return invalid
 		end if
 	end function
@@ -1029,7 +1021,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				return m.Instances[object_key][instance_id]
 			end if
 		end for
-		if m.debug then : print "getInstanceByID() - No instance exists with id - " ; instance_id : end if
 		return invalid
 	end function
 	' ############### getInstanceByID() function - End ###############
@@ -1043,7 +1034,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 				return m.Instances[object_name][instance_key] ' Obviously only retrieves the first value
 			end for
 		end if
-		if m.debug then : print "getInstanceByName() - No instance exists with name - " ; object_name : end if
 		return invalid
 	end function
 	' ############### getInstanceByName() function - End ###############
@@ -1059,7 +1049,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			end for
 			return array
 		else
-			if m.debug then : print "getAllInstances() - No object defined with name - " ; object_name : end if
 			return invalid
 		end if
 	end function
@@ -1069,8 +1058,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 	' ############### destroyInstance() function - Begin ###############
 	game.destroyInstance = function(instance as object, call_on_destroy = true) as void
-		if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
-			if m.debug then : print "destroyInstance() - Destroying Instance: "+instance.id : end if
+		if instance <> invalid and instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
 			for each collider_key in instance.colliders
 				collider = instance.colliders[collider_key]
 				if type(collider.compositor_object) = "roSprite" then
@@ -1080,13 +1068,11 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			if instance.onDestroy <> invalid and call_on_destroy
 				instance.onDestroy()
 			end if
-			if instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
+			if instance <> invalid and instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
 				m.Instances[instance.name].Delete(instance.id)
 				instance.Clear()
 				instance.id = invalid
 			end if
-		else
-			if m.debug then : print "destroyInstance() - Object was previously destroyed" : end if
 		end if
 	end function
 	' ############### destroyInstance() function - End ###############
@@ -1094,9 +1080,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 
 
 	' ############### destroyAllInstances() function - Begin ###############
-	game.destroyAllInstances = function(object_name as string) as void
+	game.destroyAllInstances = function(object_name as string, call_on_destroy = true) as void
 		for each instance_key in m.Instances[object_name]
-			m.destroyInstance(m.Instances[object_name][instance_key])
+			m.destroyInstance(m.Instances[object_name][instance_key], call_on_destroy)
 		end for
 	end function
 	' ############### destroyAllInstances() function - End ###############
@@ -1118,7 +1104,6 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		m.Rooms[room_name] = room_creation_function
 		m.Instances[room_name] = {}
 		m.Statics[room_name] = {}
-		if m.debug then : print "defineRoom() - Room function has been added" : end if
 	end function
 	' ############### defineRoom() function - Begin ###############
 
@@ -1152,7 +1137,7 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			m.currentRoom.onCreate(args)
 			return true
 		else
-			if m.debug then : print "changeRoom() - A room named " + room_name + " hasn't been defined" : end if
+			print "changeRoom() - A room named " + room_name + " hasn't been defined"
 			return false
 		end if
 	end function
@@ -1175,10 +1160,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 		if type(path) = "roAssociativeArray" then
 			if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
-				if m.debug then : print "loadBitmap() - New empty bitmap created." : end if
 				return true
 			else
-				if m.debug then : print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap" : end if
+				print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap"
 				return false
 			end if
 		else if m.filesystem.Exists(path) then
@@ -1186,14 +1170,13 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			parts = path_object.Split()
 			if parts.extension = ".png" or parts.extension = ".jpg" then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
-				if m.debug then : print "loadBitmap() - Loaded bitmap from " ; path : end if
 				return true
 			else
-				if m.debug then : print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg" : end if
+				print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg"
 				return false
 			end if
 		else
-			if m.debug then : print "loadBitmap() - Bitmap not created, invalid path or object properties provided." : end if
+			print "loadBitmap() - Bitmap not created, invalid path or object properties provided"
 			return false
 		end if
 	end function
@@ -1235,14 +1218,13 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			parts = path_object.Split()
 			if parts.extension = ".ttf" or parts.extension = ".otf" then
 				m.font_registry.register(path)
-				if m.debug then : print "Font registered successfully" : end if
 				return true
 			else
-				if m.debug then : print "Font must be of type .ttf or .otf" : end if
+				print "Font must be of type .ttf or .otf"
 				return false
 			end if
 		else
-			if m.debug then : print "File at path " ; path ; " doesn't exist" : end if
+			print "File at path " ; path ; " doesn't exist"
 			return false
 		end if
 	end function
@@ -1366,9 +1348,8 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 			m.audioplayer.SetLoop(loop)
 			m.audioPlayer.play()
 			return true
-			if m.debug then : print "musicPlay() - Playing music from path: " ; path : end if
 		else
-			if m.debug then : print "musicPlay() - No file exists at path: " ; path : end if
+			print "musicPlay() - No file exists at path: " ; path
 			return false
 		end if
 	end function
@@ -1412,10 +1393,9 @@ function new_game(canvas_width, canvas_height, debug = false, canvas_as_screen_i
 	game.playSound = function(sound_name as string, volume = 100 as integer) as boolean
 		if m.Sounds.DoesExist(sound_name) then
 			m.Sounds[sound_name].trigger(volume)
-			if m.debug then : print "playSound() - Playing sound: " ; sound_name : end if
 			return true
 		else
-			if m.debug then : print "playSound() - No sound has been loaded under the name: " ; sound_name : end if
+			print "playSound() - No sound has been loaded under the name: " ; sound_name
 			return false
 		end if
 	end function
