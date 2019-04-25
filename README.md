@@ -37,6 +37,12 @@ Returns the screen object.
 *Important* This function is here because of a bug with the Roku. If you ever try to use a component that displays something on the screen aside from roScreen, such as roKeyboardScreen, roMessageDialog, etc. the screen will flicker after you return to your game. You should always call this method after using a screen that's outside of roScreen in order to prevent this bug.
 ##### newEmptyObject(object_name as String) as Object
 This method is primarily for internal use, but may be called manually if desired. It returns an empty game object.
+##### debugDrawColliders(enabled as Boolean) as Void
+This enables or disables the drawing of all colliders.
+##### debugDrawSafeZones(enabled as Boolean) as Void
+This enables or disables the drawing of safe zones.
+##### debugLimitFrameRate(limit_frame_rate as Integer) as Void
+This sets the frame rate limit for the testing game behavior under such circumstances. Default is 0, which is no limit.
 ##### drawColliders(instance as Object) as Void
 This method is for debugging purposes, it will draw the colliders associated with the provided instance.
 ##### drawSafeZones() as Void
