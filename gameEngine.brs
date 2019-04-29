@@ -226,9 +226,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			music_msg = m.music_port.GetMessage()
 
-			' -------------------Sort the instances according to depth before processing---------------------
-			m.sorted_instances.SortBy("depth")
-
 
 			' --------------------Begin giant loop for processing all game objects----------------
 			' There is a goto after every call to an override function, this is so if the instance deleted itself no futher calls will be attempted on the instance.
@@ -399,6 +396,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end for
 
 			' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
+			m.sorted_instances.SortBy("depth")
 			for i = m.sorted_instances.Count()-1 to 0 step -1
 				instance = m.sorted_instances[i]
 				if instance = invalid or instance.id = invalid : goto end_of_draw_loop : end if
@@ -441,7 +439,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				end if
 				end_of_draw_loop:
 			end for
-
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
 			if type(url_msg) = "roUrlEvent"
 				url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
@@ -492,7 +489,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			name: object_name
 			id: m.currentID.ToStr()
 			game: m
-			e_previous_sort_depth: invalid
 
 			' -----Variables-----
 			enabled: true
