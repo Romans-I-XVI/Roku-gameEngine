@@ -38,7 +38,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		audioplayer: CreateObject("roAudioPlayer")
 		music_port: CreateObject("roMessagePort")
 		font_registry: CreateObject("roFontRegistry")
-		background_color: &h000000FF
 		screen: invalid
 		canvas: {
 			bitmap: CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
@@ -67,7 +66,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		newEmptyObject: invalid
 		drawColliders: invalid
 
-		setBackgroundColor: invalid
 		getDeltaTime: invalid
 		getRoom: invalid
 		getCanvas: invalid
@@ -176,19 +174,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end if
 			m.current_input_instance = m.input_instance
 			m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
-			if not m.canvas_is_screen
-				m.screen.Clear(&h000000FF)
-				if m.background_color <> invalid then
-					m.canvas.bitmap.Clear(m.background_color)
-				end if
-			else
-				if m.background_color <> invalid then
-					m.screen.Clear(m.background_color)
-				else
-					m.screen.Clear(&h000000FF)
-				end if
-			end if
-
 
 			m.dt = m.dtTimer.TotalMilliseconds()/1000
 			if m.FakeDT <> invalid
@@ -902,14 +887,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		return m.paused
 	end function
 	' ############### isPaused() function - End ###############
-
-
-
-	' ############### setBackgroundColor() function - Begin ###############
-	game.setBackgroundColor = function(color as dynamic) as void
-		m.background_color = color
-	end function
-	' ############### setBackgroundColor() function - Begin ###############
 
 
 
