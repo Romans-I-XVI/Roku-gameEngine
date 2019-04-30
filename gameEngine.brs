@@ -38,7 +38,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		audioplayer: CreateObject("roAudioPlayer")
 		music_port: CreateObject("roMessagePort")
 		font_registry: CreateObject("roFontRegistry")
-		background_color: &h000000FF
 		screen: invalid
 		canvas: {
 			bitmap: CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
@@ -67,7 +66,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		newEmptyObject: invalid
 		drawColliders: invalid
 
-		setBackgroundColor: invalid
 		getDeltaTime: invalid
 		getRoom: invalid
 		getCanvas: invalid
@@ -176,19 +174,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end if
 			m.current_input_instance = m.input_instance
 			m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
-			if not m.canvas_is_screen
-				m.screen.Clear(&h000000FF)
-				if m.background_color <> invalid then
-					m.canvas.bitmap.Clear(m.background_color)
-				end if
-			else
-				if m.background_color <> invalid then
-					m.screen.Clear(m.background_color)
-				else
-					m.screen.Clear(&h000000FF)
-				end if
-			end if
-
 
 			m.dt = m.dtTimer.TotalMilliseconds()/1000
 			if m.FakeDT <> invalid
@@ -226,17 +211,13 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			music_msg = m.music_port.GetMessage()
 
-			' -------------------Sort the instances according to depth before processing---------------------
-			m.sorted_instances.SortBy("depth")
-
 
 			' --------------------Begin giant loop for processing all game objects----------------
 			' There is a goto after every call to an override function, this is so if the instance deleted itself no futher calls will be attempted on the instance.
 			started_paused = m.paused
 			for i = m.sorted_instances.Count()-1 to 0 step -1
 				instance = m.sorted_instances[i]
-				if instance = invalid or instance.id = invalid or not instance.enabled then : goto end_of_for_loop  : end if
-				if started_paused and instance.pauseable then: goto draw_instance : end if
+				if instance = invalid or instance.id = invalid or not instance.enabled or (started_paused and instance.pauseable) : goto end_of_for_loop  : end if
 
 
 				' --------------------First process the onButton() function--------------------
@@ -367,47 +348,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 					end if
 				end for
 
-
-				draw_instance:
-				' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
-				if instance.onDrawBegin <> invalid
-					instance.onDrawBegin(m.canvas.bitmap)
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
-				end if
-				for each image in instance.images
-					if image.enabled then
-						if image.alpha > 255 then : image.alpha = 255 : end if
-						origin_offset_x = -(image.origin_x*image.scale_x)
-						origin_offset_y = -(image.origin_y*image.scale_y)
-						image_pos_x = cint(instance.x + image.offset_x + origin_offset_x)
-						image_pos_y = cint(instance.y + image.offset_y + origin_offset_y)
-						if image.scale_x = 1 and image.scale_y = 1 and image.rotation = 0
-							image.draw_to.DrawObject(image_pos_x, image_pos_y, image.region, (image.color << 8)+int(image.alpha))
-						else if image.rotation = 0 and (image.scale_x <> 1 or image.scale_y <> 1)
-							image.draw_to.DrawScaledObject(image_pos_x, image_pos_y, image.scale_x, image.scale_y, image.region, (image.color << 8)+int(image.alpha))
-						else if image.rotation <> 0
-							draw_pos = Math_NewVector(image_pos_x, image_pos_y)
-							origin_pos = Math_NewVector(image_pos_x - origin_offset_x, image_pos_y - origin_offset_y)
-							if image.scale_x < 0
-								draw_pos.x += (image.region.GetWidth() * image.scale_x)
-							end if
-							if image.scale_y < 0
-								draw_pos.y += (image.region.GetHeight() * image.scale_y)
-							end if
-							rotated_pos = Math_RotateVectorAroundVector(draw_pos, origin_pos, Math_DegreesToRadians(image.rotation))
-							if image.scale_x = 1 and image.scale_y = 1
-								image.draw_to.DrawRotatedObject(rotated_pos.x, rotated_pos.y, image.rotation, image.region, (image.color << 8)+int(image.alpha))
-							else
-								DrawScaledAndRotatedObject(image.draw_to, rotated_pos.x, rotated_pos.y, image.scale_x, image.scale_y, image.rotation, image.region, (image.color << 8)+int(image.alpha))
-							end if
-						end if
-					end if
-				end for
-				if instance.onDrawEnd <> invalid
-					instance.onDrawEnd(m.canvas.bitmap)
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
-				end if
-
 				' --------------Adjust compositor collider at end of loop so collider is accurate for collision checking from other objects-------------
 				for each collider_key in instance.colliders
 					collider = instance.colliders[collider_key]
@@ -438,6 +378,50 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 					m.sorted_instances.Delete(i)
 				end if
 
+			end for
+
+			' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
+			m.sorted_instances.SortBy("depth")
+			for i = m.sorted_instances.Count()-1 to 0 step -1
+				instance = m.sorted_instances[i]
+				if instance = invalid or instance.id = invalid : goto end_of_draw_loop : end if
+				if instance.onDrawBegin <> invalid
+					instance.onDrawBegin(m.canvas.bitmap)
+					if instance = invalid or instance.id = invalid : goto end_of_draw_loop  : end if
+				end if
+				for each image in instance.images
+					if image.enabled then
+						if image.alpha > 255 : image.alpha = 255 : end if
+						origin_offset_x = -(image.origin_x*image.scale_x)
+						origin_offset_y = -(image.origin_y*image.scale_y)
+						image_pos_x = cint(instance.x + image.offset_x + origin_offset_x)
+						image_pos_y = cint(instance.y + image.offset_y + origin_offset_y)
+						if image.scale_x = 1 and image.scale_y = 1 and image.rotation = 0
+							image.draw_to.DrawObject(image_pos_x, image_pos_y, image.region, (image.color << 8)+int(image.alpha))
+						else if image.rotation = 0 and (image.scale_x <> 1 or image.scale_y <> 1)
+							image.draw_to.DrawScaledObject(image_pos_x, image_pos_y, image.scale_x, image.scale_y, image.region, (image.color << 8)+int(image.alpha))
+						else if image.rotation <> 0
+							draw_pos = Math_NewVector(image_pos_x, image_pos_y)
+							origin_pos = Math_NewVector(image_pos_x - origin_offset_x, image_pos_y - origin_offset_y)
+							if image.scale_x < 0
+								draw_pos.x += (image.region.GetWidth() * image.scale_x)
+							end if
+							if image.scale_y < 0
+								draw_pos.y += (image.region.GetHeight() * image.scale_y)
+							end if
+							rotated_pos = Math_RotateVectorAroundVector(draw_pos, origin_pos, Math_DegreesToRadians(image.rotation))
+							if image.scale_x = 1 and image.scale_y = 1
+								image.draw_to.DrawRotatedObject(rotated_pos.x, rotated_pos.y, image.rotation, image.region, (image.color << 8)+int(image.alpha))
+							else
+								DrawScaledAndRotatedObject(image.draw_to, rotated_pos.x, rotated_pos.y, image.scale_x, image.scale_y, image.rotation, image.region, (image.color << 8)+int(image.alpha))
+							end if
+						end if
+					end if
+				end for
+				if instance.onDrawEnd <> invalid
+					instance.onDrawEnd(m.canvas.bitmap)
+				end if
+				end_of_draw_loop:
 			end for
 
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
@@ -490,7 +474,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			name: object_name
 			id: m.currentID.ToStr()
 			game: m
-			e_previous_sort_depth: invalid
 
 			' -----Variables-----
 			enabled: true
@@ -904,14 +887,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		return m.paused
 	end function
 	' ############### isPaused() function - End ###############
-
-
-
-	' ############### setBackgroundColor() function - Begin ###############
-	game.setBackgroundColor = function(color as dynamic) as void
-		m.background_color = color
-	end function
-	' ############### setBackgroundColor() function - Begin ###############
 
 
 

@@ -23,8 +23,6 @@ This will pause your game. Note: all instances that have _pauseable = false_ wil
 This will resume your paused game. Returns how long the game was paused in milliseconds if the game was paused, otherwise returns invalid if the game wasn't paused.
 ##### isPaused()
 Returns true if the game is paused.
-##### setBackgroundColor(color as Dynamic) as Void
-Set the color the canvas will be cleared with, if set to invalid the canvas will not be cleared.
 ##### getDeltaTime() as Float
 Returns the delta time. Note: Delta time is automatically applied to the built in instance xspeed and yspeed. Delta time is also automatically passed to the onUpdate(dt) function in every instance for convenience.
 ##### getRoom() as Object
