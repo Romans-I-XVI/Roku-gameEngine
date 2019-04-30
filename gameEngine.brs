@@ -589,7 +589,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end if
 		end function
 
-		new_object.addImage = function(bitmap, args = {}, insert_position = invalid) as dynamic
+		new_object.addSpritesheetImage = function(bitmap, args = {}, insert_position = invalid) as dynamic
 			image_object = {
 				' --------------Values That Can Be Changed------------
 				name: "main" ' Name must be unique
@@ -666,10 +666,44 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			image_object.Append(args)
 
 			if image_object.image_width <> invalid and image_object.image_height <> invalid then
-				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, args.image_width, args.image_height)
+				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, image_object.image_width, image_object.image_height)
 			else
 				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, image_object.bitmap.GetWidth(), image_object.bitmap.GetHeight())
 			end if
+
+			return m.addImageObject(image_object, image_object.name, insert_position)
+		end function
+
+		new_object.addImage = function(bitmap, args = {}, insert_position = invalid) as dynamic
+			image_object = {
+				' --------------Values That Can Be Changed------------
+				name: "main" ' Name must be unique
+				offset_x: 0 ' The offset of the image.
+				offset_y: 0
+				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
+				origin_y: 0
+				scale_x: 1.0 ' The image scale.
+				scale_y: 1.0
+				rotation: 0
+				color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+				alpha: 255 ' Change the image alpha (transparency).
+				enabled: true ' Whether or not the image will be drawn.
+				draw_to: m.game.getCanvas()
+				Draw: invalid ' The draw method
+
+				' -------------Never To Be Manually Changed-----------------
+				' These values should never need to be manually changed.
+				owner: m
+				bitmap: bitmap
+			}
+
+			image_object.Draw = function()
+				if m.enabled
+					DrawObjectAdvanced(m.draw_to, m.owner.x + m.offset_x, m.owner.y + m.offset_y, m.origin_x, m.origin_y, m.scale_x, m.scale_y, m.rotation, m.bitmap, (m.color << 8)+int(m.alpha))
+				end if
+			end function
+
+			image_object.Append(args)
 
 			return m.addImageObject(image_object, image_object.name, insert_position)
 		end function
