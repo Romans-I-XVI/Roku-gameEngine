@@ -435,6 +435,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			yspeed: 0.0
 			colliders: {}
 			images: []
+			images_aa_reference: {}
 
 			' -----Methods-----
 			onUpdate: invalid
@@ -588,7 +589,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end if
 		end function
 
-		new_object.addImage = function(bitmap, args = {}, insert_position = invalid) as object
+		new_object.addImage = function(bitmap, args = {}, insert_position = invalid) as dynamic
 			image_object = {
 				' --------------Values That Can Be Changed------------
 				name: "main" ' Name must be unique
@@ -621,7 +622,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				owner: m
 				bitmap: bitmap
 				region: invalid
-				animation_timer: invalid
+				animation_timer: CreateObject_GameTimeSpan()
 				previous_animation_position: 0
 			}
 
@@ -664,54 +665,47 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			image_object.Append(args)
 
-			for i = 0 to m.images.Count()-1
-				if image_object.name = m.images[i].name
-					print "addImage() - An image named -"+image_object.name+"- already exists"
-					return invalid
-				end if
-			end for
-
-			image_object.animation_timer = CreateObject_GameTimeSpan()
-
 			if image_object.image_width <> invalid and image_object.image_height <> invalid then
 				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, args.image_width, args.image_height)
 			else
 				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, image_object.bitmap.GetWidth(), image_object.bitmap.GetHeight())
 			end if
 
-			if insert_position = invalid
-				insert_position = m.images.Count()
+			return m.addImageObject(image_object, image_object.name, insert_position)
+		end function
+
+		new_object.addImageObject = function(image_object as object, image_name = "main" as string, insert_position = invalid as dynamic) as dynamic
+			image_object.name = image_name
+
+			if m.getImage(image_object.name) <> invalid
+				print "addImageObject() - An image named - " + image_object.name + " - already exists"
+				return invalid
 			end if
 
+			m.images_aa_reference[image_object.name] = image_object
 			if insert_position = invalid
-				m.images.push(image_object)
+				m.images.Push(image_object)
 			else if insert_position = 0
 				m.images.Unshift(image_object)
 			else if insert_position < m.images.Count()
 				ArrayInsert(m.images, insert_position, image_object)
 			else
-				m.images.push(image_object)
+				m.images.Push(image_object)
 			end if
 
 			return image_object
 		end function
 
-		new_object.getImage = function(image_name = "main")
-			for each image in m.images
-				if image.name = image_name
-					return image
-				end if
-			end for
-			return invalid
+		new_object.getImage = function(image_name = "main") as dynamic
+			return m.images_aa_reference[image_name]
 		end function
 
 		new_object.removeImage = function(image_name = "main")
-			deleted_something = false
+			m.images_aa_reference.Delete(image_name)
 			if m.images.Count() > 0
 				for i = 0 to m.images.Count()-1
 					if m.images[i].name = image_name
 						m.images.Delete(i)
-						deleted_something = true
 						exit for
 					end if
 				end for
