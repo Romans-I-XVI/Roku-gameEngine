@@ -420,10 +420,10 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				end for
 				if instance.onDrawEnd <> invalid
 					instance.onDrawEnd(m.canvas.bitmap)
-					if instance = invalid or instance.id = invalid : goto end_of_draw_loop  : end if
 				end if
 				end_of_draw_loop:
 			end for
+
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
 			if type(url_msg) = "roUrlEvent"
 				url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
