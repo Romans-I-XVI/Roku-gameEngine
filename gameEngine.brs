@@ -323,31 +323,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 				end if
 
-				' -------------------- Then handle image animation------------------------
-				for each image_object in instance.images
-					if image_object.image_count > 1 and image_object.animation_speed > 0 then
-						image_animation_timing = image_object.animation_timer.TotalMilliseconds()/(image_object.animation_speed*(image_object.animation_position+1))*image_object.image_count
-						if image_animation_timing >= 1 then
-							image_object.animation_position = image_object.animation_position+image_animation_timing
-							if image_object.animation_position >= image_object.image_count then
-								image_object.animation_position = 0
-								image_object.animation_timer.Mark()
-							end if
-						end if
-					end if
-					if image_object.animation_position <> image_object.previous_animation_position and image_object.image_width <> invalid and image_object.image_height <> invalid
-						bitmap_width = image_object.bitmap.GetWidth()
-						region_position = int(image_object.animation_position)
-						region_width = image_object.image_width
-						region_height = image_object.image_height
-
-						y_offset = region_position*region_width \ bitmap_width
-						x_offset = region_position*region_width-bitmap_width*y_offset
-						image_object.region = CreateObject("roRegion", image_object.bitmap, x_offset, y_offset*region_height, region_width, region_height)
-						image_object.previous_animation_position = image_object.animation_position
-					end if
-				end for
-
 				' --------------Adjust compositor collider at end of loop so collider is accurate for collision checking from other objects-------------
 				for each collider_key in instance.colliders
 					collider = instance.colliders[collider_key]
@@ -390,9 +365,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 					if instance = invalid or instance.id = invalid : goto end_of_draw_loop  : end if
 				end if
 				for each image in instance.images
-					if image.enabled then
-						DrawObjectAdvanced(image.draw_to, instance.x + image.offset_x, instance.y + image.offset_y, image.origin_x, image.origin_y, image.scale_x, image.scale_y, image.rotation, image.region, (image.color << 8)+int(image.alpha))
-					end if
+					image.Draw()
 				end for
 				if instance.onDrawEnd <> invalid
 					instance.onDrawEnd(m.canvas.bitmap)
@@ -615,7 +588,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end if
 		end function
 
-		new_object.addImage = function(bitmap, args = {}, insert_position = invalid)
+		new_object.addImage = function(bitmap, args = {}, insert_position = invalid) as object
 			image_object = {
 				' --------------Values That Can Be Changed------------
 				name: "main" ' Name must be unique
@@ -630,6 +603,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				alpha: 255 ' Change the image alpha (transparency).
 				enabled: true ' Whether or not the image will be drawn.
 				draw_to: m.game.getCanvas()
+				Draw: invalid ' The draw method
 
 				' -------------Only To Be Changed For Animation---------------
 				' The following values should only be changed if the image is a spritesheet that needs to be animated.
@@ -639,25 +613,61 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				image_height: invalid ' The height of each individual image on the spritesheet.
 				animation_speed: 0 ' The time in milliseconds for a single cycle through the animation to play.
 				animation_position: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
+				Animate: invalid ' The method that handles animation
+				onResume: invalid ' This is called when the game is resumed, paused_time as integer is passed in
 
 				' -------------Never To Be Manually Changed-----------------
 				' These values should never need to be manually changed.
+				owner: m
 				bitmap: bitmap
 				region: invalid
 				animation_timer: invalid
 				previous_animation_position: 0
 			}
 
-			for each key in image_object
-				if args.DoesExist(key) then
-					image_object[key] = args[key]
+			image_object.Draw = function()
+				if m.Animate <> invalid and not m.owner.game.isPaused()
+					m.Animate()
 				end if
-			end for
+				if m.enabled
+					DrawObjectAdvanced(m.draw_to, m.owner.x + m.offset_x, m.owner.y + m.offset_y, m.origin_x, m.origin_y, m.scale_x, m.scale_y, m.rotation, m.region, (m.color << 8)+int(m.alpha))
+				end if
+			end function
+
+			image_object.Animate = function()
+				if m.image_count > 1 and m.animation_speed > 0 then
+					image_animation_timing = m.animation_timer.TotalMilliseconds() / (m.animation_speed * (m.animation_position + 1)) * m.image_count
+					if image_animation_timing >= 1 then
+						m.animation_position = m.animation_position + image_animation_timing
+						if m.animation_position >= m.image_count then
+							m.animation_position = 0
+							m.animation_timer.Mark()
+						end if
+					end if
+				end if
+				if m.animation_position <> m.previous_animation_position and m.image_width <> invalid and m.image_height <> invalid
+					bitmap_width = m.bitmap.GetWidth()
+					region_position = int(m.animation_position)
+					region_width = m.image_width
+					region_height = m.image_height
+
+					y_offset = region_position * region_width \ bitmap_width
+					x_offset = region_position * region_width - bitmap_width * y_offset
+					m.region = CreateObject("roRegion", m.bitmap, x_offset, y_offset * region_height, region_width, region_height)
+					m.previous_animation_position = m.animation_position
+				end if
+			end function
+
+			image_object.onResume = function(paused_time as integer)
+				m.animation_timer.RemoveTime(paused_time)
+			end function
+
+			image_object.Append(args)
 
 			for i = 0 to m.images.Count()-1
 				if image_object.name = m.images[i].name
 					print "addImage() - An image named -"+image_object.name+"- already exists"
-					return false
+					return invalid
 				end if
 			end for
 
@@ -673,7 +683,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				insert_position = m.images.Count()
 			end if
 
-			if insert_position = 0
+			if insert_position = invalid
+				m.images.push(image_object)
+			else if insert_position = 0
 				m.images.Unshift(image_object)
 			else if insert_position < m.images.Count()
 				ArrayInsert(m.images, insert_position, image_object)
@@ -681,7 +693,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				m.images.push(image_object)
 			end if
 
-			return true
+			return image_object
 		end function
 
 		new_object.getImage = function(image_name = "main")
@@ -842,7 +854,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				for each instance_key in m.Instances[object_key]
 					instance = m.Instances[object_key][instance_key]
 					for each image in instance.images
-						image.animation_timer.RemoveTime(paused_time)
+						if image.DoesExist("onResume") and image.onResume <> invalid
+							image.onResume(paused_time)
+						end if
 					end for
 					if instance <> invalid and instance.id <> invalid and instance.onResume <> invalid
 						instance.onResume(paused_time)
