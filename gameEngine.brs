@@ -608,11 +608,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				' -------------Only To Be Changed For Animation---------------
 				' The following values should only be changed if the image is a spritesheet that needs to be animated.
 				' The spritesheet can have any assortment of multiple columns and rows.
+				index: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
 				image_count: 1 ' The number of images in the spritesheet.
 				image_width: invalid ' The width of each individual image on the spritesheet.
 				image_height: invalid ' The height of each individual image on the spritesheet.
 				animation_speed: 0 ' The time in milliseconds for a single cycle through the animation to play.
-				animation_position: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
 				Animate: invalid ' The method that handles animation
 				onResume: invalid ' This is called when the game is resumed, paused_time as integer is passed in
 
@@ -622,7 +622,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				bitmap: bitmap
 				region: invalid
 				animation_timer: CreateObject_GameTimeSpan()
-				previous_animation_position: 0
+				previous_index: 0
 			}
 
 			image_object.Draw = function()
@@ -636,25 +636,25 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			image_object.Animate = function()
 				if m.image_count > 1 and m.animation_speed > 0 then
-					image_animation_timing = m.animation_timer.TotalMilliseconds() / (m.animation_speed * (m.animation_position + 1)) * m.image_count
+					image_animation_timing = m.animation_timer.TotalMilliseconds() / (m.animation_speed * (m.index + 1)) * m.image_count
 					if image_animation_timing >= 1 then
-						m.animation_position = m.animation_position + image_animation_timing
-						if m.animation_position >= m.image_count then
-							m.animation_position = 0
+						m.index = m.index + image_animation_timing
+						if m.index >= m.image_count then
+							m.index = 0
 							m.animation_timer.Mark()
 						end if
 					end if
 				end if
-				if m.animation_position <> m.previous_animation_position and m.image_width <> invalid and m.image_height <> invalid
+				if m.index <> m.previous_index and m.image_width <> invalid and m.image_height <> invalid
 					bitmap_width = m.bitmap.GetWidth()
-					region_position = int(m.animation_position)
+					region_position = int(m.index)
 					region_width = m.image_width
 					region_height = m.image_height
 
 					y_offset = region_position * region_width \ bitmap_width
 					x_offset = region_position * region_width - bitmap_width * y_offset
 					m.region = CreateObject("roRegion", m.bitmap, x_offset, y_offset * region_height, region_width, region_height)
-					m.previous_animation_position = m.animation_position
+					m.previous_index = m.index
 				end if
 			end function
 
