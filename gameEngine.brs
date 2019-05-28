@@ -589,10 +589,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end if
 		end function
 
-		new_object.addSpritesheetImage = function(bitmap, args = {}, insert_position = invalid) as dynamic
+		new_object.addSpritesheetImage = function(image_name as string, bitmap as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
 			image_object = {
 				' --------------Values That Can Be Changed------------
-				name: "main" ' Name must be unique
 				offset_x: 0 ' The offset of the image.
 				offset_y: 0
 				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
@@ -671,13 +670,12 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, image_object.bitmap.GetWidth(), image_object.bitmap.GetHeight())
 			end if
 
-			return m.addImageObject(image_object, image_object.name, insert_position)
+			return m.addImageObject(image_name, image_object, insert_position)
 		end function
 
-		new_object.addImage = function(bitmap, args = {}, insert_position = invalid) as dynamic
+		new_object.addImage = function(image_name as string, bitmap as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
 			image_object = {
 				' --------------Values That Can Be Changed------------
-				name: "main" ' Name must be unique
 				offset_x: 0 ' The offset of the image.
 				offset_y: 0
 				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
@@ -705,10 +703,10 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			image_object.Append(args)
 
-			return m.addImageObject(image_object, image_object.name, insert_position)
+			return m.addImageObject(image_name, image_object, insert_position)
 		end function
 
-		new_object.addImageObject = function(image_object as object, image_name = "main" as string, insert_position = invalid as dynamic) as dynamic
+		new_object.addImageObject = function(image_name as string, image_object as object, insert_position = invalid as dynamic) as dynamic
 			image_object.name = image_name
 
 			if m.getImage(image_object.name) <> invalid
