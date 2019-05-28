@@ -57,6 +57,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		Rooms: {} ' This holds the room definitions by name (the room creation functions)
 		Interfaces: {} ' This holds the interface definitions by name.
 		Bitmaps: {} ' This holds the loaded bitmaps by name
+		Strings: {} ' This holds the loaded strings by name
 		Sounds: {} ' This holds the loaded sounds by name
 		Fonts: {} ' This holds the loaded fonts by name
 
@@ -587,6 +588,120 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				if type(m.colliders[collider_name].compositor_object) = "roSprite" then : m.colliders[collider_name].compositor_object.Remove() : end if
 				m.colliders.Delete(collider_name)
 			end if
+		end function
+
+		new_object.addAtlasImage = function(image_name as string, bitmap as object, atlas as dynamic, args = {} as object, insert_position = invalid as dynamic) as dynamic
+			image_object = {
+				' --------------Values That Can Be Changed------------
+				offset_x: 0 ' The offset of the image.
+				offset_y: 0
+				scale_x: 1.0 ' The image scale.
+				scale_y: 1.0
+				rotation: 0
+				color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+				alpha: 255 ' Change the image alpha (transparency).
+				enabled: true ' Whether or not the image will be drawn.
+				draw_to: m.game.getCanvas()
+				Draw: invalid ' The draw method
+
+				' -------------Only To Be Changed For Animation---------------
+				' The following values should only be changed if the image is a spritesheet that needs to be animated.
+				' The spritesheet can have any assortment of multiple columns and rows.
+				index: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
+				frames: []
+				animation_speed: 0 ' The time in milliseconds for a single cycle through the animation to play.
+				animation_tween: "LinearTween"
+				Animate: invalid ' The method that handles animation
+				SetFrameByName: invalid ' Allows the manual setting of index by the name of the frame.
+				onResume: invalid ' This is called when the game is resumed, paused_time as integer is passed in
+
+				' -------------Never To Be Manually Changed-----------------
+				' These values should never need to be manually changed.
+				owner: m
+				bitmap: bitmap
+				animation_timer: CreateObject_GameTimeSpan()
+				_tweens_reference: GetTweens()
+			}
+
+			image_object.Draw = function()
+				if m.Animate <> invalid and not m.owner.game.isPaused()
+					m.Animate()
+				end if
+				if m.enabled
+					region = m.frames[m.index].region
+					origin = m.frames[m.index].origin
+					DrawObjectAdvanced(m.draw_to, m.owner.x + m.offset_x, m.owner.y + m.offset_y, origin.x, origin.y, m.scale_x, m.scale_y, m.rotation, region, (m.color << 8)+int(m.alpha))
+				end if
+			end function
+
+			image_object.Animate = function()
+				frame_count = m.frames.Count()
+				if m.animation_speed > 0 and frame_count > 1
+					current_time = m.animation_timer.TotalMilliseconds()
+					if current_time > m.animation_speed
+						current_time -= m.animation_speed
+						m.animation_timer.RemoveTime(m.animation_speed)
+					end if
+					m.index = m._tweens_reference[m.animation_tween](0, frame_count, current_time, m.animation_speed)
+					if m.index > frame_count - 1
+						m.index = frame_count - 1
+					else if m.index < 0
+						m.index = 0
+					end if
+				end if
+			end function
+
+			image_object.SetFrameByName = function(name as string) as boolean
+				for i = 0 to m.frames.Count() - 1
+					if m.frames[i].filename = name
+						m.index = i
+						return true
+					end if
+				end for
+
+				print "Frame with name - " + name + " - not found"
+				return false
+			end function
+
+			image_object.onResume = function(paused_time as integer)
+				m.animation_timer.RemoveTime(paused_time)
+			end function
+
+			image_object.Append(args)
+
+			if type(atlas) = "String" or type(atlas) = "roString"
+				atlas = ParseJson(atlas)
+			end if
+			for i = 0 to atlas.Count() - 1
+				frame = {
+					filename: i.ToStr()
+					region: CreateObject("roRegion", bitmap, atlas[i].frame.x, atlas[i].frame.y, atlas[i].frame.w, atlas[i].frame.h)
+					origin: {x: 0, y: 0}
+				}
+
+				if atlas[i].DoesExist("filename")
+					frame.filename = atlas[i].filename
+				end if
+
+				pivot_x = 0.5
+				pivot_y = 0.5
+				if atlas[i].DoesExist("pivot")
+					pivot_x = atlas[i].pivot.x
+					pivot_y = atlas[i].pivot.y
+				end if
+
+				if atlas[i].DoesExist("spriteSourceSize") and atlas[i].DoesExist("sourceSize")
+					frame.origin.x = atlas[i].sourceSize.w * pivot_x - atlas[i].spriteSourceSize.x
+					frame.origin.y = atlas[i].sourceSize.h * pivot_y - atlas[i].spriteSourceSize.y
+				else
+					frame.origin.x = frame.region.GetWidth() * pivot_x
+					frame.origin.y = frame.region.GetHeight() * pivot_y
+				end if
+
+				image_object.frames[i] = frame
+			end for
+
+			return m.addImageObject(image_name, image_object, insert_position)
 		end function
 
 		new_object.addSpritesheetImage = function(image_name as string, bitmap as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
@@ -1177,24 +1292,59 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### getBitmap() function - Begin ###############
 	game.getBitmap = function(bitmap_name as string) as dynamic
-		if m.Bitmaps.DoesExist(bitmap_name)
-			return m.Bitmaps[bitmap_name]
-		else
-			return invalid
-		end if
+		return m.Bitmaps[bitmap_name]
 	end function
 	' ############### getBitmap() function - End ###############
 
 
 
 	' ############### unloadBitmap() function - Begin ###############
-	game.unloadBitmap = function(bitmap_name as string) as boolean
-		if m.Bitmaps.DoesExist(bitmap_name)
-			m.Bitmaps[bitmap_name] = invalid
-			return true
+	game.unloadBitmap = function(bitmap_name as string)
+		m.Bitmaps[bitmap_name] = invalid
+	end function
+	' ############### unloadBitmap() function - End ###############
+
+
+	' --------------------------------Begin String Functions----------------------------------------
+
+
+	' ############### loadString() function - Begin ###############
+	game.loadString = function(string_name as string, path as string) as boolean
+		if Left(path, 4) = "http"
+			transfer = CreateObject("roURLTransfer")
+			transfer.SetUrl(path)
+			m.Strings[string_name] = transfer.GetToString()
+			if m.Strings[string_name] <> ""
+				return true
+			else
+				print "loadString() - URL transfer returned empty string"
+				return false
+			end if
 		else
-			return false
+			if m.filesystem.Exists(path)
+				m.Strings[string_name] = ReadAsciiFile(path)
+				return true
+			else
+				print "loadString() - String not created, invalid path provided"
+				return false
+			end if
 		end if
+	end function
+	' ############### loadString() function - End ###############
+
+
+
+	' ############### getString() function - Begin ###############
+	game.getString = function(string_name as string) as dynamic
+		return m.Strings[string_name]
+	end function
+	' ############### getString() function - End ###############
+
+
+
+	' ############### unloadString() function - Begin ###############
+	game.unloadString = function(string_name as string) as boolean
+		m.Strings[string_name] = invalid
 	end function
 	' ############### unloadBitmap() function - End ###############
 
