@@ -149,3 +149,25 @@ function CreateObject_GameTimeSpan() as object
 
 	return timer
 end function
+
+function TexturePacker_GetRegions(atlas as dynamic, bitmap as object) as object
+	if type(atlas) = "String" or type(atlas) = "roString"
+		atlas = ParseJson(atlas)
+	end if
+
+	regions = {}
+	for each key in atlas.frames
+		item = atlas.frames[key]
+		region = CreateObject("roRegion", bitmap, item.frame.x, item.frame.y, item.frame.w, item.frame.h)
+
+		if item.DoesExist("pivot")
+			translation_x = item.spriteSourceSize.x - item.sourceSize.w * item.pivot.x
+			translation_y = item.spriteSourceSize.y - item.sourceSize.h * item.pivot.y
+			region.SetPretranslation(translation_x, translation_y)
+		end if
+
+		regions[key] = region
+	end for
+
+	return regions
+end function

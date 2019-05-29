@@ -590,7 +590,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end if
 		end function
 
-		new_object.addAtlasImage = function(image_name as string, bitmap as object, atlas as dynamic, args = {} as object, insert_position = invalid as dynamic) as dynamic
+		new_object.addAnimatedImage = function(image_name as string, regions as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
 			image_object = {
 				' --------------Values That Can Be Changed------------
 				offset_x: 0 ' The offset of the image.
@@ -608,168 +608,51 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				' The following values should only be changed if the image is a spritesheet that needs to be animated.
 				' The spritesheet can have any assortment of multiple columns and rows.
 				index: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
-				frames: []
+				regions: regions
 				animation_speed: 0 ' The time in milliseconds for a single cycle through the animation to play.
 				animation_tween: "LinearTween"
 				Animate: invalid ' The method that handles animation
-				SetFrameByName: invalid ' Allows the manual setting of index by the name of the frame.
 				onResume: invalid ' This is called when the game is resumed, paused_time as integer is passed in
 
 				' -------------Never To Be Manually Changed-----------------
 				' These values should never need to be manually changed.
 				owner: m
-				bitmap: bitmap
 				animation_timer: CreateObject_GameTimeSpan()
 				_tweens_reference: GetTweens()
 			}
 
 			image_object.Draw = function()
-				if m.Animate <> invalid and not m.owner.game.isPaused()
-					m.Animate()
-				end if
 				if m.enabled
-					region = m.frames[m.index].region
-					origin = m.frames[m.index].origin
-					DrawObjectAdvanced(m.draw_to, m.owner.x + m.offset_x, m.owner.y + m.offset_y, origin.x, origin.y, m.scale_x, m.scale_y, m.rotation, region, (m.color << 8)+int(m.alpha))
+					if m.animation_speed > 0 and not m.owner.game.isPaused()
+						m.Animate()
+					end if
+
+					region = m.regions[m.index]
+					x = m.owner.x + m.offset_x
+					y = m.owner.y + m.offset_y
+					rgba = (m.color << 8) + int(m.alpha)
+					if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
+						m.draw_to.DrawObject(x, y, region, rgba)
+					else if m.rotation = 0
+						m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, region, rgba)
+					else
+						m.draw_to.DrawRotatedObject(x, y, m.rotation, region, rgba)
+					end if
 				end if
 			end function
 
 			image_object.Animate = function()
-				frame_count = m.frames.Count()
-				if m.animation_speed > 0 and frame_count > 1
-					current_time = m.animation_timer.TotalMilliseconds()
-					if current_time > m.animation_speed
-						current_time -= m.animation_speed
-						m.animation_timer.RemoveTime(m.animation_speed)
-					end if
-					m.index = m._tweens_reference[m.animation_tween](0, frame_count, current_time, m.animation_speed)
-					if m.index > frame_count - 1
-						m.index = frame_count - 1
-					else if m.index < 0
-						m.index = 0
-					end if
+				frame_count = m.regions.Count()
+				current_time = m.animation_timer.TotalMilliseconds()
+				if current_time > m.animation_speed
+					current_time -= m.animation_speed
+					m.animation_timer.RemoveTime(m.animation_speed)
 				end if
-			end function
-
-			image_object.SetFrameByName = function(name as string) as boolean
-				for i = 0 to m.frames.Count() - 1
-					if m.frames[i].filename = name
-						m.index = i
-						return true
-					end if
-				end for
-
-				print "Frame with name - " + name + " - not found"
-				return false
-			end function
-
-			image_object.onResume = function(paused_time as integer)
-				m.animation_timer.RemoveTime(paused_time)
-			end function
-
-			image_object.Append(args)
-
-			if type(atlas) = "String" or type(atlas) = "roString"
-				atlas = ParseJson(atlas)
-			end if
-			for i = 0 to atlas.Count() - 1
-				frame = {
-					filename: i.ToStr()
-					region: CreateObject("roRegion", bitmap, atlas[i].frame.x, atlas[i].frame.y, atlas[i].frame.w, atlas[i].frame.h)
-					origin: {x: 0, y: 0}
-				}
-
-				if atlas[i].DoesExist("filename")
-					frame.filename = atlas[i].filename
-				end if
-
-				pivot_x = 0.5
-				pivot_y = 0.5
-				if atlas[i].DoesExist("pivot")
-					pivot_x = atlas[i].pivot.x
-					pivot_y = atlas[i].pivot.y
-				end if
-
-				if atlas[i].DoesExist("spriteSourceSize") and atlas[i].DoesExist("sourceSize")
-					frame.origin.x = atlas[i].sourceSize.w * pivot_x - atlas[i].spriteSourceSize.x
-					frame.origin.y = atlas[i].sourceSize.h * pivot_y - atlas[i].spriteSourceSize.y
-				else
-					frame.origin.x = frame.region.GetWidth() * pivot_x
-					frame.origin.y = frame.region.GetHeight() * pivot_y
-				end if
-
-				image_object.frames[i] = frame
-			end for
-
-			return m.addImageObject(image_name, image_object, insert_position)
-		end function
-
-		new_object.addSpritesheetImage = function(image_name as string, bitmap as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
-			image_object = {
-				' --------------Values That Can Be Changed------------
-				offset_x: 0 ' The offset of the image.
-				offset_y: 0
-				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
-				origin_y: 0
-				scale_x: 1.0 ' The image scale.
-				scale_y: 1.0
-				rotation: 0
-				color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
-				alpha: 255 ' Change the image alpha (transparency).
-				enabled: true ' Whether or not the image will be drawn.
-				draw_to: m.game.getCanvas()
-				Draw: invalid ' The draw method
-
-				' -------------Only To Be Changed For Animation---------------
-				' The following values should only be changed if the image is a spritesheet that needs to be animated.
-				' The spritesheet can have any assortment of multiple columns and rows.
-				index: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
-				image_count: 1 ' The number of images in the spritesheet.
-				image_width: invalid ' The width of each individual image on the spritesheet.
-				image_height: invalid ' The height of each individual image on the spritesheet.
-				animation_speed: 0 ' The time in milliseconds for a single cycle through the animation to play.
-				Animate: invalid ' The method that handles animation
-				onResume: invalid ' This is called when the game is resumed, paused_time as integer is passed in
-
-				' -------------Never To Be Manually Changed-----------------
-				' These values should never need to be manually changed.
-				owner: m
-				bitmap: bitmap
-				region: invalid
-				animation_timer: CreateObject_GameTimeSpan()
-				previous_index: 0
-			}
-
-			image_object.Draw = function()
-				if m.Animate <> invalid and not m.owner.game.isPaused()
-					m.Animate()
-				end if
-				if m.enabled
-					DrawObjectAdvanced(m.draw_to, m.owner.x + m.offset_x, m.owner.y + m.offset_y, m.origin_x, m.origin_y, m.scale_x, m.scale_y, m.rotation, m.region, (m.color << 8)+int(m.alpha))
-				end if
-			end function
-
-			image_object.Animate = function()
-				if m.image_count > 1 and m.animation_speed > 0 then
-					image_animation_timing = m.animation_timer.TotalMilliseconds() / (m.animation_speed * (m.index + 1)) * m.image_count
-					if image_animation_timing >= 1 then
-						m.index = m.index + image_animation_timing
-						if m.index >= m.image_count then
-							m.index = 0
-							m.animation_timer.Mark()
-						end if
-					end if
-				end if
-				if m.index <> m.previous_index and m.image_width <> invalid and m.image_height <> invalid
-					bitmap_width = m.bitmap.GetWidth()
-					region_position = int(m.index)
-					region_width = m.image_width
-					region_height = m.image_height
-
-					y_offset = region_position * region_width \ bitmap_width
-					x_offset = region_position * region_width - bitmap_width * y_offset
-					m.region = CreateObject("roRegion", m.bitmap, x_offset, y_offset * region_height, region_width, region_height)
-					m.previous_index = m.index
+				m.index = m._tweens_reference[m.animation_tween](0, frame_count, current_time, m.animation_speed)
+				if m.index > frame_count - 1
+					m.index = frame_count - 1
+				else if m.index < 0
+					m.index = 0
 				end if
 			end function
 
@@ -779,22 +662,14 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			image_object.Append(args)
 
-			if image_object.image_width <> invalid and image_object.image_height <> invalid then
-				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, image_object.image_width, image_object.image_height)
-			else
-				image_object.region = CreateObject("roRegion", image_object.bitmap, 0, 0, image_object.bitmap.GetWidth(), image_object.bitmap.GetHeight())
-			end if
-
 			return m.addImageObject(image_name, image_object, insert_position)
 		end function
 
-		new_object.addImage = function(image_name as string, bitmap as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
+		new_object.addImage = function(image_name as string, region as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
 			image_object = {
 				' --------------Values That Can Be Changed------------
 				offset_x: 0 ' The offset of the image.
 				offset_y: 0
-				origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling.
-				origin_y: 0
 				scale_x: 1.0 ' The image scale.
 				scale_y: 1.0
 				rotation: 0
@@ -807,12 +682,21 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				' -------------Never To Be Manually Changed-----------------
 				' These values should never need to be manually changed.
 				owner: m
-				bitmap: bitmap
+				region: region
 			}
 
 			image_object.Draw = function()
 				if m.enabled
-					DrawObjectAdvanced(m.draw_to, m.owner.x + m.offset_x, m.owner.y + m.offset_y, m.origin_x, m.origin_y, m.scale_x, m.scale_y, m.rotation, m.bitmap, (m.color << 8)+int(m.alpha))
+					x = m.owner.x + m.offset_x
+					y = m.owner.y + m.offset_y
+					rgba = (m.color << 8) + int(m.alpha)
+					if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
+						m.draw_to.DrawObject(x, y, m.region, rgba)
+					else if m.rotation = 0
+						m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
+					else
+						m.draw_to.DrawRotatedObject(x, y, m.rotation, m.region, rgba)
+					end if
 				end if
 			end function
 
