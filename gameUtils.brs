@@ -70,33 +70,6 @@ function DrawText(draw2d as object, text as string, x as integer, y as integer, 
 	end if
 end function
 
-function DrawObjectAdvanced(draw_to as object, x as float, y as float, origin_x as float, origin_y as float, scale_x as float, scale_y as float, rotation as float, drawable as object, color = &hFFFFFFFF as integer) as void
-	origin_offset_x = -(origin_x * scale_x)
-	origin_offset_y = -(origin_y * scale_y)
-	image_pos_x = cint(x + origin_offset_x)
-	image_pos_y = cint(y + origin_offset_y)
-	if scale_x = 1 and scale_y = 1 and rotation = 0
-		draw_to.DrawObject(image_pos_x, image_pos_y, drawable, color)
-	else if rotation = 0 and (scale_x <> 1 or scale_y <> 1)
-		draw_to.DrawScaledObject(image_pos_x, image_pos_y, scale_x, scale_y, drawable, color)
-	else if rotation <> 0
-		draw_pos = Math_NewVector(image_pos_x, image_pos_y)
-		origin_pos = Math_NewVector(image_pos_x - origin_offset_x, image_pos_y - origin_offset_y)
-		if scale_x < 0
-			draw_pos.x += (drawable.GetWidth() * scale_x)
-		end if
-		if scale_y < 0
-			draw_pos.y += (drawable.GetHeight() * scale_y)
-		end if
-		rotated_pos = Math_RotateVectorAroundVector(draw_pos, origin_pos, Math_DegreesToRadians(rotation))
-		if scale_x = 1 and scale_y = 1
-			draw_to.DrawRotatedObject(rotated_pos.x, rotated_pos.y, rotation, drawable, color)
-		else
-			DrawScaledAndRotatedObject(draw_to, rotated_pos.x, rotated_pos.y, scale_x, scale_y, rotation, drawable, color)
-		end if
-	end if
-end function
-
 ' NOTE: This function is unsafe! It creates an roBitmap of the required size to be able to both scale and rotate the drawing, this action requires free video memory of the appropriate amount.
 function DrawScaledAndRotatedObject(draw2d as object, x as float, y as float, scale_x as float, scale_y as float, theta as float, drawable as object, color = &hFFFFFFFF as integer) as void
 	new_width = Abs(int(drawable.GetWidth() * scale_x))
