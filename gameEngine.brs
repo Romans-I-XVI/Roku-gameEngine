@@ -457,6 +457,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			addColliderRectangle: invalid
 			removeCollider: invalid
 			addImage: invalid
+			addAnimatedImage: invalid
+			addImageObject: invalid
 			removeImage: invalid
 			getStaticVariable: invalid
 			setStaticVariable: invalid
@@ -726,11 +728,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			return image_object
 		end function
 
-		new_object.getImage = function(image_name = "main") as dynamic
+		new_object.getImage = function(image_name) as dynamic
 			return m.images_aa_reference[image_name]
 		end function
 
-		new_object.removeImage = function(image_name = "main")
+		new_object.removeImage = function(image_name)
 			m.images_aa_reference.Delete(image_name)
 			if m.images.Count() > 0
 				for i = 0 to m.images.Count()-1
