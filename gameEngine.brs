@@ -57,7 +57,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		Rooms: {} ' This holds the room definitions by name (the room creation functions)
 		Interfaces: {} ' This holds the interface definitions by name.
 		Bitmaps: {} ' This holds the loaded bitmaps by name
-		Strings: {} ' This holds the loaded strings by name
 		Sounds: {} ' This holds the loaded sounds by name
 		Fonts: {} ' This holds the loaded fonts by name
 
@@ -1185,50 +1184,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ############### unloadBitmap() function - Begin ###############
 	game.unloadBitmap = function(bitmap_name as string)
 		m.Bitmaps[bitmap_name] = invalid
-	end function
-	' ############### unloadBitmap() function - End ###############
-
-
-	' --------------------------------Begin String Functions----------------------------------------
-
-
-	' ############### loadString() function - Begin ###############
-	game.loadString = function(string_name as string, path as string) as boolean
-		if Left(path, 4) = "http"
-			transfer = CreateObject("roURLTransfer")
-			transfer.SetUrl(path)
-			m.Strings[string_name] = transfer.GetToString()
-			if m.Strings[string_name] <> ""
-				return true
-			else
-				print "loadString() - URL transfer returned empty string"
-				return false
-			end if
-		else
-			if m.filesystem.Exists(path)
-				m.Strings[string_name] = ReadAsciiFile(path)
-				return true
-			else
-				print "loadString() - String not created, invalid path provided"
-				return false
-			end if
-		end if
-	end function
-	' ############### loadString() function - End ###############
-
-
-
-	' ############### getString() function - Begin ###############
-	game.getString = function(string_name as string) as dynamic
-		return m.Strings[string_name]
-	end function
-	' ############### getString() function - End ###############
-
-
-
-	' ############### unloadString() function - Begin ###############
-	game.unloadString = function(string_name as string) as boolean
-		m.Strings[string_name] = invalid
 	end function
 	' ############### unloadBitmap() function - End ###############
 
