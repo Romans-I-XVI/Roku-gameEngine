@@ -591,6 +591,46 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end if
 		end function
 
+		new_object.addImage = function(image_name as string, region as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
+			image_object = {
+				' --------------Values That Can Be Changed------------
+				offset_x: 0 ' The offset of the image.
+				offset_y: 0
+				scale_x: 1.0 ' The image scale.
+				scale_y: 1.0
+				rotation: 0
+				color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+				alpha: 255 ' Change the image alpha (transparency).
+				enabled: true ' Whether or not the image will be drawn.
+				draw_to: m.game.getCanvas()
+				Draw: invalid ' The draw method
+
+				' -------------Never To Be Manually Changed-----------------
+				' These values should never need to be manually changed.
+				owner: m
+				region: region
+			}
+
+			image_object.Draw = function()
+				if m.enabled
+					x = m.owner.x + m.offset_x
+					y = m.owner.y + m.offset_y
+					rgba = (m.color << 8) + int(m.alpha)
+					if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
+						m.draw_to.DrawObject(x, y, m.region, rgba)
+					else if m.rotation = 0
+						m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
+					else
+						m.draw_to.DrawRotatedObject(x, y, m.rotation, m.region, rgba)
+					end if
+				end if
+			end function
+
+			image_object.Append(args)
+
+			return m.addImageObject(image_name, image_object, insert_position)
+		end function
+
 		new_object.addAnimatedImage = function(image_name as string, regions as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
 			image_object = {
 				' --------------Values That Can Be Changed------------
@@ -659,46 +699,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			image_object.onResume = function(paused_time as integer)
 				m.animation_timer.RemoveTime(paused_time)
-			end function
-
-			image_object.Append(args)
-
-			return m.addImageObject(image_name, image_object, insert_position)
-		end function
-
-		new_object.addImage = function(image_name as string, region as object, args = {} as object, insert_position = invalid as dynamic) as dynamic
-			image_object = {
-				' --------------Values That Can Be Changed------------
-				offset_x: 0 ' The offset of the image.
-				offset_y: 0
-				scale_x: 1.0 ' The image scale.
-				scale_y: 1.0
-				rotation: 0
-				color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
-				alpha: 255 ' Change the image alpha (transparency).
-				enabled: true ' Whether or not the image will be drawn.
-				draw_to: m.game.getCanvas()
-				Draw: invalid ' The draw method
-
-				' -------------Never To Be Manually Changed-----------------
-				' These values should never need to be manually changed.
-				owner: m
-				region: region
-			}
-
-			image_object.Draw = function()
-				if m.enabled
-					x = m.owner.x + m.offset_x
-					y = m.owner.y + m.offset_y
-					rgba = (m.color << 8) + int(m.alpha)
-					if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
-						m.draw_to.DrawObject(x, y, m.region, rgba)
-					else if m.rotation = 0
-						m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
-					else
-						m.draw_to.DrawRotatedObject(x, y, m.rotation, m.region, rgba)
-					end if
-				end if
 			end function
 
 			image_object.Append(args)
