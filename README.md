@@ -135,7 +135,6 @@ A game object is an object that has been created using the function newEmptyObje
 The basic game object structure looks like this.
 ```brightscript
 new_object = {
-
 	' -----Constants-----
 	name: object_name
 	id: m.currentID.ToStr()
@@ -149,12 +148,11 @@ new_object = {
 	y: 0.0
 	xspeed: 0.0
 	yspeed: 0.0
-    colliders: {}
-    images: []
+	colliders: {}
+	images: []
 
-    ' -----Methods-----
-    (Methods will be described below)
-
+	' -----Methods-----
+	(Methods will be described below)
 }
 ```
 
@@ -247,38 +245,38 @@ Adds a circular collider to the instance's colliders associative array with the 
 Returns the collider with the provided name, returns invalid if it doesn't exist.
 ##### removeCollider(collider_name)
 Removes the collider with the provided name.
-##### addImage(bitmap as Object, [args as Object, insert_position as Integer])
-Adds the provided image to the instance's images array. The image should be of type roBitmap. By default images are added to the end of the images array but you can also choose to insert the image to a specific position in the array with the insert_position argument. Images are drawn in the order they exist in the instance's images array. Args is an associative array with values to override the defaults. Here are the defaults that can be overridden.
+##### addImage(image_name as String, region as Object, [args as Object, insert_position as Integer])
+Adds the provided  roRegion to the instance's images array. By default images are added to the end of the images array but you can also choose to insert the image to a specific position in the array with the insert_position argument. Images are drawn in the order they exist in the instance's images array. Args is an associative array with values to override the defaults. Here are the defaults that can be overridden.
 
 ```brightscript
-args = {
-	name: "main" ' Name must be unique
+{
 	offset_x: 0 ' The offset of the image.
 	offset_y: 0 
-	origin_x: 0 ' The image origin (where it will be drawn from). This helps for keeping an image in the correct position even when scaling and rotating.
-	origin_y: 0
 	scale_x: 1.0 ' The image scale.
 	scale_y: 1.0
 	rotation: 0 ' The image rotation in degrees
 	color: &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
 	alpha: 255 ' Change the image alpha (transparency).
 	enabled: true ' Whether or not the image will be drawn.
-
-	' The following values should only be changed if the image is a spritesheet that needs to be animated.
-	' The spritesheet can have any assortment of multiple columns and rows.
-	image_count: 1 ' The number of images in the spritesheet.
-	image_width: invalid ' The width of each individual image on the spritesheet.
-	image_height: invalid ' The height of each individual image on the spritesheet.
-	animation_speed: 0 ' The time in milliseconds for a single cycle through the animation to play.
-	animation_position: 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
 }
 ```
-Note: Rotating and scaling an image at the same time has serious performance implications as Roku does not provide a method to draw an object with both scale and rotation. It is handled internally by creating an roBitmap to act as a canvas for the scaled drawing, the image is then drawn with rotation to the screen, then the roBitmap is removed.
-
-##### getImage([image_name as String]) as Object
-Returns the image with the provided image name. Defaults to "main" image name.
-##### removeImage([image_name as String])
-Removes the image matching the provided image name. Defaults to "main" image name.
+* Note 1: You cannot rotate and scale an image at the same time as Roku does not provide a function for doing so.
+* Note 2: The origin property has been removed from images, instead to handle origins the user should pass in roRegions with SetPretranslation set.
+##### addAnimatedImage(image_name as String, regions as Object, [args as Object, insert_position as Integer])
+addAnimatedImage functions the same as addImage except that it accepts an array of roRegions and contains additional properties for handling animations. Here are the additional properties, which can be overriden with ***args***.
+```brightscript
+{
+	index: 0 ' The index of the region to be shown. This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
+	animation_speed: 0 ' The time in milliseconds for a single cycle through the animation to play. If the animation speed is left as 0 the image will not animate automatically and it will be up to the user to manually set the appropriate index.
+	animation_tween: "LinearTween" ' The tween method (from the list in tweens.brs) to use in cycling through the animation.
+}
+```
+##### addImageObject(image_name as string, image_object as object, [insert_position as Integer])
+This method is used internally by addImage and addAnimatedImage to add the image object to the ***images*** array. However, this method could also be used to provide an image object with a customized structure. The image object must be an roAssociativeArray and must have a Draw() method that will automatically get called by the engine.
+##### getImage(image_name as String) as Object
+Returns the image with the provided image name.
+##### removeImage(image_name as String)
+Removes the image matching the provided image name.
 ##### setStaticVariable(variable_name as String, variable_value)
 Sets a variable for an object type that is persistent across all objects of this type (based on the concept of static variables)
 ##### getStaticVariable(variable_name as String)
@@ -307,3 +305,10 @@ Writes to the provided registry section the provided key/value pair. Data types 
 Reads the provided key from the provided registry section. The default value will be written if the registry section and key have no value yet.
 ##### DrawText(draw2d as Object, text as String, x as Integer, y as Integer, font as Object, alignment = "left" as String, color = &hEBEBEBFF as Integer)
 Gives a convenient way to draw text with halignement set as "left", "right", or "center"
+##### DrawScaledAndRotatedObject(draw2d as object, x as float, y as float, scale_x as float, scale_y as float, theta as float, drawable as object, color = &hFFFFFFFF as integer)
+WARNING: This is potentially unsafe and always slow by comparison to normal draw calls. It attempts to both scale and rotate an image when drawing, I say attempts because in order to do both actions it must create a separate roBitmap and do the scaled draw to that before then doing to rotated draw to the draw2d destination. If the scaling is large enough that the created roBitmap is too big or consumes too much video memory this could potentially be breaking.
+##### CreateObject_GameTimeSpan() as Object
+This basically creates an improved roTimespan object which adds the AddTime and RemoveTime methods which are useful when pausing/resuming gameplay (used automatically with the addAnimatedImage timer).
+##### TexturePacker_GetRegions(atlas as dynamic, bitmap as object)
+Automatically parses a JSON Hash type data export from TexturePacker to return an roAssociativeArray with roRegions mapped to the provided bitmap. SetPretranslation will be applied automatically on the regions if pivot points have been enabled in TexturePacker. atlas can be either parsed or unparsed JSON.
+

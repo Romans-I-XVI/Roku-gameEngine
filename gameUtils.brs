@@ -70,6 +70,7 @@ function DrawText(draw2d as object, text as string, x as integer, y as integer, 
 	end if
 end function
 
+' NOTE: This function is unsafe! It creates an roBitmap of the required size to be able to both scale and rotate the drawing, this action requires free video memory of the appropriate amount.
 function DrawScaledAndRotatedObject(draw2d as object, x as float, y as float, scale_x as float, scale_y as float, theta as float, drawable as object, color = &hFFFFFFFF as integer) as void
 	new_width = Abs(int(drawable.GetWidth() * scale_x))
 	new_height = Abs(int(drawable.GetHeight() * scale_y))
@@ -120,4 +121,26 @@ function CreateObject_GameTimeSpan() as object
 	end function
 
 	return timer
+end function
+
+function TexturePacker_GetRegions(atlas as dynamic, bitmap as object) as object
+	if type(atlas) = "String" or type(atlas) = "roString"
+		atlas = ParseJson(atlas)
+	end if
+
+	regions = {}
+	for each key in atlas.frames
+		item = atlas.frames[key]
+		region = CreateObject("roRegion", bitmap, item.frame.x, item.frame.y, item.frame.w, item.frame.h)
+
+		if item.DoesExist("pivot")
+			translation_x = item.spriteSourceSize.x - item.sourceSize.w * item.pivot.x
+			translation_y = item.spriteSourceSize.y - item.sourceSize.h * item.pivot.y
+			region.SetPretranslation(translation_x, translation_y)
+		end if
+
+		regions[key] = region
+	end for
+
+	return regions
 end function
