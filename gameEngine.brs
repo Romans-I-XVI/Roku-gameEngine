@@ -266,11 +266,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 				' -------------------- Then handle the object movement--------------------
 				if m.shouldUseIntegerMovement
-					instance.x = instance.x + cint(instance.xspeed*m.dt)
-					instance.y = instance.y + cint(instance.yspeed*m.dt)
+					instance.x = instance.x + cint(instance.xspeed * 60 * m.dt)
+					instance.y = instance.y + cint(instance.yspeed * 60 * m.dt)
 				else
-					instance.x = instance.x + instance.xspeed*m.dt
-					instance.y = instance.y + instance.yspeed*m.dt
+					instance.x = instance.x + instance.xspeed * 60 * m.dt
+					instance.y = instance.y + instance.yspeed * 60 * m.dt
 				end if
 
 				' ---------------- Give a space for any processing to happen just before collision checking occurs ------------
