@@ -621,7 +621,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 					else if m.rotation = 0
 						m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
 					else
-						m.draw_to.DrawRotatedObject(x, y, m.rotation, m.region, rgba)
+						m.draw_to.DrawRotatedObject(x, y, -m.rotation, m.region, rgba)
 					end if
 				end if
 			end function
@@ -677,7 +677,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 					else if m.rotation = 0
 						m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, region, rgba)
 					else
-						m.draw_to.DrawRotatedObject(x, y, m.rotation, region, rgba)
+						m.draw_to.DrawRotatedObject(x, y, -m.rotation, region, rgba)
 					end if
 				end if
 			end function
