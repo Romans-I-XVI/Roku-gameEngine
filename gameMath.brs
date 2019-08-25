@@ -50,6 +50,7 @@ function Math_RandomRange(lowest_int as integer, highest_int as integer) as inte
 	return rnd(highest_int - (lowest_int - 1)) + (lowest_int - 1)
 end function
 
+' https://stackoverflow.com/questions/2259476/rotating-a-point-about-another-point-2d
 function Math_RotateVectorAroundVector(vector1 as object, vector2 as object, radians as float) as object
 	v = Math_NewVector(vector1.x, vector1.y)
 	s = sin(radians)
@@ -58,8 +59,8 @@ function Math_RotateVectorAroundVector(vector1 as object, vector2 as object, rad
     v.x -= vector2.x
     v.y -= vector2.y
 
-    new_x = v.x * c + v.y * s
-    new_y = -v.x * s + v.y * c
+    new_x = v.x * c - v.y * s
+    new_y = v.x * s + v.y * c
 
     v.x = new_x + vector2.x
     v.y = new_y + vector2.y
