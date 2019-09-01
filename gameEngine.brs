@@ -1059,6 +1059,25 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 
 
+	' ############### getAllInstancesWithInterface() function - Begin ###############
+	game.getAllInstancesWithInterface = function(interface_name as string) as dynamic
+		if m.Interfaces.DoesExist(interface_name)
+			array = []
+			for each instance in m.sorted_instances
+				if instance <> invalid and instance.id <> invalid and instance.hasInterface(interface_name)
+					array.Push(instance)
+				end if
+			end for
+
+			return array
+		else
+			return invalid
+		end if
+	end function
+	' ############### getAllInstancesWithInterface() function - Begin ###############
+
+
+
 	' ############### destroyInstance() function - Begin ###############
 	game.destroyInstance = function(instance as object, call_on_destroy = true) as void
 		if instance <> invalid and instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
