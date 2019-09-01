@@ -32,6 +32,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		device: CreateObject("roDeviceInfo")
 		urltransfers: {}
 		url_port: CreateObject("roMessagePort")
+		ecp_input_port: CreateObject("roMessagePort")
+		ecp_input: CreateObject("roInput")
 		compositor: CreateObject("roCompositor")
 		filesystem: CreateObject("roFileSystem")
 		screen_port: CreateObject("roMessagePort")
@@ -139,6 +141,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' Set up the audioplayer
 	game.audioplayer.SetMessagePort(game.music_port)
 
+	' Set up the input port
+	game.ecp_input.SetMessagePort(game.ecp_input_port)
+
 	' Register all fonts in package
 	ttfs_in_package = game.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
 	otfs_in_package = game.filesystem.FindRecurse("pkg:/fonts/", ".otf")
@@ -181,9 +186,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			end if
 			m.dtTimer.Mark()
 			url_msg = m.url_port.GetMessage()
-			get_screen_msg:
 			universal_control_events = []
 			screen_msg = m.screen_port.GetMessage()
+			ecp_msg = m.ecp_input_port.GetMessage()
 			while screen_msg <> invalid
 				if type(screen_msg) = "roUniversalControlEvent" and screen_msg.GetInt() <> 11
 					universal_control_events.Push(screen_msg)
@@ -241,14 +246,17 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 					end if
 				end if
 
-
 				' -------------------Then send the audioplayer event msg if applicable-------------------
 				if instance.onAudioEvent <> invalid and type(music_msg) = "roAudioPlayerEvent" then
 					instance.onAudioEvent(music_msg)
 					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
 				end if
 
-
+				' -------------------Then send the ecp input events if applicable-------------------
+				if instance.onECPInput <> invalid and type(ecp_msg) = "roInputEvent" and ecp_msg.isInput()
+					instance.onECPInput(ecp_msg.GetInfo())
+					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+				end if
 
 				' -------------------Then send the urltransfer event msg if applicable-------------------
 				if instance.onUrlEvent <> invalid and type(url_msg) = "roUrlEvent" then
@@ -446,6 +454,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			onDrawEnd: invalid
 			onButton: invalid
 			onECPKeyboard: invalid
+			onECPInput: invalid
 			onAudioEvent: invalid
 			onPause: invalid
 			onResume: invalid
@@ -501,6 +510,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		' end function
 
 		' new_object.onECPKeyboard = function(char)
+		' end function
+
+		' new_object.onECPInput = function(data)
 		' end function
 
 		' new_object.onAudioEvent = function(msg)
