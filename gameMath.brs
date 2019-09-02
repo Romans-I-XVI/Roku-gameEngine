@@ -123,3 +123,13 @@ function Math_GetAngle(vector1 as object, vector2 as object) as float
 	y_distance = vector1.y - vector2.y
 	return Math_Atan2(y_distance, x_distance) + Math_PI()
 end function
+
+function Math_HypotenuseToVector(hypotenuse as float, radians as float)
+	x = Cos(radians) * hypotenuse
+	y = Sin(radians) * hypotenuse
+	return Math_NewVector(x,y)
+end function
+
+function Math_VectorToHypotenuse(vector as object) as object
+	return sqr(vector.x * vector.x + vector.y * vector.y)
+end function
