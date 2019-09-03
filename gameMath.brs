@@ -100,6 +100,22 @@ function Math_NewRectangle(x as integer, y as integer, width as integer, height 
 		return {x: m.x + m.width / 2, y: m.y + m.height / 2}
 	end function
 
+	rect.TopLeft = function() as object
+		return Math_NewVector(m.Left(), m.Top())
+	end function
+
+	rect.TopRight = function() as object
+		return Math_NewVector(m.Right(), m.Top())
+	end function
+
+	rect.BottomLeft = function() as object
+		return Math_NewVector(m.Left(), m.Bottom())
+	end function
+
+	rect.BottomRight = function() as object
+		return Math_NewVector(m.Right(), m.Bottom())
+	end function
+
 	rect.Copy = function() as object
 		return Math_NewRectangle(m.x, m.y, m.width, m.height)
 	end function
@@ -108,7 +124,18 @@ function Math_NewRectangle(x as integer, y as integer, width as integer, height 
 end function
 
 function Math_NewCircle(x as integer, y as integer, radius as float) as object
-	return {x: x, y: y, radius: radius}
+	circle = {
+		x: x,
+		y: y,
+		radius: radius,
+		Center: invalid
+	}
+
+	circle.Center = function()
+		return Math_NewVector(m.x, m.y)
+	end function
+
+	return circle
 end function
 
 function Math_TotalDistance(vector1 as object, vector2 as object) as object
@@ -132,4 +159,12 @@ end function
 
 function Math_VectorToHypotenuse(vector as object) as object
 	return sqr(vector.x * vector.x + vector.y * vector.y)
+end function
+
+function Math_AddVectors(vector1 as object, vector2 as object) as object
+	return Math_NewVector(vector1.x + vector2.x, vector1.y + vector2.y)
+end function
+
+function Math_MultiplyVectors(vector1 as object, vector2 as object) as object
+	return Math_NewVector(vector1.x * vector2.x, vector1.y * vector2.y)
 end function
