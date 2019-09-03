@@ -69,7 +69,27 @@ function Math_RotateVectorAroundVector(vector1 as object, vector2 as object, rad
 end function
 
 function Math_NewVector(x = 0, y = 0) as object
-	return {x: x, y: y}
+	vector = {
+		x: x,
+		y: y,
+		Magnitude: invalid,
+		DirectionInRadians: invalid,
+		DirectionInDegrees: invalid
+	}
+
+	vector.Magnitude = function() as double
+		return Sqr(m.x^2 + m.y^2)
+	end function
+
+	vector.DirectionInRadians = function() as double
+		return Math_Atan2(m.y, m.x)
+	end function
+
+	vector.DirectionInDegrees = function() as double
+		return Math_RadiansToDegrees(m.DirectionInRadians())
+	end function
+
+	return vector
 end function
 
 function Math_NewRectangle(x as integer, y as integer, width as integer, height as integer) as object
