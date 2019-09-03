@@ -19,6 +19,18 @@ function Collisions_CircleRect(cx as integer, cy as integer, cr as float, rx as 
     return (circle_distance_x - rw / 2)^2 + (circle_distance_y - rh / 2)^2 <= cr^2
 end function
 
+function CollisionTranslating_CircleCircle(c1_x as float, c1_y as float, c1_r as float, c2_x as float, c2_y as float, c2_r as float) as object
+    circle_1 = Math_NewCircle(c1_x, c1_y, c1_r)
+    circle_2 = Math_NewCircle(c2_x, c2_y, c2_r)
+
+    current_distance_vector = Math_NewVector(circle_1.x - circle_2.x, circle_1.y - circle_2.y)
+	desired_magnitude = circle_1.radius + circle_2.radius
+
+    new_distance_vector = Math_HypotenuseToVector(desired_magnitude, current_distance_vector.DirectionInRadians())
+    new_pos = Math_AddVectors(circle_2.Center(), new_distance_vector)
+    return new_pos
+end function
+
 function CollisionTranslating_CircleRect(cx as double, cy as double, cr as double, rx as double, ry as double, rw as double, rh as double)
     circle = Math_NewCircle(cx, cy, cr)
     rectangle = Math_NewRectangle(rx, ry, rw, rh)
