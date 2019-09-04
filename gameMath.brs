@@ -143,7 +143,7 @@ function Math_NewRectangle(x as integer, y as integer, width as integer, height 
 	return rect
 end function
 
-function Math_NewCircle(x as integer, y as integer, radius as float) as object
+function Math_NewCircle(x as double, y as double, radius as double) as object
 	circle = {
 		x: x,
 		y: y,

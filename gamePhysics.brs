@@ -1,4 +1,4 @@
-function Physics_NewCircle(x as float, y as float, radius as float, xspeed as float, yspeed as float, mass = invalid as dynamic) as object
+function Physics_NewCircle(x as double, y as double, radius as double, xspeed as double, yspeed as double, mass = invalid as dynamic) as object
     circle = Math_NewCircle(x, y, radius)
     circle.speed = Math_NewVector(xspeed, yspeed)
     circle.mass = mass
