@@ -6,7 +6,7 @@ function Collisions_CircleRotatedRect(cx as integer, cy as integer, cr as float,
     return Collisions_CircleRect(new_circle_pos.x, new_circle_pos.y, cr, rx, ry, rw, rh)
 end function
 
-function Collisions_CircleRect(cx as integer, cy as integer, cr as float, rx as integer, ry as integer, rw as integer, rh as integer)
+function Collisions_CircleRect(cx as double, cy as double, cr as float, rx as double, ry as double, rw as double, rh as double)
     circle_distance_x = Abs(cx - rx - rw / 2)
     circle_distance_y = Abs(cy - ry - rh / 2)
 
@@ -19,7 +19,7 @@ function Collisions_CircleRect(cx as integer, cy as integer, cr as float, rx as 
     return (circle_distance_x - rw / 2)^2 + (circle_distance_y - rh / 2)^2 <= cr^2
 end function
 
-function CollisionTranslating_CircleCircle(c1_x as float, c1_y as float, c1_r as float, c2_x as float, c2_y as float, c2_r as float) as object
+function CollisionTranslating_CircleCircle(c1_x as double, c1_y as double, c1_r as double, c2_x as double, c2_y as double, c2_r as double) as object
     circle_1 = Math_NewCircle(c1_x, c1_y, c1_r)
     circle_2 = Math_NewCircle(c2_x, c2_y, c2_r)
 
@@ -30,6 +30,34 @@ function CollisionTranslating_CircleCircle(c1_x as float, c1_y as float, c1_r as
     new_pos = Math_AddVectors(circle_2.Center(), new_distance_vector)
     return new_pos
 end function
+
+' ' This is probably not useful
+' function CollisionTranslating_CircleCircleUsingDirection(c1_x as double, c1_y as double, c1_r as double, direction_in_degrees as double, c2_x as double, c2_y as double, c2_r as double) as object
+'     circle_1 = Math_NewCircle(c1_x, c1_y, c1_r)
+'     circle_2 = Math_NewCircle(c2_x, c2_y, c2_r)
+
+'     while direction_in_degrees > 360
+'         direction_in_degrees -= 360
+'     end while
+'     while direction_in_degrees <= 0
+'         direction_in_degrees += 360
+'     end while
+' 	desired_magnitude = circle_1.radius + circle_2.radius
+
+'     ' first get direction to 0 degrees to work on horizontal plane
+'     amount_to_rotate = -direction_in_degrees
+'     rotated_circle_pos = Math_RotateVectorAroundVector(circle_1.Center(), circle_2.Center(), Math_DegreesToRadians(amount_to_rotate))
+'     ' Get distances of circle on new plane
+'     rotated_distance_y = rotated_circle_pos.y - circle_2.y
+'     rotated_distance_x = -Sqr(desired_magnitude^2 - rotated_distance_y^2)
+'     ' Adjust rotated circle with new distances
+'     rotated_circle_pos.x = circle_2.x + rotated_distance_x
+'     rotated_circle_pos.y = circle_2.y + rotated_distance_y
+'     ' Rotate circle back to original plane
+'     new_circle_pos = Math_RotateVectorAroundVector(rotated_circle_pos, circle_2, Math_DegreesToRadians(-amount_to_rotate))
+
+'     return new_circle_pos
+' end function
 
 function CollisionTranslating_CircleRect(cx as double, cy as double, cr as double, rx as double, ry as double, rw as double, rh as double)
     circle = Math_NewCircle(cx, cy, cr)
