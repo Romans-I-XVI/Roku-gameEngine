@@ -92,7 +92,7 @@ function Math_NewVector(x = 0, y = 0) as object
 	return vector
 end function
 
-function Math_NewRectangle(x as integer, y as integer, width as integer, height as integer) as object
+function Math_NewRectangle(x as double, y as double, width as double, height as double) as object
 	rect = {
 		x: x
 		y: y
@@ -100,19 +100,19 @@ function Math_NewRectangle(x as integer, y as integer, width as integer, height 
 		height: height
 	}
 
-	rect.Right = function() as integer
+	rect.Right = function() as double
 		return m.x + m.width
 	end function
 
-	rect.Left = function() as integer
+	rect.Left = function() as double
 		return m.x
 	end function
 
-	rect.Top = function() as integer
+	rect.Top = function() as double
 		return m.y
 	end function
 
-	rect.Bottom = function() as integer
+	rect.Bottom = function() as double
 		return m.y + m.height
 	end function
 
