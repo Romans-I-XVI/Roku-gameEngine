@@ -119,21 +119,69 @@ function Physics_CircleRect(physics_circle as object, physics_rectangle as objec
         end if
     end for
 
-    if smallest_distance_key = "left" or smallest_distance_key = "right"
-        result_1d = Physics_ElasticCollision1D(circle_mass, circle.speed.x, rectangle_mass, rectangle.speed.x)
-        circle_speed.x = result_1d.speed_1
-        rectangle_speed.x = result_1d.speed_2
-    else if smallest_distance_key = "top" or smallest_distance_key = "bottom"
-        result_1d = Physics_ElasticCollision1D(circle_mass, circle.speed.y, rectangle_mass, rectangle.speed.y)
-        circle_speed.y = result_1d.speed_1
-        rectangle_speed.y = result_1d.speed_2
+    already_moving_opposite_directions = false
+    if smallest_distance_key = "left" and circle.speed.x < 0 and rectangle.speed.x > 0
+        already_moving_opposite_directions = true
+    else if smallest_distance_key = "right" and circle.speed.x > 0 and rectangle.speed.x < 0
+        already_moving_opposite_directions = true
+    else if smallest_distance_key = "top" and circle.speed.y < 0 and rectangle.speed.y > 0
+        already_moving_opposite_directions = true
+    else if smallest_distance_key = "bottom" and circle.speed.y > 0 and rectangle.speed.y < 0
+        already_moving_opposite_directions = true
     end if
 
-    result = {
-        circle_speed: circle_speed
-        rectangle_speed: rectangle_speed
-    }
+    if already_moving_opposite_directions
+        result = {
+            circle_speed: circle_speed,
+            rectangle_speed: rectangle_speed
+        }
+    else
+        if smallest_distance_key = "left" or smallest_distance_key = "right"
+            result_1d = Physics_ElasticCollision1D(circle_mass, circle.speed.x, rectangle_mass, rectangle.speed.x)
+            circle_speed.x = result_1d.speed_1
+            rectangle_speed.x = result_1d.speed_2
+        else if smallest_distance_key = "top" or smallest_distance_key = "bottom"
+            result_1d = Physics_ElasticCollision1D(circle_mass, circle.speed.y, rectangle_mass, rectangle.speed.y)
+            circle_speed.y = result_1d.speed_1
+            rectangle_speed.y = result_1d.speed_2
+        end if
+
+        result = {
+            circle_speed: circle_speed
+            rectangle_speed: rectangle_speed
+        }
+    end if
+
     return result
+end function
+
+function Physics_CircleRotatedRect(physics_circle as object, physics_rectangle as object, rotation_origin_x as double, rotation_origin_y as double, degrees as double)
+    circle = physics_circle
+    rectangle = physics_rectangle
+    origin = Math_NewVector(rotation_origin_x, rotation_origin_y)
+    radians = Math_DegreesToRadians(degrees)
+
+    c_rotated_pos = Math_RotateVectorAroundVector(circle.Center(), origin, -radians)
+    c_rotated_speed_radians = circle.speed.DirectionInRadians() - radians
+    c_rotated_speed = Math_HypotenuseToVector(circle.speed.Magnitude(), c_rotated_speed_radians)
+    rotated_circle = Physics_NewCircle(c_rotated_pos.x, c_rotated_pos.y, circle.radius, c_rotated_speed.x, c_rotated_speed.y, circle.mass)
+
+    r_rotated_speed_radians = rectangle.speed.DirectionInRadians() - radians
+    r_rotated_speed = Math_HypotenuseToVector(rectangle.speed.Magnitude(), r_rotated_speed_radians)
+    rotated_rectangle = Physics_NewRectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height, r_rotated_speed.x, r_rotated_speed.y, rectangle.mass)
+
+    result = Physics_CircleRect(rotated_circle, rotated_rectangle)
+
+    unrotated_circle_speed_radians = result.circle_speed.DirectionInRadians() + radians
+    unrotated_circle_speed = Math_HypotenuseToVector(result.circle_speed.Magnitude(), unrotated_circle_speed_radians)
+
+    unrotated_rectangle_speed_radians = result.rectangle_speed.DirectionInRadians() + radians
+    unrotated_rectangle_speed = Math_HypotenuseToVector(result.rectangle_speed.Magnitude(), unrotated_rectangle_speed_radians)
+
+    return {
+        circle_speed: unrotated_circle_speed
+        rectangle_speed: unrotated_rectangle_speed
+    }
 end function
 
 function Physics_ElasticCollision1D(mass_1 as double, speed_1 as double, mass_2 as double, speed_2 as double) as object
