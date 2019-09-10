@@ -1,4 +1,4 @@
-function Collisions_CircleRotatedRect(cx as integer, cy as integer, cr as float, rx as integer, ry as integer, rw as integer, rh as integer, rotation_origin_x as integer, rotation_origin_y as integer, degrees as integer) as boolean
+function Collisions_CircleRotatedRect(cx as double, cy as double, cr as double, rx as double, ry as double, rw as double, rh as double, rotation_origin_x as double, rotation_origin_y as double, degrees as double) as boolean
     circle_center = Math_NewVector(cx, cy)
     rotation_point = Math_NewVector(rx + rotation_origin_x, ry + rotation_origin_y)
     new_circle_pos = Math_RotateVectorAroundVector(circle_center, rotation_point, -Math_DegreesToRadians(degrees))
@@ -6,7 +6,7 @@ function Collisions_CircleRotatedRect(cx as integer, cy as integer, cr as float,
     return Collisions_CircleRect(new_circle_pos.x, new_circle_pos.y, cr, rx, ry, rw, rh)
 end function
 
-function Collisions_CircleRect(cx as double, cy as double, cr as float, rx as double, ry as double, rw as double, rh as double)
+function Collisions_CircleRect(cx as double, cy as double, cr as double, rx as double, ry as double, rw as double, rh as double)
     circle_distance_x = Abs(cx - rx - rw / 2)
     circle_distance_y = Abs(cy - ry - rh / 2)
 
@@ -30,34 +30,6 @@ function CollisionTranslating_CircleCircle(c1_x as double, c1_y as double, c1_r 
     new_pos = Math_AddVectors(circle_2.Center(), new_distance_vector)
     return new_pos
 end function
-
-' ' This is probably not useful
-' function CollisionTranslating_CircleCircleUsingDirection(c1_x as double, c1_y as double, c1_r as double, direction_in_degrees as double, c2_x as double, c2_y as double, c2_r as double) as object
-'     circle_1 = Math_NewCircle(c1_x, c1_y, c1_r)
-'     circle_2 = Math_NewCircle(c2_x, c2_y, c2_r)
-
-'     while direction_in_degrees > 360
-'         direction_in_degrees -= 360
-'     end while
-'     while direction_in_degrees <= 0
-'         direction_in_degrees += 360
-'     end while
-' 	desired_magnitude = circle_1.radius + circle_2.radius
-
-'     ' first get direction to 0 degrees to work on horizontal plane
-'     amount_to_rotate = -direction_in_degrees
-'     rotated_circle_pos = Math_RotateVectorAroundVector(circle_1.Center(), circle_2.Center(), Math_DegreesToRadians(amount_to_rotate))
-'     ' Get distances of circle on new plane
-'     rotated_distance_y = rotated_circle_pos.y - circle_2.y
-'     rotated_distance_x = -Sqr(desired_magnitude^2 - rotated_distance_y^2)
-'     ' Adjust rotated circle with new distances
-'     rotated_circle_pos.x = circle_2.x + rotated_distance_x
-'     rotated_circle_pos.y = circle_2.y + rotated_distance_y
-'     ' Rotate circle back to original plane
-'     new_circle_pos = Math_RotateVectorAroundVector(rotated_circle_pos, circle_2, Math_DegreesToRadians(-amount_to_rotate))
-
-'     return new_circle_pos
-' end function
 
 function CollisionTranslating_CircleRect(cx as double, cy as double, cr as double, rx as double, ry as double, rw as double, rh as double)
     circle = Math_NewCircle(cx, cy, cr)
@@ -105,6 +77,17 @@ function CollisionTranslating_CircleRect(cx as double, cy as double, cr as doubl
         new_pos = Math_AddVectors(collision_corner_vector, translation_vector)
         return new_pos
     end if
+end function
+
+function CollisionTranslating_CircleRotatedRect(cx as double, cy as double, cr as double, rx as double, ry as double, rw as double, rh as double, rotation_origin_x as double, rotation_origin_y as double, degrees as double)
+    circle_center = Math_NewVector(cx, cy)
+    origin_point = Math_NewVector(rx + rotation_origin_x, ry + rotation_origin_y)
+    rotated_pos = Math_RotateVectorAroundVector(circle_center, origin_point, -Math_DegreesToRadians(degrees))
+
+    rotated_translated_pos = CollisionTranslating_CircleRect(rotated_pos.x, rotated_pos.y, cr, rx, ry, rw, rh)
+    new_pos = Math_RotateVectorAroundVector(rotated_translated_pos, origin_point, Math_DegreesToRadians(degrees))
+
+    return new_pos
 end function
 
 function CollisionTranslating_CircleRectDistances(cx as double, cy as double, cr as double, rx as double, ry as double, rw as double, rh as double)
