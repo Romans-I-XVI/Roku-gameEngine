@@ -158,7 +158,7 @@ end function
 function Physics_CircleRotatedRect(physics_circle as object, physics_rectangle as object, rotation_origin_x as double, rotation_origin_y as double, degrees as double)
     circle = physics_circle
     rectangle = physics_rectangle
-    origin = Math_NewVector(rotation_origin_x, rotation_origin_y)
+    origin = Math_NewVector(physics_rectangle.x + rotation_origin_x, physics_rectangle.y + rotation_origin_y)
     radians = Math_DegreesToRadians(degrees)
 
     c_rotated_pos = Math_RotateVectorAroundVector(circle.Center(), origin, -radians)
