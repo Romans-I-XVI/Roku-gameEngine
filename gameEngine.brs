@@ -307,10 +307,14 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 										other_collider_data = other_collider.GetData()
 										if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
 											instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
-											if instance = invalid or instance.id = invalid : exit for : end if
+											if instance = invalid or instance.id = invalid
+												exit for
+											end if
 										end if
 									end for
-									if instance = invalid or instance.id = invalid : exit for : end if
+									if instance = invalid or instance.id = invalid
+										exit for
+									end if
 								end if
 							else
 								collider.compositor_object.SetMemberFlags(0)

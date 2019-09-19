@@ -31,7 +31,9 @@ function HSVtoRGB(h%,s%,v%,a = invalid) as integer
 		end if
 	end if
 
-	for c = 0 to rgb.count()-1 : rgb[c] = int(rgb[c] * 255) : end for
+	for c = 0 to rgb.count()-1
+		rgb[c] = int(rgb[c] * 255)
+	end for
 	if a <> invalid then
 		color% = (rgb[0] << 24) + (rgb[1] << 16) + (rgb[2] << 8) + a
 	else
