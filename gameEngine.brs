@@ -229,46 +229,46 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				for each msg in universal_control_events
 					if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
 						instance.onButton(msg.GetInt())
-						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+						if instance = invalid or instance.id = invalid : goto end_of_for_loop  : end if
 					end if
 
 					if instance.onECPKeyboard <> invalid and msg.GetChar() <> 0 and msg.GetChar() = msg.GetInt()
 						instance.onECPKeyboard(Chr(msg.GetChar()))
-						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+						if instance = invalid or instance.id = invalid : goto end_of_for_loop  : end if
 					end if
 				end for
-				if m.buttonHeld <> -1 then
+				if m.buttonHeld <> -1
 					' Button release codes are 100 plus the button press code
 					' This shows a button held code as 1000 plus the button press code
 					if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
 						instance.onButton(1000+m.buttonHeld)
-						if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+						if instance = invalid or instance.id = invalid : goto end_of_for_loop  : end if
 					end if
 				end if
 
 				' -------------------Then send the audioplayer event msg if applicable-------------------
-				if instance.onAudioEvent <> invalid and type(music_msg) = "roAudioPlayerEvent" then
+				if instance.onAudioEvent <> invalid and type(music_msg) = "roAudioPlayerEvent"
 					instance.onAudioEvent(music_msg)
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid : goto end_of_for_loop  : end if
 				end if
 
 				' -------------------Then send the ecp input events if applicable-------------------
 				if instance.onECPInput <> invalid and type(ecp_msg) = "roInputEvent" and ecp_msg.isInput()
 					instance.onECPInput(ecp_msg.GetInfo())
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid : goto end_of_for_loop  : end if
 				end if
 
 				' -------------------Then send the urltransfer event msg if applicable-------------------
-				if instance.onUrlEvent <> invalid and type(url_msg) = "roUrlEvent" then
+				if instance.onUrlEvent <> invalid and type(url_msg) = "roUrlEvent"
 					instance.onUrlEvent(url_msg)
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid : goto end_of_for_loop  : end if
 				end if
 
 
 				' -------------------Then process the onUpdate() function----------------------
 				if instance.onUpdate <> invalid
 					instance.onUpdate(m.dt)
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid : goto end_of_for_loop  : end if
 				end if
 
 
@@ -284,20 +284,20 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				' ---------------- Give a space for any processing to happen just before collision checking occurs ------------
 				if instance.onPreCollision <> invalid
 					instance.onPreCollision()
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid : goto end_of_for_loop  : end if
 				end if
 
 				' -------------------Then handle collisions and call onCollision() for each collision---------------------------
 				if instance.onCollision <> invalid
 					for each collider_key in instance.colliders
 						collider = instance.colliders[collider_key]
-						if collider <> invalid then
-							if collider.enabled then
+						if collider <> invalid
+							if collider.enabled
 								collider.compositor_object.SetMemberFlags(collider.member_flags)
 								collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
-								if collider.type = "circle" then
+								if collider.type = "circle"
 									collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
-								else if collider.type = "rectangle" then
+								else if collider.type = "rectangle"
 									collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
 								end if
 								collider.compositor_object.MoveTo(instance.x, instance.y)
@@ -307,10 +307,10 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 										other_collider_data = other_collider.GetData()
 										if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
 											instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
-											if instance = invalid or instance.id = invalid then : exit for : end if
+											if instance = invalid or instance.id = invalid : exit for : end if
 										end if
 									end for
-									if instance = invalid or instance.id = invalid then : exit for : end if
+									if instance = invalid or instance.id = invalid : exit for : end if
 								end if
 							else
 								collider.compositor_object.SetMemberFlags(0)
@@ -323,24 +323,24 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 						end if
 					end for
 				end if
-				if instance = invalid or instance.id = invalid then : goto end_of_for_loop : end if
+				if instance = invalid or instance.id = invalid : goto end_of_for_loop : end if
 
 				' ---------------- Give a space for any processing to happen just after collision checking occurs ------------
 				if instance.onPostCollision <> invalid
 					instance.onPostCollision()
-					if instance = invalid or instance.id = invalid then : goto end_of_for_loop  : end if
+					if instance = invalid or instance.id = invalid : goto end_of_for_loop  : end if
 				end if
 
 				' --------------Adjust compositor collider at end of loop so collider is accurate for collision checking from other objects-------------
 				for each collider_key in instance.colliders
 					collider = instance.colliders[collider_key]
-					if collider <> invalid then
-						if collider.enabled then
+					if collider <> invalid
+						if collider.enabled
 							collider.compositor_object.SetMemberFlags(collider.member_flags)
 							collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
-							if collider.type = "circle" then
+							if collider.type = "circle"
 								collider.compositor_object.GetRegion().SetCollisionCircle(collider.offset_x, collider.offset_y, collider.radius)
-							else if collider.type = "rectangle" then
+							else if collider.type = "rectangle"
 								collider.compositor_object.GetRegion().SetCollisionRectangle(collider.offset_x, collider.offset_y, collider.width, collider.height)
 							end if
 							collider.compositor_object.MoveTo(instance.x, instance.y)
@@ -357,7 +357,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 				end_of_for_loop:
 
-				if instance = invalid or instance.id = invalid then
+				if instance = invalid or instance.id = invalid
 					m.sorted_instances.Delete(i)
 				end if
 
@@ -384,7 +384,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
 			if type(url_msg) = "roUrlEvent"
 				url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
-				if m.urltransfers.DoesExist(url_transfer_id_string) then
+				if m.urltransfers.DoesExist(url_transfer_id_string)
 					m.urltransfers.Delete(url_transfer_id_string)
 				end if
 			end if
@@ -555,7 +555,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			collider.compositor_object = m.game.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
 			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
-			if m.colliders[collider_name] = invalid then
+			if m.colliders[collider_name] = invalid
 				m.colliders[collider_name] = collider
 			else
 				print "addColliderCircle() - Collider Name Already Exists: " + collider_name
@@ -581,7 +581,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			collider.compositor_object = m.game.compositor.NewSprite(m.x, m.y, region)
 			collider.compositor_object.SetDrawableFlag(false)
 			collider.compositor_object.SetData({collider_name: collider_name, object_name: m.name, instance_id: m.id})
-			if m.colliders[collider_name] = invalid then
+			if m.colliders[collider_name] = invalid
 				m.colliders[collider_name] = collider
 			else
 				print "addColliderRectangle() - Collider Name Already Exists: " + collider_name
@@ -597,8 +597,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		end function
 
 		new_object.removeCollider = function(collider_name)
-			if m.colliders[collider_name] <> invalid then
-				if type(m.colliders[collider_name].compositor_object) = "roSprite" then : m.colliders[collider_name].compositor_object.Remove() : end if
+			if m.colliders[collider_name] <> invalid
+				if type(m.colliders[collider_name].compositor_object) = "roSprite" : m.colliders[collider_name].compositor_object.Remove() : end if
 				m.colliders.Delete(collider_name)
 			end if
 		end function
@@ -811,13 +811,13 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	game.drawColliders = function(instance as object, color = &hFF0000FF as integer) as void
 		for each collider_key in instance.colliders
 			collider = instance.colliders[collider_key]
-			if collider.enabled then
-				if collider.type = "circle" then
+			if collider.enabled
+				if collider.type = "circle"
 					' This function is slow as I'm making draw calls for every section of the line.
 					' It's for debugging purposes only!
 					DrawCircle(m.canvas.bitmap, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, color)
 				end if
-				if collider.type = "rectangle" then
+				if collider.type = "rectangle"
 					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, color)
 					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, color)
 					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, color)
@@ -834,7 +834,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	game.drawSafeZones = function() as void
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
-		if m.device.GetDisplayAspectRatio() = "4x3" then
+		if m.device.GetDisplayAspectRatio() = "4x3"
 			action_offset = {w: 0.033*screen_width, h: 0.035*screen_height}
 			title_offset = {w: 0.067*screen_width, h: 0.05*screen_height}
 		else
@@ -863,7 +863,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### Pause() function - Begin ###############
 	game.Pause = function() as void
-		if not m.paused then
+		if not m.paused
 			m.paused = true
 
 			for each object_key in m.Instances
@@ -884,7 +884,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### Resume() function - Begin ###############
 	game.Resume = function() as dynamic
-		if m.paused then
+		if m.paused
 			m.paused = false
 			paused_time = m.pauseTimer.TotalMilliseconds()
 
@@ -1020,7 +1020,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ############### getInstanceByID() function - Begin ###############
 	game.getInstanceByID = function(instance_id as string) as dynamic
 		for each object_key in m.Instances
-			if m.Instances[object_key].DoesExist(instance_id) then
+			if m.Instances[object_key].DoesExist(instance_id)
 				return m.Instances[object_key][instance_id]
 			end if
 		end for
@@ -1032,7 +1032,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### getInstanceByName() function - Begin ###############
 	game.getInstanceByName = function(object_name as string) as dynamic
-		if m.Instances.DoesExist(object_name) then
+		if m.Instances.DoesExist(object_name)
 			for each instance_key in m.Instances[object_name]
 				return m.Instances[object_name][instance_key] ' Obviously only retrieves the first value
 			end for
@@ -1045,7 +1045,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### getAllInstances() function - Begin ###############
 	game.getAllInstances = function(object_name as string) as dynamic
-		if m.Instances.DoesExist(object_name) then
+		if m.Instances.DoesExist(object_name)
 			array = []
 			for each instance_key in m.Instances[object_name]
 				array.Push(m.Instances[object_name][instance_key])
@@ -1080,10 +1080,10 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### destroyInstance() function - Begin ###############
 	game.destroyInstance = function(instance as object, call_on_destroy = true) as void
-		if instance <> invalid and instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
+		if instance <> invalid and instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id)
 			for each collider_key in instance.colliders
 				collider = instance.colliders[collider_key]
-				if type(collider.compositor_object) = "roSprite" then
+				if type(collider.compositor_object) = "roSprite"
 					collider.compositor_object.Remove()
 				end if
 			end for
@@ -1133,11 +1133,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### changeRoom() function - Begin ###############
 	game.changeRoom = function(room_name as string, args = {} as object) as boolean
-		if m.Rooms[room_name] <> invalid then
+		if m.Rooms[room_name] <> invalid
 			for each object_key in m.Instances
 				for each instance_key in m.Instances[object_key]
 					instance = m.Instances[object_key][instance_key]
-					if instance <> invalid and instance.id <> invalid and instance.onChangeRoom <> invalid then
+					if instance <> invalid and instance.id <> invalid and instance.onChangeRoom <> invalid
 						instance.onChangeRoom(room_name)
 					end if
 				end for
@@ -1145,12 +1145,12 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			for each object_key in m.Instances
 				for each instance_key in m.Instances[object_key]
 					instance = m.Instances[object_key][instance_key]
-					if instance.id <> invalid and not instance.persistent and instance.name <> m.currentRoom.name then
+					if instance.id <> invalid and not instance.persistent and instance.name <> m.currentRoom.name
 						m.destroyInstance(instance, false)
 					end if
 				end for
 			end for
-			if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
+			if m.currentRoom <> invalid and m.currentRoom.id <> invalid
 				m.destroyInstance(m.currentRoom, false)
 			end if
 			m.currentRoom = m.newEmptyObject(room_name)
@@ -1179,18 +1179,18 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### loadBitmap() function - Begin ###############
 	game.loadBitmap = function(bitmap_name as string, path as dynamic) as boolean
-		if type(path) = "roAssociativeArray" then
-			if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
+		if type(path) = "roAssociativeArray"
+			if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
 				return true
 			else
 				print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap"
 				return false
 			end if
-		else if m.filesystem.Exists(path) then
+		else if m.filesystem.Exists(path)
 			path_object = CreateObject("roPath", path)
 			parts = path_object.Split()
-			if parts.extension = ".png" or parts.extension = ".jpg" then
+			if parts.extension = ".png" or parts.extension = ".jpg"
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
 				return true
 			else
@@ -1226,10 +1226,10 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### registerFont() function - Begin ###############
 	game.registerFont = function(path as string) as boolean
-		if m.filesystem.Exists(path) then
+		if m.filesystem.Exists(path)
 			path_object = CreateObject("roPath", path)
 			parts = path_object.Split()
-			if parts.extension = ".ttf" or parts.extension = ".otf" then
+			if parts.extension = ".ttf" or parts.extension = ".otf"
 				m.font_registry.register(path)
 				return true
 			else
@@ -1317,12 +1317,12 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		canvas_height = m.canvas.bitmap.GetHeight()
 		screen_width = m.screen.GetWidth()
 		screen_height = m.screen.GetHeight()
-		if screen_width/screen_height < canvas_width/canvas_height then
+		if screen_width/screen_height < canvas_width/canvas_height
 			m.canvas.scale_x = screen_width/canvas_width
 			m.canvas.scale_y = m.canvas.scale_x
 			m.canvas.offset_x = 0
 			m.canvas.offset_y = (screen_height-(screen_width/(canvas_width/canvas_height)))/2
-		else if screen_width/screen_height > canvas_width/canvas_height then
+		else if screen_width/screen_height > canvas_width/canvas_height
 			m.canvas.scale_x = screen_height/canvas_height
 			m.canvas.scale_y = m.canvas.scale_x
 			m.canvas.offset_x = (screen_width-(screen_height*(canvas_width/canvas_height)))/2
@@ -1352,7 +1352,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### musicPlay() function - Begin ###############
 	game.musicPlay = function(path as string, loop = false as boolean) as boolean
-		if m.filesystem.Exists(path) then
+		if m.filesystem.Exists(path)
 			m.audioplayer.stop()
 			m.audioplayer.ClearContent()
 			song = {}
@@ -1404,7 +1404,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### playSound() function - Begin ###############
 	game.playSound = function(sound_name as string, volume = 100 as integer) as boolean
-		if m.Sounds.DoesExist(sound_name) then
+		if m.Sounds.DoesExist(sound_name)
 			m.Sounds[sound_name].trigger(volume)
 			return true
 		else
