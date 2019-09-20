@@ -47,7 +47,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			offset_y: 0
 			scale_x: 1.0
 			scale_y: 1.0
-			color: &hFFFFFF00
 		}
 		' ****END - For Internal Use, Do Not Manually Alter****
 
@@ -393,9 +392,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			' -------------------Draw everything to the screen----------------------------
 			if not m.canvas_is_screen
 				m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
-				if m.canvas.color <> invalid
-					m.canvas.bitmap.Clear(m.canvas.color)
-				end if
 			end if
 
 			' Draw Debug Related Items
