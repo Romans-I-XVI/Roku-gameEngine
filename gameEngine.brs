@@ -13,6 +13,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			limit_frame_rate: 0
 		}
 		canvas_is_screen: false
+		background_color: &h000000FF
 		running: true
 		paused: false
 		sorted_instances: []
@@ -47,7 +48,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			offset_y: 0
 			scale_x: 1.0
 			scale_y: 1.0
-			color: &hFFFFFF00
 		}
 		' ****END - For Internal Use, Do Not Manually Alter****
 
@@ -368,6 +368,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			end for
 
+			' ----------------------Clear the screen before drawing instances-------------------------
+			if m.background_color <> invalid
+				m.canvas.bitmap.Clear(m.background_color)
+			end if
+
 			' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
 			m.sorted_instances.SortBy("depth")
 			for i = m.sorted_instances.Count()-1 to 0 step -1
@@ -386,6 +391,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				end_of_draw_loop:
 			end for
 
+<<<<<<< HEAD
 			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
 			if type(url_msg) = "roUrlEvent"
 				url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
@@ -402,6 +408,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				end if
 			end if
 
+=======
+>>>>>>> master
 			' Draw Debug Related Items
 			if m.debugging.draw_colliders
 				for i = m.sorted_instances.Count()-1 to 0 step -1
@@ -410,6 +418,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 						m.drawColliders(instance)
 					end if
 				end for
+			end if
+
+			' -------------------Draw everything to the screen----------------------------
+			if not m.canvas_is_screen
+				m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
 			end if
 
 			if m.debugging.draw_safe_zones
@@ -422,6 +435,14 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				while 1000 / m.dtTimer.TotalMilliseconds() > m.debugging.limit_frame_rate
 					sleep(1)
 				end while
+			end if
+
+			' ------------------Destroy the UrlTransfer object if it has returned an event------------------
+			if type(url_msg) = "roUrlEvent"
+				url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
+				if m.urltransfers.DoesExist(url_transfer_id_string) then
+					m.urltransfers.Delete(url_transfer_id_string)
+				end if
 			end if
 
 		end while
@@ -924,7 +945,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	end function
 	' ############### isPaused() function - End ###############
 
-
+	' ############### setBackgroundColor() function - Begin ###############
+	game.setBackgroundColor = function(color as dynamic) as void
+		m.background_color = color
+	end function
+	' ############### setBackgroundColor() function - Begin ###############
 
 	' ############### getDeltaTime() function - Begin ###############
 	game.getDeltaTime = function() as float
