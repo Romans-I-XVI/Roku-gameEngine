@@ -117,12 +117,20 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' Set up the screen
 	UIResolution = game.device.getUIResolution()
+	SupportedResolutions = game.device.GetSupportedGraphicsResolutions()
+	FHD_Supported = false
+	for i = 0 to SupportedResolutions.Count() - 1
+		if SupportedResolutions[i].name = "FHD"
+			FHD_Supported = true
+		end if
+	end for
+
 	if UIResolution.name = "SD"
 		game.screen = CreateObject("roScreen", true, 854, 626)
 	else
 		if canvas_width <= 854
 			game.screen = CreateObject("roScreen", true, 854, 480)
-		else if canvas_width <= 1280
+		else if canvas_width <= 1280 or not FHD_Supported
 			game.screen = CreateObject("roScreen", true, 1280, 720)
 		else
 			game.screen = CreateObject("roScreen", true, 1920, 1080)
