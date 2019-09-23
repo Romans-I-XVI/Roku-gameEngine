@@ -366,12 +366,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			' ----------------------Clear the screen before drawing instances-------------------------
 			if m.background_color <> invalid
-				if not m.canvas_is_screen
-					m.screen.Clear(m.background_color)
-					m.canvas.bitmap.Clear(m.background_color)
-				else
-					m.screen.Clear(m.background_color)
-				end if
+				m.canvas.bitmap.Clear(m.background_color)
 			end if
 
 			' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
