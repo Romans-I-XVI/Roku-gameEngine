@@ -1,0 +1,36 @@
+class GameTimer
+
+  internal_roku_timer as object = invalid
+  total_milliseconds_modifier = 0
+
+  function new()
+    m.internal_roku_timer = CreateObject("roTimespan")
+  end function
+
+
+  function Mark()
+    m.internal_roku_timer.Mark()
+    m.total_milliseconds_modifier = 0
+  end function
+
+  function TotalMilliseconds()
+    return m.internal_roku_timer.TotalMilliseconds() + m.total_milliseconds_modifier
+  end function
+
+  function TotalSeconds()
+    return m.internal_roku_timer.TotalSeconds() + cint(m.total_milliseconds_modifier / 1000)
+  end function
+
+  function GetSecondsToISO8601Date(date as string)
+    return m.internal_roku_timer.GetSecondsToISO8601Date(date)
+  end function
+
+  function AddTime(milliseconds as integer)
+    m.total_milliseconds_modifier += milliseconds
+  end function
+
+  function RemoveTime(milliseconds as integer)
+    m.total_milliseconds_modifier -= milliseconds
+  end function
+
+end class

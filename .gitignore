@@ -1,0 +1,6 @@
+node_modules
+dist
+out
+.roku-deploy-staging
+.DS_Store
+.env

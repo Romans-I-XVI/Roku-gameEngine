@@ -1,0 +1,35 @@
+{
+  "name": "brighterscript-game-engine",
+  "version": "0.0.1",
+  "description": "Game Engine for Roku written in Brighterscript. Forked from Romans-I-XVI/Roku-gameEngine",
+  "author": "Mark Pearce",
+  "keywords": [
+    "ropm",
+    "roku",
+    "brighterscript",
+    "brightscript",
+    "game engine"
+  ],
+  "scripts": {
+    "build": "bsc",
+    "package": "bsc --create-package",
+    "preversion": "npm run validate",
+    "validate": "bsc --create-package=false --copy-to-staging=false"
+  },
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {
+    "brighterscript": "^0.16.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markwpearce/brighterscript-game-engine.git"
+  },
+  "homepage": "https://github.com/markwpearce/brighterscript-game-engine#readme",
+  "bugs": {
+    "url": "https://github.com/markwpearce/brighterscript-game-engine/issues"
+  },
+  "ropm": {
+    "packageRootDir": "src"
+  }
+}

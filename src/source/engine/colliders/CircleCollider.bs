@@ -1,0 +1,29 @@
+
+
+class CircleCollider extends Collider
+  radius = 0
+
+
+  function new (collider_name as string, args as object)
+    super(collider_name, args)
+    collider_type = "circle"
+  end function
+
+
+  override function setupCompositorObjectRegionCollider() as void
+    m.compositor_object.GetRegion().SetCollisionCircle(m.offset_x, m.offset_y, m.radius)
+  end function
+
+  override function setupRegionCollision(region) as void
+    region.SetCollisionType(2)
+    region.SetCollisionCircle(offset_x, offset_y, radius)
+  end function
+
+
+  override function debugDraw(draw2d as object, instanceX as float, instanceY as float, color = &hFF0000FF as integer)
+    ' This function is slow as I'm making draw calls for every section of the line.
+    ' It's for debugging purposes only!
+    DrawCircleOutline(draw2d, 16, instanceX + collider.offset_x, instanceY + collider.offset_y, collider.radius, color)
+  end function
+
+end class

@@ -1,0 +1,224 @@
+GameEntityId = 0
+
+class GameEntity
+
+  ' -----Constants-----
+  name as string
+  id as string
+
+  game as object
+
+  ' -----Variables-----
+  enabled = true
+  persistent = false
+  pauseable = true
+  depth = 0
+  x = 0.0
+  y = 0.0
+  xspeed = 0.0
+  yspeed = 0.0
+  colliders = {}
+  images = []
+  images_aa_reference = {}
+
+  sub new(params)
+    GameEntityId++
+    id = GameEntityId.ToStr()
+
+  end sub
+
+  function onCreate(args)
+  end function
+
+  ' This is the structure of the methods that can be added to an object
+
+  function onUpdate(deltaTime as float) as void
+  end function
+
+  function onCollision(collider as object, other_collider as object, other_entity as object) as void
+  end function
+
+  function onDrawBegin(canvas as object) as void
+  end function
+
+  function onDrawEnd(canvas as object) as void
+  end function
+
+  function onButton(code as integer) as void
+    ' 	' -------Button Code Reference--------
+    ' 	' Button  When pressed  When released When Held
+
+    ' 	' Back  0  100 1000
+    ' 	' Up  2  102 1002
+    ' 	' Down  3  103 1003
+    ' 	' Left  4  104 1004
+    ' 	' Right  5  105 1005
+    ' 	' Select  6  106 1006
+    ' 	' Instant Replay  7  107 1007
+    ' 	' Rewind  8  108 1008
+    ' 	' Fast  Forward  9  109 1009
+    ' 	' Info  10  110 1010
+    ' 	' Play  13  113 1013
+  end function
+
+  function onECPKeyboard(char) as void
+  end function
+
+  function onECPInput(data) as void
+  end function
+
+  function onAudioEvent(msg as object) as void
+  end function
+
+  function onPause() as void
+  end function
+
+  function onResume(pause_time) as void
+  end function
+
+  function onUrlEvent(msg) as void
+  end function
+
+  function onGameEvent(event as object, data) as void
+  end function
+
+  function onChangeRoom(new_room) as void
+  end function
+
+  function onDestroy() as void
+  end function
+
+
+  function addCircleCollider(collider_name as string, radius as float, offset_x = 0 as float, offset_y = 0 as float, enabled = true as boolean) as void
+    collider = new CircleCollider(
+    collider_name, {
+      enabled: enabled,
+      radius: radius,
+      offset_x: offset_x,
+      offset_y: offset_y
+    })
+    collider.setupCompositor(m.game, m.name, m.id, m.x, m.y)
+    if m.colliders[collider_name] = invalid
+      m.colliders[collider_name] = collider
+    else
+      print "addColliderCircle() - Collider Name Already Exists: " + collider_name
+    end if
+  end function
+
+  function addRectangleCollider(collider_name as string, offset_x as float, offset_y as float, width as float, height as float, enabled = true as boolean) as void
+    collider = new RectangleCollider(
+    collider_name, {
+      enabled: enabled,
+      offset_x: offset_x,
+      offset_y: offset_y,
+      width: width,
+      height: height
+    })
+    collider.setupCompositor(m.game, m.name, m.id, m.x, m.y)
+    if m.colliders[collider_name] = invalid
+      m.colliders[collider_name] = collider
+    else
+      print "addColliderRectangle() - Collider Name Already Exists: " + collider_name
+    end if
+  end function
+
+  function addCollider(collider as object) as void
+    collider_name = collider.name
+    collider.setupCompositor(m.game, m.name, m.id, m.x, m.y)
+    if m.colliders[collider_name] = invalid
+      m.colliders[collider_name] = collider
+    else
+      print "addCollider() - Collider Name Already Exists: " + collider_name
+    end if
+  end function
+
+  function getCollider(collider_name as string) as object
+    if m.colliders.DoesExist(collider_name)
+      return m.colliders[collider_name]
+    else
+      return invalid
+    end if
+  end function
+
+  function removeCollider(collider_name as string) as void
+    if m.colliders[collider_name] <> invalid
+      if type(m.colliders[collider_name].compositor_object) = "roSprite"
+        m.colliders[collider_name].compositor_object.Remove()
+      end if
+      m.colliders.Delete(collider_name)
+    end if
+  end function
+
+  function addImage(image_name as string, region as object, args = {} as object, insert_position = invalid as integer) as object
+    image_object = new Image(m, region, m.game.canvas, args)
+    return m.addImageObject(image_name, image_object, insert_position)
+  end function
+
+  function addAnimatedImage(image_name as string, regions as object, args = {} as object, insert_position = invalid as integer) as object
+    image_object = new AnimatedImage(m, regions, m.game.canvas, args)
+    return m.addImageObject(image_name, image_object, insert_position)
+  end function
+
+  function addImageObject(image_name as string, image_object as object, insert_position = invalid as integer) as object
+    image_object.name = image_name
+
+    if m.getImage(image_object.name) <> invalid
+      print "addImageObject() - An image named - " + image_object.name + " - already exists"
+      return invalid
+    end if
+
+    m.images_aa_reference[image_object.name] = image_object
+    if insert_position = invalid
+      m.images.Push(image_object)
+    else if insert_position = 0
+      m.images.Unshift(image_object)
+    else if insert_position < m.images.Count()
+      ArrayInsert(m.images, insert_position, image_object)
+    else
+      m.images.Push(image_object)
+    end if
+
+    return image_object
+  end function
+
+  function getImage(image_name) as object
+    return m.images_aa_reference[image_name]
+  end function
+
+  function removeImage(image_name as string) as void
+    m.images_aa_reference.Delete(image_name)
+    if m.images.Count() > 0
+      for i = 0 to m.images.Count() - 1
+        if m.images[i].name = image_name
+          m.images.Delete(i)
+          exit for
+        end if
+      end for
+    end if
+  end function
+
+  function getStaticVariable(static_variable_name as string) as dynamic
+    if m.game.Statics.DoesExist(m.name) and m.game.Statics[m.name].DoesExist(static_variable_name)
+      return m.game.Statics[m.name][static_variable_name]
+    else
+      return invalid
+    end if
+  end function
+
+  function setStaticVariable(static_variable_name as string, static_variable_value as dynamic) as void
+    if m.game.Statics.DoesExist(m.name)
+      m.game.Statics[m.name][static_variable_name] = static_variable_value
+    end if
+  end function
+
+  function addInterface(interface_name as string) as void
+    interfaceObj = {owner: m}
+    m.game.Interfaces[interface_name](interfaceObj)
+    m[interface_name] = interfaceObj
+  end function
+
+  function hasInterface(interface_name as string) as boolean
+    return (m.DoesExist(interface_name) and m[interface_name] <> invalid)
+  end function
+
+end class

@@ -1,0 +1,42 @@
+class Image
+  ' --------------Values That Can Be Changed------------
+  name = ""
+  offset_x = 0 ' The offset of the image.
+  offset_y = 0
+  scale_x = 1.0 ' The image scale.
+  scale_y = 1.0
+  rotation = 0
+  color = &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+  alpha = 255 ' Change the image alpha (transparency).
+  enabled = true ' Whether or not the image will be drawn.
+  draw_to as object ' m.game.getCanvas()
+
+  ' -------------Never To Be Manually Changed-----------------
+  ' These values should never need to be manually changed.
+  private owner as object
+  private region as object
+
+
+  function new(owner as object, region as object, canvas as object, args = {} as object) as void
+    m.owner = owner
+    m.region = region
+    m.draw_to = canvas
+    m.append(args)
+  end function
+
+
+  function Draw()
+    if m.enabled
+      x = m.owner.x + m.offset_x
+      y = m.owner.y + m.offset_y
+      rgba = (m.color << 8) + int(m.alpha)
+      if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
+        m.draw_to.DrawObject(x, y, m.region, rgba)
+      else if m.rotation = 0
+        m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
+      else
+        m.draw_to.DrawRotatedObject(x, y, - m.rotation, m.region, rgba)
+      end if
+    end if
+  end function
+end class

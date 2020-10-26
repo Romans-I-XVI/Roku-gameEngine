@@ -1,0 +1,7 @@
+class Canvas
+  public bitmap as object = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
+  public offset_x = 0
+  public offset_y = 0
+  public scale_x = 1.0
+  public scale_y = 1.0
+end class
