@@ -1,0 +1,28 @@
+class obj_score_handler
+
+  scores = {
+    player: 0
+    computer: 0
+  }
+
+  object.onCreate = function(args)
+  end function
+
+  override function onGameEvent(event as string, data as object)
+    if event = "score"
+      if data.team = 0
+        m.scores.player++
+      else
+        m.scores.computer++
+      end if
+    end if
+  end function
+
+  override function onDrawEnd(canvas as object)
+    font = m.game.getFont("default")
+
+    DrawText(canvas, m.scores.player.ToStr(), 1280 / 2 - 200, 100, font, "center")
+    DrawText(canvas, m.scores.computer.ToStr(), 1280 / 2 + 200, 100, font, "center")
+  end function
+
+end class

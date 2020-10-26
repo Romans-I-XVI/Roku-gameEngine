@@ -8,9 +8,25 @@ This is forked from [Roku-gameEngine](https://github.com/Romans-I-XVI/Roku-gameE
 
 The purpose of this project is to make it easy to develop games for the Roku in an object oriented fashion. Similar to how you would with an engine such as Gamemaker or Unity (minus any visual software that is).
 
+## Installation
+
+Use ropm:
+
+```
+ropm install brighterscript-game-engine
+```
+
+Suggestion - use a shorter prefix (we use `bge` in the documentation):
+
+```
+ropm install bge@npm:brighterscript-game-engine
+```
+
+## Usage
+
 First start by creating the gameEngine object
 
-##### game = new_game(canvas_width as Integer, canvas_height as Integer, canvas_as_screen_if_possible = false as Boolean) as Object
+##### game = new bge_Game(canvas_width as Integer, canvas_height as Integer, canvas_as_screen_if_possible = false as Boolean) as Object
 
 Creates the main game object, the canvas width and height create an empty bitmap of that size that the game is drawn to. If canvas_as_screen_if_possible is set the game will draw to the roScreen directly if the canvas dimensions are the same as the screen dimensions, this improves performance but makes it so you can't do various canvas manipulations (such as screen shake or taking screenshots).
 
@@ -24,11 +40,11 @@ After setting up your game, call this method to execute it.
 
 ##### End() as Void
 
-This will end your game. All existing instances will be destroyed before exiting (meaning onDestroy() will be called).
+This will end your game. All existing entities will be destroyed before exiting (meaning onDestroy() will be called).
 
 ##### Pause() as Void
 
-This will pause your game. Note: all instances that have _pauseable = false_ will continue to execute. Also keep in mind that onDrawBegin, onDrawEnd, and onDrawGui are _always_ executed even when the game is paused.
+This will pause your game. Note: all entities that have _pauseable = false_ will continue to execute. Also keep in mind that onDrawBegin, onDrawEnd, and onDrawGui are _always_ executed even when the game is paused.
 
 ##### Resume() as Dynamic
 
@@ -40,7 +56,7 @@ Returns true if the game is paused.
 
 ##### getDeltaTime() as Float
 
-Returns the delta time. Note: Delta time is automatically applied to the built in instance xspeed and yspeed. Delta time is also automatically passed to the onUpdate(dt) function in every instance for convenience.
+Returns the delta time. Note: Delta time is automatically applied to the built in entity xspeed and yspeed. Delta time is also automatically passed to the onUpdate(dt) function in every entity for convenience.
 
 ##### getRoom() as Object
 
@@ -74,9 +90,9 @@ This enables or disables the drawing of safe zones.
 
 This sets the frame rate limit for the testing game behavior under such circumstances. Default is 0, which is no limit.
 
-##### drawColliders(instance as Object) as Void
+##### drawColliders(entity as Object) as Void
 
-This method is for debugging purposes, it will draw the colliders associated with the provided instance.
+This method is for debugging purposes, it will draw the colliders associated with the provided entity.
 
 ##### drawSafeZones() as Void
 
@@ -92,35 +108,35 @@ Define a new game object. The function provided will be called when an instance 
 
 Define a new interface. The function provided will be called when an instance of a game object calls addInterface, a roAssociativeArray with the property "owner" will be passed in to the defined function.
 
-##### createInstance(object_name as String, [args as AssociativeArray]) as Dynamic
+##### createEntity(object_name as String, [args as AssociativeArray]) as Dynamic
 
 Creates a new instance of an object that has been defined using defineObject(). The args AssociativeArray is optional, it will be passed to the onCreate() method.
 
-If the instance is created successfully, the instance is returned. Otherwise returns invalid.
+If the entity is created successfully, the entity is returned. Otherwise returns invalid.
 
-##### getInstanceByID(instance_id as String) as Object
+##### getEntityByID(entity_id as String) as Object
 
-Returns the instance associated with the provided ID.
+Returns the entity associated with the provided ID.
 
-##### getInstanceByName(object_name as String) as Object
+##### getEntityByName(object_name as String) as Object
 
-Returns the first instance of an object of the specified name. (note: If more than one instance exists, only the first one will be returned)
+Returns the first instance of an object of the specified name. (note: If more than one entity exists, only the first one will be returned)
 
-##### getAllInstances(object_name as String) as Array
+##### getAllEntities(object_name as String) as Array
 
-Returns array containing all instances of the specified name.
+Returns array containing all entities of the specified name.
 
-##### destroyInstance(instance as Object) as Void
+##### destroyEntity(entity as Object) as Void
 
-Destroys the provided instance.
+Destroys the provided entity.
 
-##### destroyAllInstances(object_name as String) as Void
+##### destroyAllEntities(object_name as String) as Void
 
-Destroys all instances of the specified name.
+Destroys all entities of the specified name.
 
-##### instanceCount(object_name as String) as Integer
+##### entityCount(object_name as String) as Integer
 
-Returns the number of instances of the specified name.
+Returns the number of entities of the specified name.
 
 ##### defineRoom(room_name as String, room_creation_function as Function) as Void
 
@@ -230,7 +246,7 @@ Returns a roUrlTransfer object that can be used to asynchronously request data f
 
 ## Game Object
 
-A game object is an object that has been created using the function newEmptyObject(), this is usually done internally by defining a new object using defineObject() and then creating a new instance of it using createInstance(). Instructions on doing this can be found above.
+A game object is an object that has been created using the function newEmptyObject(), this is usually done internally by defining a new object using defineObject() and then creating a new instance of it using createEntity(). Instructions on doing this can be found above.
 
 The basic game object structure looks like this.
 
@@ -259,19 +275,19 @@ new_object = {
 
 ###### ---Constants---
 
-- name: This is the object name as declared by defineObject(). For example - A "ball" object can be defined, all instances of the object will have the name "ball" but will have different IDs.
+- name: This is the object name as declared by defineObject(). For example - A "ball" object can be defined, all entities of the object will have the name "ball" but will have different IDs.
 - id: This is the ID for this specific instance.
 - game: This is a reference to the game so that every object instance can easily access its methods.
 
 ###### ---Variables---
 
-- persistent: If true the instance will not be destroyed when the on changeRoom(), default behavior is to destroy all instances on changeRoom().
-- pauseable: If set to false the instance will continue to execute even when the game is paused. Default is set to true, in which case only onDrawBegin(), onDrawEnd() and onDrawGui() will be called when the game is paused.
-- depth: Declares the instance draw depth.
-- x/y: The x and y positions of the instance.
-- xspeed/yspeed: The movement speed of the instance. Note: This is automatically multiplied by delta time.
-- colliders: Instances can have multiple colliders, you can modify collider properties here but adding a new collider should be done by the methods described below.
-- images: Instances can have multiple images, you can modify image properties here but adding a new image should be done by the methods described below.
+- persistent: If true the instance will not be destroyed when the on changeRoom(), default behavior is to destroy all entities on changeRoom().
+- pauseable: If set to false the entity will continue to execute even when the game is paused. Default is set to true, in which case only onDrawBegin(), onDrawEnd() and onDrawGui() will be called when the game is paused.
+- depth: Declares the entity draw depth.
+- x/y: The x and y positions of the entity.
+- xspeed/yspeed: The movement speed of the entity. Note: This is automatically multiplied by delta time.
+- colliders: Entities can have multiple colliders, you can modify collider properties here but adding a new collider should be done by the methods described below.
+- images: Entities can have multiple images, you can modify image properties here but adding a new image should be done by the methods described below.
 
 ###### ---Override Methods---
 
@@ -280,7 +296,7 @@ Note: For these methods, if an argument is shown, then the override method _must
 
 ##### onCreate(args)
 
-This method will always be called when the instance is created. Put creation code here. Must receive args as an associative array, this is the same associative array that is passed as args when calling createInstance().
+This method will always be called when the entity is created. Put creation code here. Must receive args as an associative array, this is the same associative array that is passed as args when calling createEntity().
 
 ##### onUpdate(deltaTime)
 
@@ -290,9 +306,9 @@ This method is called every frame. Put code to be constantly ran here.
 
 This method is called just before collision checking occurs, any important pre-collision check adjustments can be made here.
 
-##### onCollision(collider, other_collider, other_instance)
+##### onCollision(collider, other_collider, other_entity)
 
-This method is called when two object instances collide. collider and other_collider are strings refering to the specific colliders that are in collision. other_instance is the object instance that has been collided with.
+This method is called when two object entities collide. collider and other_collider are strings refering to the specific colliders that are in collision. other_entity is the object instance that has been collided with.
 
 ##### onPostCollision()
 
@@ -300,11 +316,11 @@ This method is called just after collision checking occurs, any post-collision p
 
 ##### onDrawBegin(canvas)
 
-This is called before the instance is drawn and receives the canvas as a object that can be drawn to.
+This is called before the entity is drawn and receives the canvas as a object that can be drawn to.
 
 ##### onDrawEnd(canvas)
 
-This is called after the instance is drawn and receives the canvas as a object that can be drawn to.
+This is called after the entity is drawn and receives the canvas as a object that can be drawn to.
 
 ##### onButton(code)
 
@@ -354,17 +370,17 @@ This method will be called when the room is changed and recieves the name of the
 
 ##### onDestroy()
 
-This method will always be called just before the instance is destroyed.
+This method will always be called just before the entity is destroyed.
 
 ###### ---Creation Methods---
 
 ##### addColliderRectangle(collider_name as String, offset_x as Integer, offset_y as Integer, width as Integer, height as Integer, [enabled as Boolean])
 
-Adds a rectangle collider to the instance's colliders associative array with the provided name and properties. Enabled is true by default.
+Adds a rectangle collider to the entity's colliders associative array with the provided name and properties. Enabled is true by default.
 
 ##### addColliderCircle(collider_name, radius, [offset_x as Integer, offset_y as Integer, enabled as Boolean])
 
-Adds a circular collider to the instance's colliders associative array with the provided name and properties. By default offset_x is 0, offset_y is 0, and enabled is true.
+Adds a circular collider to the entity's colliders associative array with the provided name and properties. By default offset_x is 0, offset_y is 0, and enabled is true.
 
 ##### getCollider(collider_name as String) as Object
 
@@ -376,7 +392,7 @@ Removes the collider with the provided name.
 
 ##### addImage(image_name as String, region as Object, [args as Object, insert_position as Integer])
 
-Adds the provided roRegion to the instance's images array. By default images are added to the end of the images array but you can also choose to insert the image to a specific position in the array with the insert_position argument. Images are drawn in the order they exist in the instance's images array. Args is an associative array with values to override the defaults. Here are the defaults that can be overridden.
+Adds the provided roRegion to the entity's images array. By default images are added to the end of the images array but you can also choose to insert the image to a specific position in the array with the insert_position argument. Images are drawn in the order they exist in the entity's images array. Args is an associative array with values to override the defaults. Here are the defaults that can be overridden.
 
 ```brightscript
 {
@@ -428,11 +444,11 @@ Returns a static variable, returns invalid if static variable has not been set.
 
 ##### addInterface(interface_name as String) as Void
 
-Adds a previously defined interface to the instance.
+Adds a previously defined interface to the entity.
 
 ##### hasInterface(interface_name as String) as Boolean
 
-Returns true if the instance has the interface.
+Returns true if the entity has the interface.
 
 ## Other Utilities
 

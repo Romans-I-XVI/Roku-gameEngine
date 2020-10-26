@@ -1,0 +1,45 @@
+class obj_computer extends GameEntity
+
+  x = 1280 - 50
+  y = invalid
+  width = invalid
+  height = invalid
+  bounds = {top: 50, bottom: 720 - 50}
+
+  override function onCreate(args)
+    m.y = m.game.getCanvas().GetHeight() / 2
+
+    bm_paddle = m.game.getBitmap("paddle")
+    m.width = bm_paddle.GetWidth()
+    m.height = bm_paddle.GetHeight()
+    m.addColliderRectangle("front", - m.width / 2, - m.height / 2, 1, m.height)
+    m.addColliderRectangle("top", - m.width / 2, - m.height / 2, m.width, 1)
+    m.addColliderRectangle("bottom", - m.width / 2, m.height / 2 - 1, m.width, 1)
+
+    region = CreateObject("roRegion", bm_paddle, 0, 0, m.width, m.height)
+    region.SetPreTranslation(- m.width / 2, - m.height / 2)
+    m.addImage("main", region)
+  end function
+
+  override function onUpdate(dt)
+    ball = m.game.getInstanceByName("ball")
+
+    ' If there is a ball and the ball is moving to the right and hasn't gotten to the computer paddle yet move paddle towards ball
+    if ball <> invalid and ball.xspeed > 0 and ball.x < m.x
+      if ball.y < m.y - 20
+        if m.y > m.bounds.top + m.height / 2
+          m.y -= 3.5 * 60 * dt
+        else
+          m.y = m.bounds.top + m.height / 2
+        end if
+      else if ball.y > m.y + 20
+        if m.y < m.bounds.bottom - m.height / 2
+          m.y += 3.5 * 60 * dt
+        else
+          m.y = m.bounds.bottom - m.height / 2
+        end if
+      end if
+    end if
+  end function
+
+end class

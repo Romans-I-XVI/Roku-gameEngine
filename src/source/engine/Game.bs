@@ -675,11 +675,11 @@ end function
 
 
 ' ############### createEntity() function - Begin ###############
-function createEntity(object_name as string, args = {} as object) as dynamic
+function createEntity(object_name as string, constructor_args = {} as object, creation_args = {} as object) as dynamic
   if m.Objects.DoesExist(object_name)
-    new_entity = m.newEmptyObject(object_name)
-    m.Objects[object_name](new_entity)
-    new_entity.onCreate(args)
+    ' new_instance = m.newEmptyObject(object_name)
+    new_entity = m.Objects[object_name](m, object_name, constructor_args)
+    m.addEntity(object_name, creation_args)
     return new_entity
   else
     return invalid
@@ -687,6 +687,17 @@ function createEntity(object_name as string, args = {} as object) as dynamic
 end function
 ' ############### createEntity() function - End ###############
 
+
+
+' ############### addEntity() function - Begin ###############
+function addEntity(entity as object, args = {} as object) as void
+  if m.Entities.DoesExist(entity.name)
+    entity.onCreate(args)
+    m.Entities[entity.name][entity.id] = entity
+    m.sorted_instances.Push(entity)
+  end if
+end function
+' ############### addEntity() function - End ###############
 
 
 ' ############### getEntityByID() function - Begin ###############
@@ -825,7 +836,7 @@ function changeRoom(room_name as string, args = {} as object) as boolean
     if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
       m.destroyEntity(m.currentRoom, false)
     end if
-    m.currentRoom = m.newEmptyObject(room_name)
+    m.currentRoom = room
     m.Rooms[room_name](m.currentRoom)
     m.currentRoomArgs = args
     m.currentRoom.onCreate(args)
@@ -1110,7 +1121,7 @@ end function
 ' ############### unsetInputEntity() function - End ###############
 
 ' ############### postGameEvent() function - Begin ###############
-function postGameEvent(event as string, data = {} as object) as void
+function postGameEvent(eventName as string, data = {} as object) as void
   object_keys = m.Entities.Keys()
   for each object_key in object_keys
     entity_keys = m.Entities[object_key].Keys()

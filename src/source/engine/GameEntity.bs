@@ -21,11 +21,12 @@ class GameEntity
   images = []
   images_aa_reference = {}
 
-  sub new(params)
+  function new(game as object, object_name as string, args as object) as object
     GameEntityId++
-    id = GameEntityId.ToStr()
-
-  end sub
+    m.id = GameEntityId.ToStr()
+    m.game = game
+    m.append(args)
+  end function
 
   function onCreate(args)
   end function
@@ -79,7 +80,7 @@ class GameEntity
   function onUrlEvent(msg) as void
   end function
 
-  function onGameEvent(event as object, data) as void
+  function onGameEvent(eventName as string, data as object) as void
   end function
 
   function onChangeRoom(new_room) as void
