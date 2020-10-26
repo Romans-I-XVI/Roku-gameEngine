@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "dependencies": {
+    "bge": "file:../"
+  },
+  "devDependencies": {
+    "ropm": "^0.6.3"
+  }
+}

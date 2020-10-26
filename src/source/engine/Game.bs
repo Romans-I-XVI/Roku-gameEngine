@@ -12,11 +12,11 @@ class Game
   private background_color = &h000000FF
   private running = true
   private paused = false
-  private sorted_instances = []
+  private sorted_entities = []
   private buttonHeld = -1
   private buttonHeldTime = 0
-  private input_instance = invalid
-  private current_input_instance = invalid
+  private input_entity = invalid
+  private current_input_entity = invalid
   private dt = 0
   private FakeDT = invalid
   private dtTimer = CreateObject("roTimespan")
@@ -34,7 +34,7 @@ class Game
   private compositor = CreateObject("roCompositor")
   private filesystem = CreateObject("roFileSystem")
   private screen_port = CreateObject("roMessagePort")
-  private audioplayer = CreateObject("roAudioPlayer")
+  private audioPlayer = CreateObject("roAudioPlayer")
   private music_port = CreateObject("roMessagePort")
   private font_registry = CreateObject("roFontRegistry")
   private screen = invalid
@@ -44,7 +44,7 @@ class Game
   ' ****Variables****
   currentRoom = invalid
   currentRoomArgs = {}
-  Instances = {} ' This holds all of the game object instances
+  Entities = {} ' This holds all of the game object entities
   Statics = {} ' This holds all static variables for a given object type
   Objects = {} ' This holds the object definitions by name (the object creation functions)
   Rooms = {} ' This holds the room definitions by name (the room creation functions)
@@ -61,8 +61,8 @@ class Game
     ' Set up the screen
     m.setUpScreen(canvas_width, canvas_height, canvas_as_screen_if_possible)
 
-    ' Set up the audioplayer
-    m.audioplayer.SetMessagePort(m.music_port)
+    ' Set up the audioPlayer
+    m.audioPlayer.SetMessagePort(m.music_port)
 
     ' Set up the input port
     m.ecp_input.SetMessagePort(m.ecp_input_port)
@@ -140,10 +140,10 @@ class Game
 
     while m.running
 
-      if m.input_instance <> invalid and m.getInstanceByID(m.input_instance) = invalid
-        m.input_instance = invalid
+      if m.input_entity <> invalid and m.getEntityByID(m.input_entity) = invalid
+        m.input_entity = invalid
       end if
-      m.current_input_instance = m.input_instance
+      m.current_input_entity = m.input_entity
       m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 
       m.dt = m.dtTimer.TotalMilliseconds() / 1000
@@ -182,38 +182,38 @@ class Game
 
       music_msg = m.music_port.GetMessage()
 
-      ' ----------------------Handle instance interactions (collisions, etc)--------------------
-      m.processInstancesPreDraw()
+      ' ----------------------Handle entity interactions (collisions, etc)--------------------
+      m.processEntitiesPreDraw()
 
-      ' ----------------------Clear the screen before drawing instances-------------------------
+      ' ----------------------Clear the screen before drawing entities-------------------------
       if m.background_color <> invalid
         m.canvas.bitmap.Clear(m.background_color)
       end if
 
-      ' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
-      m.sorted_instances.SortBy("depth")
-      for i = m.sorted_instances.Count() - 1 to 0 step -1
-        instance = m.sorted_instances[i]
-      if instance = invalid or instance.id = invalid : goto end_of_draw_loop : end if
-      if instance.onDrawBegin <> invalid
-        instance.onDrawBegin(m.canvas.bitmap)
-      if instance = invalid or instance.id = invalid : goto end_of_draw_loop : end if
+      ' ----------------------Then draw all of the entities and call onDrawBegin() and onDrawEnd()-------------------------
+      m.sorted_entities.SortBy("depth")
+      for i = m.sorted_entities.Count() - 1 to 0 step -1
+        entity = m.sorted_entities[i]
+      if entity = invalid or entity.id = invalid : goto end_of_draw_loop : end if
+      if entity.onDrawBegin <> invalid
+        entity.onDrawBegin(m.canvas.bitmap)
+      if entity = invalid or entity.id = invalid : goto end_of_draw_loop : end if
     end if
-    for each image in instance.images
+    for each image in entity.images
       image.Draw()
     end for
-    if instance.onDrawEnd <> invalid
-      instance.onDrawEnd(m.canvas.bitmap)
+    if entity.onDrawEnd <> invalid
+      entity.onDrawEnd(m.canvas.bitmap)
     end if
     end_of_draw_loop:
   end for
 
   ' Draw Debug Related Items
   if m.debugging.draw_colliders
-    for i = m.sorted_instances.Count() - 1 to 0 step -1
-      instance = m.sorted_instances[i]
-      if instance <> invalid and instance.id <> invalid and instance.colliders <> invalid
-        m.drawColliders(instance)
+    for i = m.sorted_entities.Count() - 1 to 0 step -1
+      entity = m.sorted_entities[i]
+      if entity <> invalid and entity.id <> invalid and entity.colliders <> invalid
+        m.drawColliders(entity)
       end if
     end for
   end if
@@ -249,101 +249,101 @@ end function
 ' ################################################################ Play() function - End #####################################################################################################
 
 ' --------------------Begin giant loop for processing all game objects----------------
-' Before every instance interaction, the instance is checked to make sure it is still valid
+' Before every entity interaction, the entity is checked to make sure it is still valid
 ' in case it was deleted in the last interaction
-private function processInstancesPreDraw() as void
+private function processEntitiesPreDraw() as void
   started_paused = m.paused
-  for i = m.sorted_instances.Count() - 1 to 0 step -1
-    instance = m.sorted_instances[i]
-    if m.isValidInstance(instance) or not instance.enabled or (started_paused and instance.pauseable)
-      processInstance = false
+  for i = m.sorted_entities.Count() - 1 to 0 step -1
+    entity = m.sorted_entities[i]
+    if m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
+      processEntity = false
     else
 
 
       ' --------------------First process the onButton() function--------------------
-      if m.isValidInstance(instance)
-        m.processInstanceOnButton(instance, universal_control_events)
+      if m.isValidEntity(entity)
+        m.processEntityOnButton(entity, universal_control_events)
       end if
 
-      ' -------------------Then send the audioplayer event msg if applicable-------------------
-      if m.isValidInstance(instance) and invalid <> instance.onAudioEvent and "roAudioPlayerEvent" = type(music_msg)
-        instance.onAudioEvent(music_msg)
+      ' -------------------Then send the audioPlayer event msg if applicable-------------------
+      if m.isValidEntity(entity) and invalid <> entity.onAudioEvent and "roaudioPlayerEvent" = type(music_msg)
+        entity.onAudioEvent(music_msg)
       end if
 
       ' -------------------Then send the ecp input events if applicable-------------------
-      if m.isValidInstance(instance) and invalid <> instance.onECPInput and "roInputEvent" = type(ecp_msg) and ecp_msg.isInput()
-        instance.onECPInput(ecp_msg.GetInfo())
+      if m.isValidEntity(entity) and invalid <> entity.onECPInput and "roInputEvent" = type(ecp_msg) and ecp_msg.isInput()
+        entity.onECPInput(ecp_msg.GetInfo())
       end if
 
       ' -------------------Then send the urltransfer event msg if applicable-------------------
-      if m.isValidInstance(instance) and invalid <> instance.onUrlEvent and "roUrlEvent" = type(url_msg)
-        instance.onUrlEvent(url_msg)
+      if m.isValidEntity(entity) and invalid <> entity.onUrlEvent and "roUrlEvent" = type(url_msg)
+        entity.onUrlEvent(url_msg)
       end if
 
 
       ' -------------------Then process the onUpdate() function----------------------
-      if m.isValidInstance(instance) and invalid <> instance.onUpdate
-        instance.onUpdate(m.dt)
+      if m.isValidEntity(entity) and invalid <> entity.onUpdate
+        entity.onUpdate(m.dt)
       end if
 
 
       ' -------------------- Then handle the object movement--------------------
-      if m.isValidInstance(instance)
-        m.processInstanceMovement(instance)
+      if m.isValidEntity(entity)
+        m.processEntityMovement(entity)
       end if
 
       ' ---------------- Give a space for any processing to happen just before collision checking occurs ------------
-      if m.isValidInstance(instance) and invalid <> instance.onPreCollision
-        instance.onPreCollision()
+      if m.isValidEntity(entity) and invalid <> entity.onPreCollision
+        entity.onPreCollision()
       end if
 
       ' -------------------Then handle collisions and call onCollision() for each collision---------------------------
-      if m.isValidInstance(instance) and invalid <> instance.onCollision
-        m.processInstanceOnCollision(instance)
+      if m.isValidEntity(entity) and invalid <> entity.onCollision
+        m.processEntityOnCollision(entity)
       end if
 
       ' ---------------- Give a space for any processing to happen just after collision checking occurs ------------
-      if m.isValidInstance(instance) and invalid <> instance.onPostCollision
-        instance.onPostCollision()
+      if m.isValidEntity(entity) and invalid <> entity.onPostCollision
+        entity.onPostCollision()
       end if
 
       ' --------------Adjust compositor collider at end of loop so collider is accurate for collision checking from other objects-------------
-      if m.isValidInstance(instance)
-        m.adjustInstanceCompositorObjectPostCollision(instance)
+      if m.isValidEntity(entity)
+        m.adjustEntityCompositorObjectPostCollision(entity)
       end if
     end if
 
-    m.deleteIfInvalidInstance(instance)
+    m.deleteIfInvalidEntity(entity)
   end for
 end function
 
-private function isValidInstance(instance as object) as boolean
-  return invalid <> instance and invalid <> instance.id
+private function isValidEntity(entity as object) as boolean
+  return invalid <> entity and invalid <> entity.id
 end function
 
 
-private function deleteIfInvalidInstance(instance as object) as void
-  if not m.isValidInstance(instance)
-    m.sorted_instances.Delete(i)
+private function deleteIfInvalidEntity(entity as object) as void
+  if not m.isValidEntity(entity)
+    m.sorted_entities.Delete(i)
   end if
 end function
 
 
-private function processInstanceOnButton(instance as object, universal_control_events as object) as boolean
-  if not m.isValidInstance(instance)
+private function processEntityOnButton(entity as object, universal_control_events as object) as boolean
+  if not m.isValidEntity(entity)
     return false
   end if
   for each msg in universal_control_events
-    if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
-      instance.onButton(msg.GetInt())
-      if not m.isValidInstance(instance)
+    if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
+      entity.onButton(msg.GetInt())
+      if not m.isValidEntity(entity)
         return false
       end if
     end if
 
-    if instance.onECPKeyboard <> invalid and msg.GetChar() <> 0 and msg.GetChar() = msg.GetInt()
-      instance.onECPKeyboard(Chr(msg.GetChar()))
-      if not m.isValidInstance(instance)
+    if entity.onECPKeyboard <> invalid and msg.GetChar() <> 0 and msg.GetChar() = msg.GetInt()
+      entity.onECPKeyboard(Chr(msg.GetChar()))
+      if not m.isValidEntity(entity)
         return false
       end if
     end if
@@ -351,9 +351,9 @@ private function processInstanceOnButton(instance as object, universal_control_e
   if m.buttonHeld <> -1 then
     ' Button release codes are 100 plus the button press code
     ' This shows a button held code as 1000 plus the button press code
-    if instance.onButton <> invalid and (m.current_input_instance = invalid or m.current_input_instance = instance.id)
-      instance.onButton(1000 + m.buttonHeld)
-      if not m.isValidInstance(instance)
+    if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
+      entity.onButton(1000 + m.buttonHeld)
+      if not m.isValidEntity(entity)
         return false
       end if
     end if
@@ -361,45 +361,45 @@ private function processInstanceOnButton(instance as object, universal_control_e
   return true
 end function
 
-private function processInstanceMovement(instance as object) as boolean
-  if not m.isValidInstance(instance)
+private function processEntityMovement(entity as object) as boolean
+  if not m.isValidEntity(entity)
     return false
   end if
   if m.shouldUseIntegerMovement
-    instance.x = instance.x + cint(instance.xspeed * 60 * m.dt)
-    instance.y = instance.y + cint(instance.yspeed * 60 * m.dt)
+    entity.x = entity.x + cint(entity.xspeed * 60 * m.dt)
+    entity.y = entity.y + cint(entity.yspeed * 60 * m.dt)
   else
-    instance.x = instance.x + instance.xspeed * 60 * m.dt
-    instance.y = instance.y + instance.yspeed * 60 * m.dt
+    entity.x = entity.x + entity.xspeed * 60 * m.dt
+    entity.y = entity.y + entity.yspeed * 60 * m.dt
   end if
   return true
 end function
 
 
-private function processInstanceOnCollision(instance as object) as boolean
-  if not m.isValidInstance(instance)
+private function processEntityOnCollision(entity as object) as boolean
+  if not m.isValidEntity(entity)
     return false
   end if
-  for each collider_key in instance.colliders
-    collider = instance.colliders[collider_key]
+  for each collider_key in entity.colliders
+    collider = entity.colliders[collider_key]
     if collider <> invalid then
       if collider.enabled then
         collider.compositor_object.SetMemberFlags(collider.member_flags)
         collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
         collider.setupCompositorObjectRegionCollider()
-        collider.compositor_object.MoveTo(instance.x, instance.y)
+        collider.compositor_object.MoveTo(entity.x, entity.y)
         multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
         if multiple_collisions <> invalid
           for each other_collider in multiple_collisions
             other_collider_data = other_collider.GetData()
-            if other_collider_data.instance_id <> instance.id and m.Instances[other_collider_data.object_name].DoesExist(other_collider_data.instance_id)
-              instance.onCollision(collider_key, other_collider_data.collider_name, m.Instances[other_collider_data.object_name][other_collider_data.instance_id])
-              if not m.isValidInstance(instance)
+            if other_collider_data.entity_id <> entity.id and m.Entities[other_collider_data.object_name].DoesExist(other_collider_data.entity_id)
+              entity.onCollision(collider_key, other_collider_data.collider_name, m.Entities[other_collider_data.object_name][other_collider_data.entity_id])
+              if not m.isValidEntity(entity)
                 return false
               end if
             end if
           end for
-          if not m.isValidInstance(instance)
+          if not m.isValidEntity(entity)
             return false
           end if
         end if
@@ -408,25 +408,25 @@ private function processInstanceOnCollision(instance as object) as boolean
         collider.compositor_object.SetCollidableFlags(0)
       end if
     else
-      if instance.colliders.DoesExist(collider_key)
-        instance.colliders.Delete(collider_key)
+      if entity.colliders.DoesExist(collider_key)
+        entity.colliders.Delete(collider_key)
       end if
     end if
   end for
   return true
 end function
 
-private function adjustInstanceCompositorObjectPostCollision(instance as object) as boolean
-  if not m.isValidInstance(instance)
+private function adjustEntityCompositorObjectPostCollision(entity as object) as boolean
+  if not m.isValidEntity(entity)
     return false
   end if
-  for each collider_key in instance.colliders
-    collider = instance.colliders[collider_key]
+  for each collider_key in entity.colliders
+    collider = entity.colliders[collider_key]
     if collider <> invalid then
-      collider.adjustCompositorObject(instance.x, instance.y)
+      collider.adjustCompositorObject(entity.x, entity.y)
     else
-      if instance.colliders.DoesExist(collider_key)
-        instance.colliders.Delete(collider_key)
+      if entity.colliders.DoesExist(collider_key)
+        entity.colliders.Delete(collider_key)
       end if
     end if
   end for
@@ -434,34 +434,34 @@ private function adjustInstanceCompositorObjectPostCollision(instance as object)
   return true
 end function
 
-private function drawInstances() as void
+private function drawEntities() as void
 
-  ' ----------------------Then draw all of the instances and call onDrawBegin() and onDrawEnd()-------------------------
-  m.sorted_instances.SortBy("depth")
-  for i = m.sorted_instances.Count() - 1 to 0 step -1
-    instance = m.sorted_instances[i]
-    m.processInstanceDraw(instance)
+  ' ----------------------Then draw all of the entities and call onDrawBegin() and onDrawEnd()-------------------------
+  m.sorted_entities.SortBy("depth")
+  for i = m.sorted_entities.Count() - 1 to 0 step -1
+    entity = m.sorted_entities[i]
+    m.processEntityDraw(entity)
   end for
 end function
 
 
-private function processInstanceDraw(instance) as boolean
-  if not m.instanceIsValid(instance)
+private function processEntityDraw(entity) as boolean
+  if not m.entityIsValid(entity)
     return false
   end if
-  if m.instanceIsValid(instance) and invalid <> instance.onDrawBegin
-    instance.onDrawBegin(m.canvas.bitmap)
+  if m.entityIsValid(entity) and invalid <> entity.onDrawBegin
+    entity.onDrawBegin(m.canvas.bitmap)
   end if
-  if m.instanceIsValid(instance)
-    for each image in instance.images
+  if m.entityIsValid(entity)
+    for each image in entity.images
       image.Draw()
     end for
 
-    if m.instanceIsValid(instance) and invalid <> instance.onDrawEnd
-      instance.onDrawEnd(m.canvas.bitmap)
+    if m.entityIsValid(entity) and invalid <> entity.onDrawEnd
+      entity.onDrawEnd(m.canvas.bitmap)
     end if
   end if
-  return m.instanceIsValid(instance)
+  return m.entityIsValid(entity)
 end function
 
 
@@ -484,11 +484,11 @@ end function
 ' ############### DebugLimitFrameRate() function - End ###############
 
 ' ############### DrawColliders() function - Begin ###############
-function drawColliders(instance as object, color = &hFF0000FF as integer) as void
-  for each collider_key in instance.colliders
-    collider = instance.colliders[collider_key]
+function drawColliders(entity as object, color = &hFF0000FF as integer) as void
+  for each collider_key in entity.colliders
+    collider = entity.colliders[collider_key]
     if collider.enabled then
-      collider.debugDraw(m.canvas.bitmap, instance.x, instance.y, color)
+      collider.debugDraw(m.canvas.bitmap, entity.x, entity.y, color)
     end if
   end for
 end function
@@ -532,11 +532,11 @@ function Pause() as void
   if not m.paused then
     m.paused = true
 
-    for each object_key in m.Instances
-      for each instance_key in m.Instances[object_key]
-        instance = m.Instances[object_key][instance_key]
-        if instance <> invalid and instance.id <> invalid and instance.onPause <> invalid
-          instance.onPause()
+    for each object_key in m.Entities
+      for each entity_key in m.Entities[object_key]
+        entity = m.Entities[object_key][entity_key]
+        if entity <> invalid and entity.id <> invalid and entity.onPause <> invalid
+          entity.onPause()
         end if
       end for
     end for
@@ -554,16 +554,16 @@ function Resume() as dynamic
     m.paused = false
     paused_time = m.pauseTimer.TotalMilliseconds()
 
-    for each object_key in m.Instances
-      for each instance_key in m.Instances[object_key]
-        instance = m.Instances[object_key][instance_key]
-        for each image in instance.images
+    for each object_key in m.Entities
+      for each entity_key in m.Entities[object_key]
+        entity = m.Entities[object_key][entity_key]
+        for each image in entity.images
           if image.DoesExist("onResume") and image.onResume <> invalid
             image.onResume(paused_time)
           end if
         end for
-        if instance <> invalid and instance.id <> invalid and instance.onResume <> invalid
-          instance.onResume(paused_time)
+        if entity <> invalid and entity.id <> invalid and entity.onResume <> invalid
+          entity.onResume(paused_time)
         end if
       end for
     end for
@@ -635,12 +635,12 @@ function resetScreen() as void
   if m.canvas_is_screen
     m.canvas.bitmap = m.screen
 
-    ' This is so all instances that have images that draw to the screen get updated with the new screen.
-    for each object_key in m.Instances
-      for each instance_key in m.Instances[object_key]
-        instance = m.Instances[object_key][instance_key]
-        if instance <> invalid and instance.id <> invalid and instance.DoesExist("images")
-          for each image in instance.images
+    ' This is so all entities that have images that draw to the screen get updated with the new screen.
+    for each object_key in m.Entities
+      for each entity_key in m.Entities[object_key]
+        entity = m.Entities[object_key][entity_key]
+        if entity <> invalid and entity.id <> invalid and entity.DoesExist("images")
+          for each image in entity.images
             if type(image.draw_to) = "roScreen"
               image.draw_to = m.screen
             end if
@@ -659,7 +659,7 @@ end function
 ' ############### defineObject() function - Begin ###############
 function defineObject(object_name as string, object_creation_function as function) as void
   m.Objects[object_name] = object_creation_function
-  m.Instances[object_name] = {}
+  m.Entities[object_name] = {}
   m.Statics[object_name] = {}
 end function
 ' ############### defineObject() function - End ###############
@@ -674,70 +674,70 @@ end function
 
 
 
-' ############### createInstance() function - Begin ###############
-function createInstance(object_name as string, args = {} as object) as dynamic
+' ############### createEntity() function - Begin ###############
+function createEntity(object_name as string, args = {} as object) as dynamic
   if m.Objects.DoesExist(object_name)
-    new_instance = m.newEmptyObject(object_name)
-    m.Objects[object_name](new_instance)
-    new_instance.onCreate(args)
-    return new_instance
+    new_entity = m.newEmptyObject(object_name)
+    m.Objects[object_name](new_entity)
+    new_entity.onCreate(args)
+    return new_entity
   else
     return invalid
   end if
 end function
-' ############### createInstance() function - End ###############
+' ############### createEntity() function - End ###############
 
 
 
-' ############### getInstanceByID() function - Begin ###############
-function getInstanceByID(instance_id as string) as dynamic
-  for each object_key in m.Instances
-    if m.Instances[object_key].DoesExist(instance_id) then
-      return m.Instances[object_key][instance_id]
+' ############### getEntityByID() function - Begin ###############
+function getEntityByID(entity_id as string) as dynamic
+  for each object_key in m.Entities
+    if m.Entities[object_key].DoesExist(entity_id) then
+      return m.Entities[object_key][entity_id]
     end if
   end for
   return invalid
 end function
-' ############### getInstanceByID() function - End ###############
+' ############### getEntityByID() function - End ###############
 
 
 
-' ############### getInstanceByName() function - Begin ###############
-function getInstanceByName(object_name as string) as dynamic
-  if m.Instances.DoesExist(object_name) then
-    for each instance_key in m.Instances[object_name]
-      return m.Instances[object_name][instance_key] ' Obviously only retrieves the first value
+' ############### getEntityByName() function - Begin ###############
+function getEntityByName(object_name as string) as dynamic
+  if m.Entities.DoesExist(object_name) then
+    for each entity_key in m.Entities[object_name]
+      return m.Entities[object_name][entity_key] ' Obviously only retrieves the first value
     end for
   end if
   return invalid
 end function
-' ############### getInstanceByName() function - End ###############
+' ############### getEntityByName() function - End ###############
 
 
 
-' ############### getAllInstances() function - Begin ###############
-function getAllInstances(object_name as string) as dynamic
-  if m.Instances.DoesExist(object_name) then
+' ############### getAllEntities() function - Begin ###############
+function getAllEntities(object_name as string) as dynamic
+  if m.Entities.DoesExist(object_name) then
     array = []
-    for each instance_key in m.Instances[object_name]
-      array.Push(m.Instances[object_name][instance_key])
+    for each entity_key in m.Entities[object_name]
+      array.Push(m.Entities[object_name][entity_key])
     end for
     return array
   else
     return invalid
   end if
 end function
-' ############### getAllInstances() function - Begin ###############
+' ############### getAllEntities() function - Begin ###############
 
 
 
-' ############### getAllInstancesWithInterface() function - Begin ###############
-function getAllInstancesWithInterface(interface_name as string) as dynamic
+' ############### getAllEntitiesWithInterface() function - Begin ###############
+function getAllEntitiesWithInterface(interface_name as string) as dynamic
   if m.Interfaces.DoesExist(interface_name)
     array = []
-    for each instance in m.sorted_instances
-      if instance <> invalid and instance.id <> invalid and instance.hasInterface(interface_name)
-        array.Push(instance)
+    for each entity in m.sorted_entities
+      if entity <> invalid and entity.id <> invalid and entity.hasInterface(interface_name)
+        array.Push(entity)
       end if
     end for
 
@@ -746,48 +746,48 @@ function getAllInstancesWithInterface(interface_name as string) as dynamic
     return invalid
   end if
 end function
-' ############### getAllInstancesWithInterface() function - Begin ###############
+' ############### getAllEntitiesWithInterface() function - Begin ###############
 
 
 
-' ############### destroyInstance() function - Begin ###############
-function destroyInstance(instance as object, call_on_destroy = true) as void
-  if instance <> invalid and instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) then
-    for each collider_key in instance.colliders
-      collider = instance.colliders[collider_key]
+' ############### destroyEntity() function - Begin ###############
+function destroyEntity(entity as object, call_on_destroy = true) as void
+  if entity <> invalid and entity.id <> invalid and m.Entities[entity.name].DoesExist(entity.id) then
+    for each collider_key in entity.colliders
+      collider = entity.colliders[collider_key]
       if type(collider.compositor_object) = "roSprite" then
         collider.compositor_object.Remove()
       end if
     end for
-    if instance.onDestroy <> invalid and call_on_destroy
-      instance.onDestroy()
+    if entity.onDestroy <> invalid and call_on_destroy
+      entity.onDestroy()
     end if
-    if instance <> invalid and instance.id <> invalid and m.Instances[instance.name].DoesExist(instance.id) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
-      m.Instances[instance.name].Delete(instance.id)
-      instance.Clear()
-      instance.id = invalid
+    if entity <> invalid and entity.id <> invalid and m.Entities[entity.name].DoesExist(entity.id) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
+      m.Entities[entity.name].Delete(entity.id)
+      entity.Clear()
+      entity.id = invalid
     end if
   end if
 end function
-' ############### destroyInstance() function - End ###############
+' ############### destroyEntity() function - End ###############
 
 
 
-' ############### destroyAllInstances() function - Begin ###############
-function destroyAllInstances(object_name as string, call_on_destroy = true) as void
-  for each instance_key in m.Instances[object_name]
-    m.destroyInstance(m.Instances[object_name][instance_key], call_on_destroy)
+' ############### destroyAllEntities() function - Begin ###############
+function destroyAllEntities(object_name as string, call_on_destroy = true) as void
+  for each entity_key in m.Entities[object_name]
+    m.destroyEntity(m.Entities[object_name][entity_key], call_on_destroy)
   end for
 end function
-' ############### destroyAllInstances() function - End ###############
+' ############### destroyAllEntities() function - End ###############
 
 
 
-' ############### instanceCount() function - Begin ###############
-function instanceCount(object_name as string) as integer
-  return m.Instances[object_name].Count()
+' ############### entityCount() function - Begin ###############
+function entityCount(object_name as string) as integer
+  return m.Entities[object_name].Count()
 end function
-' ############### instanceCount() function - End ###############
+' ############### entityCount() function - End ###############
 
 
 ' --------------------------------Begin Room Functions----------------------------------------
@@ -796,7 +796,7 @@ end function
 ' ############### defineRoom() function - Begin ###############
 function defineRoom(room_name as string, room_creation_function as function) as void
   m.Rooms[room_name] = room_creation_function
-  m.Instances[room_name] = {}
+  m.Entities[room_name] = {}
   m.Statics[room_name] = {}
 end function
 ' ############### defineRoom() function - Begin ###############
@@ -806,24 +806,24 @@ end function
 ' ############### changeRoom() function - Begin ###############
 function changeRoom(room_name as string, args = {} as object) as boolean
   if m.Rooms[room_name] <> invalid then
-    for each object_key in m.Instances
-      for each instance_key in m.Instances[object_key]
-        instance = m.Instances[object_key][instance_key]
-        if instance <> invalid and instance.id <> invalid and instance.onChangeRoom <> invalid then
-          instance.onChangeRoom(room_name)
+    for each object_key in m.Entities
+      for each entity_key in m.Entities[object_key]
+        entity = m.Entities[object_key][entity_key]
+        if entity <> invalid and entity.id <> invalid and entity.onChangeRoom <> invalid then
+          entity.onChangeRoom(room_name)
         end if
       end for
     end for
-    for each object_key in m.Instances
-      for each instance_key in m.Instances[object_key]
-        instance = m.Instances[object_key][instance_key]
-        if instance.id <> invalid and not instance.persistent and instance.name <> m.currentRoom.name then
-          m.destroyInstance(instance, false)
+    for each object_key in m.Entities
+      for each entity_key in m.Entities[object_key]
+        entity = m.Entities[object_key][entity_key]
+        if entity.id <> invalid and not entity.persistent and entity.name <> m.currentRoom.name then
+          m.destroyEntity(entity, false)
         end if
       end for
     end for
     if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
-      m.destroyInstance(m.currentRoom, false)
+      m.destroyEntity(m.currentRoom, false)
     end if
     m.currentRoom = m.newEmptyObject(room_name)
     m.Rooms[room_name](m.currentRoom)
@@ -1025,12 +1025,12 @@ end function
 ' ############### musicPlay() function - Begin ###############
 function musicPlay(path as string, loop = false as boolean) as boolean
   if m.filesystem.Exists(path) then
-    m.audioplayer.stop()
-    m.audioplayer.ClearContent()
+    m.audioPlayer.stop()
+    m.audioPlayer.ClearContent()
     song = {}
     song.url = path
-    m.audioplayer.AddContent(song)
-    m.audioplayer.SetLoop(loop)
+    m.audioPlayer.AddContent(song)
+    m.audioPlayer.SetLoop(loop)
     m.audioPlayer.play()
     return true
   else
@@ -1044,7 +1044,7 @@ end function
 
 ' ############### musicStop() function - Begin ###############
 function musicStop() as void
-  m.audioplayer.stop()
+  m.audioPlayer.stop()
 end function
 ' ############### musicStop() function - End ###############
 
@@ -1052,7 +1052,7 @@ end function
 
 ' ############### musicPause() function - Begin ###############
 function musicPause() as void
-  m.audioplayer.pause()
+  m.audioPlayer.pause()
 end function
 ' ############### musicPause() function - End ###############
 
@@ -1060,7 +1060,7 @@ end function
 
 ' ############### musicResume() function - Begin ###############
 function musicResume() as void
-  m.audioplayer.resume()
+  m.audioPlayer.resume()
 end function
 ' ############### musicResume() function - End ###############
 
@@ -1097,27 +1097,27 @@ function newAsyncUrlTransfer() as object
 end function
 ' ############### newAsyncUrlTransfer() function - End ###############
 
-' ############### setInputInstance() function - Begin ###############
-function setInputInstance(instance as object) as void
-  m.input_instance = instance.id
+' ############### setInputEntity() function - Begin ###############
+function setInputEntity(entity as object) as void
+  m.input_entity = entity.id
 end function
-' ############### setInputInstance() function - End ###############
+' ############### setInputEntity() function - End ###############
 
-' ############### unsetInputInstance() function - Begin ###############
-function unsetInputInstance() as void
-  m.input_instance = invalid
+' ############### unsetInputEntity() function - Begin ###############
+function unsetInputEntity() as void
+  m.input_entity = invalid
 end function
-' ############### unsetInputInstance() function - End ###############
+' ############### unsetInputEntity() function - End ###############
 
 ' ############### postGameEvent() function - Begin ###############
 function postGameEvent(event as string, data = {} as object) as void
-  object_keys = m.Instances.Keys()
+  object_keys = m.Entities.Keys()
   for each object_key in object_keys
-    instance_keys = m.Instances[object_key].Keys()
-    for each instance_key in instance_keys
-      instance = m.Instances[object_key][instance_key]
-      if instance <> invalid and instance.id <> invalid and instance.onGameEvent <> invalid
-        instance.onGameEvent(event, data)
+    entity_keys = m.Entities[object_key].Keys()
+    for each entity_key in entity_keys
+      entity = m.Entities[object_key][entity_key]
+      if entity <> invalid and entity.id <> invalid and entity.onGameEvent <> invalid
+        entity.onGameEvent(event, data)
       end if
     end for
   end for

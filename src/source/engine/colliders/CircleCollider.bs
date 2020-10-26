@@ -20,10 +20,10 @@ class CircleCollider extends Collider
   end function
 
 
-  override function debugDraw(draw2d as object, instanceX as float, instanceY as float, color = &hFF0000FF as integer)
+  override function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer)
     ' This function is slow as I'm making draw calls for every section of the line.
     ' It's for debugging purposes only!
-    DrawCircleOutline(draw2d, 16, instanceX + collider.offset_x, instanceY + collider.offset_y, collider.radius, color)
+    DrawCircleOutline(draw2d, 16, entityX + collider.offset_x, entityY + collider.offset_y, collider.radius, color)
   end function
 
 end class

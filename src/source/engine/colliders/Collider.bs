@@ -24,7 +24,7 @@ class Collider
     m.setupRegionCollision(region)
     collider.compositor_object = m.game.compositor.NewSprite(entityX, entityY, region)
     collider.compositor_object.SetDrawableFlag(false)
-    collider.compositor_object.SetData({collider_name: collider_name, object_name: entityName, instance_id: entityId})
+    collider.compositor_object.SetData({collider_name: collider_name, object_name: entityName, entity_id: entityId})
   end function
 
   function setupRegionCollision(region) as void
@@ -45,6 +45,6 @@ class Collider
     end if
   end function
 
-  function debugDraw(draw2d as object, instanceX as float, instanceY as float, color = &hFF0000FF as integer) as void
+  function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer) as void
   end function
 end class

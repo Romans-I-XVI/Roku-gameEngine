@@ -15,8 +15,8 @@ class RectangleCollider extends Collider
   end function
 
 
-  override function debugDraw(draw2d as object, instanceX as float, instanceY as float, color = &hFF0000FF as integer)
-    DrawRectangleOutline(draw2d, instanceX + m.offset_x, instanceY_m.offset_y, m.width, m.height, color)
+  override function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer)
+    DrawRectangleOutline(draw2d, entityX + m.offset_x, entityY_m.offset_y, m.width, m.height, color)
   end function
 
 end class
