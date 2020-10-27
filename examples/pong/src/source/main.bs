@@ -1,0 +1,12 @@
+sub Main()
+  game = new BGE.Game(1280, 720, true) ' This initializes the game engine
+  game.loadBitmap("ball", "pkg:/sprites/ball.png")
+  game.loadBitmap("paddle", "pkg:/sprites/paddle.png")
+  game.loadSound("hit", "pkg:/sounds/hit.wav")
+  game.loadSound("score", "pkg:/sounds/score.wav")
+  main_room = new MainRoom(game)
+  game.defineRoom(main_room)
+  game.changeRoom(main_room.name)
+  game.debugDrawColliders(true)
+  game.Play()
+end sub

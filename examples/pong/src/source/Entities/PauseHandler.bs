@@ -1,4 +1,10 @@
-class obj_pause_handler extends GameEntity
+class PauseHandler extends BGE.GameEntity
+
+
+  function new(game) as void
+    super(game)
+    m.name = "PauseHandler"
+  end function
 
   override function onCreate(args)
     m.persistent = true
@@ -32,7 +38,7 @@ class obj_pause_handler extends GameEntity
 
   override function onDrawBegin(canvas as object)
     if m.game.isPaused() then
-      DrawText(canvas, "Paused", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
+      BGE.DrawText(canvas, "Paused", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
     end if
   end function
 

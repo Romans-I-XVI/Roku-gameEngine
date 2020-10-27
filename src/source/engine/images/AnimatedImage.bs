@@ -1,63 +1,66 @@
 import "../../utils/tweens.bs"
 import "../../utils/math.bs"
 
-class AnimatedImage extends Image
-  ' -------------Only To Be Changed For Animation---------------
-  ' The following values should only be changed if the image is a spritesheet that needs to be animated.
-  ' The spritesheet can have any assortment of multiple columns and rows.
-  index = 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
-  regions as object = invalid
-  animation_speed = 0 ' The time in milliseconds for a single cycle through the animation to play.
-  animation_tween = "LinearTween"
+namespace BGE
 
-  ' -------------Never To Be Manually Changed-----------------
-  ' These values should never need to be manually changed.
-  private animation_timer = new GameTimer()
-  private tweens_reference = GetTweens()
+  class AnimatedImage extends Image
+    ' -------------Only To Be Changed For Animation---------------
+    ' The following values should only be changed if the image is a spritesheet that needs to be animated.
+    ' The spritesheet can have any assortment of multiple columns and rows.
+    index = 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
+    regions as object = invalid
+    animation_speed = 0 ' The time in milliseconds for a single cycle through the animation to play.
+    animation_tween = "LinearTween"
 
-  function new(owner as object, regions as object, canvas as object, args = {} as object) as void
-    super(owner, invalid, canvas, args)
-    m.regions = regions
+    ' -------------Never To Be Manually Changed-----------------
+    ' These values should never need to be manually changed.
+    private animation_timer = new GameTimer()
+    private tweens_reference = GetTweens()
 
-  end function
+    function new(owner as object, regions as object, canvasBitmap as object, args = {} as object)
+      super(owner, invalid, canvasBitmap, args)
+      m.regions = regions
+
+    end function
 
 
-  override function Draw()
-    if m.enabled
-      if m.animation_speed > 0 and not m.owner.game.isPaused()
-        m.Animate()
+    override function Draw()
+      if m.enabled
+        if m.animation_speed > 0 and not m.owner.game.isPaused()
+          m.Animate()
+        end if
+
+        region = m.regions[m.index]
+        x = m.owner.x + m.offset_x
+        y = m.owner.y + m.offset_y
+        rgba = (m.color << 8) + int(m.alpha)
+        if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
+          m.draw_to.DrawObject(x, y, region, rgba)
+        else if m.rotation = 0
+          m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, region, rgba)
+        else
+          m.draw_to.DrawRotatedObject(x, y, - m.rotation, region, rgba)
+        end if
       end if
+    end function
 
-      region = m.regions[m.index]
-      x = m.owner.x + m.offset_x
-      y = m.owner.y + m.offset_y
-      rgba = (m.color << 8) + int(m.alpha)
-      if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
-        m.draw_to.DrawObject(x, y, region, rgba)
-      else if m.rotation = 0
-        m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, region, rgba)
-      else
-        m.draw_to.DrawRotatedObject(x, y, - m.rotation, region, rgba)
+    private function Animate()
+      frame_count = m.regions.Count()
+      current_time = m.animation_timer.TotalMilliseconds()
+      if current_time > m.animation_speed
+        current_time -= m.animation_speed
+        m.animation_timer.RemoveTime(m.animation_speed)
       end if
-    end if
-  end function
+      m.index = m.tweens_reference[m.animation_tween](0, frame_count, current_time, m.animation_speed)
+      if m.index > frame_count - 1
+        m.index = frame_count - 1
+      else if m.index < 0
+        m.index = 0
+      end if
+    end function
 
-  private function Animate()
-    frame_count = m.regions.Count()
-    current_time = m.animation_timer.TotalMilliseconds()
-    if current_time > m.animation_speed
-      current_time -= m.animation_speed
-      m.animation_timer.RemoveTime(m.animation_speed)
-    end if
-    m.index = m.tweens_reference[m.animation_tween](0, frame_count, current_time, m.animation_speed)
-    if m.index > frame_count - 1
-      m.index = frame_count - 1
-    else if m.index < 0
-      m.index = 0
-    end if
-  end function
-
-  function onResume(paused_time as integer)
-    m.animation_timer.RemoveTime(paused_time)
-  end function
-end class
+    function onResume(paused_time as integer)
+      m.animation_timer.RemoveTime(paused_time)
+    end function
+  end class
+end namespace

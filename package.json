@@ -11,14 +11,15 @@
     "game engine"
   ],
   "scripts": {
-    "build": "bsc",
-    "package": "bsc --create-package",
     "preversion": "npm run validate",
     "validate": "bsc --create-package=false --copy-to-staging=false"
   },
+  "files": [
+    "src/**/*"
+  ],
   "license": "MIT",
-  "devDependencies": {},
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "brighterscript": "^0.16.10"
   },
   "repository": {

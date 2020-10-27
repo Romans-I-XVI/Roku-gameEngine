@@ -1,11 +1,13 @@
-class obj_score_handler
+class ScoreHandler extends BGE.GameEntity
 
   scores = {
     player: 0
     computer: 0
   }
 
-  object.onCreate = function(args)
+  function new(game) as void
+    super(game)
+    m.name = "ScoreHandler"
   end function
 
   override function onGameEvent(event as string, data as object)
@@ -21,8 +23,8 @@ class obj_score_handler
   override function onDrawEnd(canvas as object)
     font = m.game.getFont("default")
 
-    DrawText(canvas, m.scores.player.ToStr(), 1280 / 2 - 200, 100, font, "center")
-    DrawText(canvas, m.scores.computer.ToStr(), 1280 / 2 + 200, 100, font, "center")
+    BGE.DrawText(canvas, m.scores.player.ToStr(), 1280 / 2 - 200, 100, font, "center")
+    BGE.DrawText(canvas, m.scores.computer.ToStr(), 1280 / 2 + 200, 100, font, "center")
   end function
 
 end class

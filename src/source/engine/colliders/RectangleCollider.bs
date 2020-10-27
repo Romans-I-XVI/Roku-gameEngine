@@ -1,22 +1,23 @@
+namespace BGE
+
+  class RectangleCollider extends Collider
+    width as float = 0.0
+    height as float = 0.0
+
+    function new (collider_name as string, args as object)
+      super(collider_name, args)
+      collider_type = "rectangle"
+    end function
 
 
-class RectangleCollider extends Collider
-  width as float = 0.0
-  height as float = 0.0
-
-  function new (collider_name as string, args as object)
-    super(collider_name, args)
-    collider_type = "rectangle"
-  end function
+    override function setupCompositorObjectRegionCollider() as void
+      m.compositor_object.GetRegion().SetCollisionRectangle(m.offset_x, m.offset_y, m.width, m.height)
+    end function
 
 
-  override function setupCompositorObjectRegionCollider() as void
-    m.compositor_object.GetRegion().SetCollisionRectangle(m.offset_x, m.offset_y, m.width, m.height)
-  end function
+    override function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer)
+      BGE.DrawRectangleOutline(draw2d, entityX + m.offset_x, entityY + m.offset_y, m.width, m.height, color)
+    end function
 
-
-  override function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer)
-    DrawRectangleOutline(draw2d, entityX + m.offset_x, entityY_m.offset_y, m.width, m.height, color)
-  end function
-
-end class
+  end class
+end namespace

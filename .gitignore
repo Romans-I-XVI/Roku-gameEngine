@@ -4,3 +4,5 @@ out
 .roku-deploy-staging
 .DS_Store
 .env
+roku_modules
+*.tgz

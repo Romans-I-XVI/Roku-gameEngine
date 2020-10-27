@@ -1,19 +1,30 @@
-class room_main extends Room
+class MainRoom extends BGE.Room
+
+  game_started = false
+  ball_spawn_timer = invalid 'CreateObject("roTimespan")
+  ball_direction = -1
+  ball = invalid
+
+  function new(game) as void
+    super(game)
+    m.name = "MainRoom"
+  end function
 
   override function onCreate(args)
-    m.game.createInstance("pause_handler")
-    m.game.createInstance("score_handler")
-    m.game.createInstance("player")
-    m.game.createInstance("computer")
-    m.game_started = false
+    m.game.addEntity(new Player(m.game))
+    m.game.addEntity(new Computer(m.game))
+    m.game.addEntity(new PauseHandler(m.game))
+    m.game.addEntity(new ScoreHandler(m.game))
+
+    m.game_started = true
     m.ball_spawn_timer = CreateObject("roTimespan")
     m.ball_direction = -1
     m.ball = invalid
   end function
 
   override function onUpdate(dt)
-    if m.game_started and m.ball = invalid and m.ball_spawn_timer.TotalMilliseconds() > 1000
-      m.ball = m.game.createInstance("ball", {direction: m.ball_direction})
+    if m.game_started and not BGE.isValidEntity(m.ball) and m.ball_spawn_timer.TotalMilliseconds() > 1000
+      m.ball = m.game.addEntity(new Ball(m.game), {direction: m.ball_direction})
     end if
   end function
 
@@ -21,7 +32,7 @@ class room_main extends Room
     canvas.DrawRect(0, 0, 1280, 50, &hFFFFFFFF)
     canvas.DrawRect(0, 720 - 50, 1280, 50, &hFFFFFFFF)
     if not m.game_started then
-      DrawText(canvas, "Press OK To Play", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
+      BGE.DrawText(canvas, "Press OK To Play", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
     end if
   end function
 
@@ -46,4 +57,4 @@ class room_main extends Room
     end if
   end function
 
-end function
+end class

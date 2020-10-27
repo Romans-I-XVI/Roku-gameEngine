@@ -1,3 +1,9 @@
-class Room extends GameEntity
+namespace BGE
 
-end class
+  class Room extends GameEntity
+
+    function new(game as object, args = {} as object)
+      super(game, args)
+    end function
+  end class
+end namespace

@@ -1,9 +1,14 @@
-class obj_ball extends GameEntity
+class Ball extends BGE.GameEntity
 
   direction = invalid
   hit_frequency_timer = CreateObject("roTimeSpan")
   dead = false
   bounds = {top: 50, bottom: 720 - 50}
+
+  function new(game) as void
+    super(game)
+    m.name = "Ball"
+  end function
 
   override function onCreate(args)
     m.direction = args.direction
@@ -16,29 +21,30 @@ class obj_ball extends GameEntity
     end if
 
     bm_ball = m.game.getBitmap("ball")
+    ' bs:disable-next-line
     region = CreateObject("roRegion", bm_ball, 0, 0, bm_ball.GetWidth(), bm_ball.GetHeight())
-    region.SetPretranslation(- bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2)
+    region.SetPreTranslation(- bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2)
     m.addImage("main", region, {color: &hffffff, alpha: 0})
-    m.addColliderRectangle("main_collider", - bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2, bm_ball.GetWidth(), bm_ball.GetHeight())
+    m.addRectangleCollider("main_collider", - bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2, bm_ball.GetWidth(), bm_ball.GetHeight())
   end function
 
-  override function onCollision(collider_name as string, other_collider_name as string, other_instance as object)
+  override function onCollision(collider_name as string, other_collider_name as string, other_entity as object)
     need_to_play_hit_sound = false
 
     ' If colliding with the front of the player paddle
-    if not m.dead and other_instance.name = "player" and other_collider_name = "front"
+    if not m.dead and other_entity.name = "Player" and other_collider_name = "front"
       m.xspeed = Abs(m.xspeed)
       need_to_play_hit_sound = true
     end if
 
     ' If colliding with the front of the computer paddle
-    if not m.dead and other_instance.name = "computer" and other_collider_name = "front"
+    if not m.dead and other_entity.name = "Computer" and other_collider_name = "front"
       m.xspeed = Abs(m.xspeed) * -1
       need_to_play_hit_sound = true
     end if
 
     ' If colliding with the front or bottom of the either paddle
-    if (other_instance.name = "player" or other_instance.name = "computer")
+    if (other_entity.name = "Player" or other_entity.name = "Computer")
       if other_collider_name = "top" then
         m.yspeed = Abs(m.yspeed) * -1
         need_to_play_hit_sound = true
@@ -64,21 +70,21 @@ class obj_ball extends GameEntity
     end if
 
     ' If the left side of the ball is past the center of the player paddle position
-    if m.x - collider.width / 2 <= m.game.getInstanceByName("player").x
+    if m.x - collider.width / 2 <= m.game.getEntityByName("player").x
       m.dead = true
       if m.x <= -100
         m.game.postGameEvent("score", {team: 1})
-        m.game.destroyInstance(m)
+        m.game.destroyEntity(m)
         return void ' If an entity destroys itself it must return immediately as all internal variables are now invalid
       end if
     end if
 
     ' If the right side of the ball is past the center of the computer paddle
-    if m.x + collider.width / 2 >= m.game.getInstanceByName("computer").x
+    if m.x + collider.width / 2 >= m.game.getEntityByName("computer").x
       m.dead = true
       if m.x >= 1280 + 100
         m.game.postGameEvent("score", {team: 0})
-        m.game.destroyInstance(m)
+        m.game.destroyEntity(m)
         return void ' If an entity destroys itself it must return immediately as all internal variables are now invalid
       end if
     end if

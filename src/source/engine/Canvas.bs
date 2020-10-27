@@ -1,7 +1,15 @@
-class Canvas
-  public bitmap as object = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
-  public offset_x = 0
-  public offset_y = 0
-  public scale_x = 1.0
-  public scale_y = 1.0
-end class
+namespace BGE
+
+  class Canvas
+    bitmap as object = invalid
+    offset_x = 0
+    offset_y = 0
+    scale_x = 1.0
+    scale_y = 1.0
+
+    function new(canvas_width as integer, canvas_height as integer)
+      m.bitmap = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
+    end function
+
+  end class
+end namespace

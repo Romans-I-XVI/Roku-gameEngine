@@ -1,1140 +1,1146 @@
 
+namespace BGE
+  class Game
+    ' ****BEGIN - For Internal Use, Do Not Manually Alter****
 
-class Game
-  ' ****BEGIN - For Internal Use, Do Not Manually Alter****
+    private debugging = {
+      draw_colliders: false
+      draw_safe_zones: false
+      limit_frame_rate: 0
+    }
+    private canvas_is_screen = false
+    private background_color = &h000000FF
+    private running = true
+    private paused = false
+    private sorted_entities = []
+    private buttonHeld = -1
+    private buttonHeldTime = 0
+    private input_entity = invalid
+    private current_input_entity = invalid
+    private dt = 0
+    private FakeDT = invalid
+    private dtTimer = CreateObject("roTimespan")
+    private pauseTimer = CreateObject("roTimespan")
+    private buttonHeldTimer = CreateObject("roTimespan")
+    private currentID = 0
+    private shouldUseIntegerMovement = false
+    private enableAudioGuideSuppression = true
+    private empty_bitmap = CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
+    private device = CreateObject("roDeviceInfo")
+    private urlTransfers = {}
+    private url_port = CreateObject("roMessagePort")
+    private ecp_input_port = CreateObject("roMessagePort")
+    private ecp_input = CreateObject("roInput")
+    private compositor = CreateObject("roCompositor")
+    private filesystem = CreateObject("roFileSystem")
+    private screen_port = CreateObject("roMessagePort")
+    private audioPlayer = CreateObject("roAudioPlayer")
+    private music_port = CreateObject("roMessagePort")
+    private font_registry = CreateObject("roFontRegistry")
+    private screen = invalid
+    private canvas = invalid
+    private nextGameEntityId = 0
+    ' ****END - For Internal Use, Do Not Manually Alter****
 
-  private debugging = {
-    draw_colliders: false
-    draw_safe_zones: false
-    limit_frame_rate: 0
-  }
-  private canvas_is_screen = false
-  private background_color = &h000000FF
-  private running = true
-  private paused = false
-  private sorted_entities = []
-  private buttonHeld = -1
-  private buttonHeldTime = 0
-  private input_entity = invalid
-  private current_input_entity = invalid
-  private dt = 0
-  private FakeDT = invalid
-  private dtTimer = CreateObject("roTimespan")
-  private pauseTimer = CreateObject("roTimespan")
-  private buttonHeldTimer = CreateObject("roTimespan")
-  private currentID = 0
-  private shouldUseIntegerMovement = false
-  private enableAudioGuideSuppression = true
-  private empty_bitmap = CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
-  private device = CreateObject("roDeviceInfo")
-  private urltransfers = {}
-  private url_port = CreateObject("roMessagePort")
-  private ecp_input_port = CreateObject("roMessagePort")
-  private ecp_input = CreateObject("roInput")
-  private compositor = CreateObject("roCompositor")
-  private filesystem = CreateObject("roFileSystem")
-  private screen_port = CreateObject("roMessagePort")
-  private audioPlayer = CreateObject("roAudioPlayer")
-  private music_port = CreateObject("roMessagePort")
-  private font_registry = CreateObject("roFontRegistry")
-  private screen = invalid
-  private canvas = new Canvas()
-  ' ****END - For Internal Use, Do Not Manually Alter****
-
-  ' ****Variables****
-  currentRoom = invalid
-  currentRoomArgs = {}
-  Entities = {} ' This holds all of the game object entities
-  Statics = {} ' This holds all static variables for a given object type
-  Objects = {} ' This holds the object definitions by name (the object creation functions)
-  Rooms = {} ' This holds the room definitions by name (the room creation functions)
-  Interfaces = {} ' This holds the interface definitions by name.
-  Bitmaps = {} ' This holds the loaded bitmaps by name
-  Sounds = {} ' This holds the loaded sounds by name
-  Fonts = {} ' This holds the loaded fonts by name
-
-
-  sub new(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false)
-
-    ' ############### Create Initial Object - Begin ###############
-
-    ' Set up the screen
-    m.setUpScreen(canvas_width, canvas_height, canvas_as_screen_if_possible)
-
-    ' Set up the audioPlayer
-    m.audioPlayer.SetMessagePort(m.music_port)
-
-    ' Set up the input port
-    m.ecp_input.SetMessagePort(m.ecp_input_port)
-
-    ' Register all fonts in package
-    m.setUpFonts()
-
-    ' ############### Create Initial Object - End ###############
+    ' ****Variables****
+    currentRoom = invalid
+    currentRoomArgs = {}
+    Entities = {} ' This holds all of the game object entities
+    Statics = {} ' This holds all static variables for a given object type
+    Objects = {} ' This holds the object definitions by name (the object creation functions)
+    Rooms = {} ' This holds the room definitions by name (the room creation functions)
+    Interfaces = {} ' This holds the interface definitions by name.
+    Bitmaps = {} ' This holds the loaded bitmaps by name
+    Sounds = {} ' This holds the loaded sounds by name
+    Fonts = {} ' This holds the loaded fonts by name
 
 
-  end sub
+    function new(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false)
+
+      ' ############### Create Initial Object - Begin ###############
+      ' Set up the screen
+      m.canvas = new Canvas(canvas_width, canvas_height)
+      m.setUpScreen(canvas_width, canvas_height, canvas_as_screen_if_possible)
+
+      ' Set up the audioPlayer
+      m.audioPlayer.SetMessagePort(m.music_port)
+
+      ' Set up the input port
+      m.ecp_input.SetMessagePort(m.ecp_input_port)
+
+      ' Register all fonts in package
+      m.setUpFonts()
+
+      ' ############### Create Initial Object - End ###############
+    end function
 
 
-  private function setUpScreen(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false) as void
-    UIResolution = m.device.getUIResolution()
-    SupportedResolutions = m.device.GetSupportedGraphicsResolutions()
-    FHD_Supported = false
-    for i = 0 to SupportedResolutions.Count() - 1
-      if SupportedResolutions[i].name = "FHD"
-        FHD_Supported = true
-      end if
-    end for
+    private function setUpScreen(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false) as void
+      UIResolution = m.device.getUIResolution()
+      SupportedResolutions = m.device.GetSupportedGraphicsResolutions()
+      FHD_Supported = false
+      for i = 0 to SupportedResolutions.Count() - 1
+        if SupportedResolutions[i].name = "FHD"
+          FHD_Supported = true
+        end if
+      end for
 
-
-    if UIResolution.name = "SD"
-      'bs:disable-next-line
-      m.screen = CreateObject("roScreen", true, 854, 626)
-    else
-      if canvas_width <= 854
+      if UIResolution.name = "SD"
         'bs:disable-next-line
-        m.screen = CreateObject("roScreen", true, 854, 480)
-      else if canvas_width <= 1280 or not FHD_Supported
-        'bs:disable-next-line
-        m.screen = CreateObject("roScreen", true, 1280, 720)
+        m.screen = CreateObject("roScreen", true, 854, 626)
       else
-        'bs:disable-next-line
-        m.screen = CreateObject("roScreen", true, 1920, 1080)
+        if canvas_width <= 854
+          'bs:disable-next-line
+          m.screen = CreateObject("roScreen", true, 854, 480)
+        else if canvas_width <= 1280 or not FHD_Supported
+          'bs:disable-next-line
+          m.screen = CreateObject("roScreen", true, 1280, 720)
+        else
+          'bs:disable-next-line
+          m.screen = CreateObject("roScreen", true, 1920, 1080)
+        end if
       end if
-    end if
-    m.compositor.SetDrawTo(m.screen, &h00000000)
-    m.screen.SetMessagePort(m.screen_port)
-    m.screen.SetAlphaEnable(true)
+      m.compositor.SetDrawTo(m.screen, &h00000000)
+      m.screen.SetMessagePort(m.screen_port)
+      m.screen.SetAlphaEnable(true)
 
-    if canvas_as_screen_if_possible
-      if m.screen.GetWidth() = m.canvas.bitmap.GetWidth() and m.screen.GetHeight() = m.canvas.bitmap.GetHeight()
-        m.canvas.bitmap = m.screen
-        m.canvas_is_screen = true
+      if canvas_as_screen_if_possible
+        if m.screen.GetWidth() = m.canvas.bitmap.GetWidth() and m.screen.GetHeight() = m.canvas.bitmap.GetHeight()
+          m.canvas.bitmap = m.screen
+          m.canvas_is_screen = true
+        end if
       end if
-    end if
-  end function
+    end function
 
 
-  private function setUpFonts() as void
-    ttfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
-    otfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".otf")
-    for each font_path in ttfs_in_package
-      m.font_registry.Register("pkg:/fonts/" + font_path)
-    end for
-    for each font_path in otfs_in_package
-      m.font_registry.Register("pkg:/fonts/" + font_path)
-    end for
+    private function setUpFonts() as void
+      ttfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
+      otfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".otf")
+      for each font_path in ttfs_in_package
+        m.font_registry.Register("pkg:/fonts/" + font_path)
+      end for
+      for each font_path in otfs_in_package
+        m.font_registry.Register("pkg:/fonts/" + font_path)
+      end for
 
-    ' Create the default font
-    m.Fonts["default"] = m.font_registry.GetDefaultFont(28, false, false)
-  end function
+      ' Create the default font
+      m.Fonts["default"] = m.font_registry.GetDefaultFont(28, false, false)
+    end function
 
-  ' ################################################################ Play() function - Begin #####################################################################################################
-  public function Play() as void
+    function getGameEntityId() as string
+      id = m.nextGameEntityId.ToStr()
+      m.nextGameEntityId++
+      return id
+    end function
 
-    audio_guide_suppression_roURLTransfer = CreateObject("roURLTransfer")
-    audio_guide_suppression_roURLTransfer.SetUrl("http://localhost:8060/keydown/Backspace")
-    audio_guide_suppression_ticker = 0
+    ' ################################################################ Play() function - Begin #####################################################################################################
+    public function Play() as void
 
-    m.running = true
+      audio_guide_suppression_roURLTransfer = CreateObject("roURLTransfer")
+      audio_guide_suppression_roURLTransfer.SetUrl("http://localhost:8060/keydown/Backspace")
+      audio_guide_suppression_ticker = 0
 
-    while m.running
+      m.running = true
 
-      if m.input_entity <> invalid and m.getEntityByID(m.input_entity) = invalid
-        m.input_entity = invalid
-      end if
-      m.current_input_entity = m.input_entity
-      m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
+      while m.running
 
-      m.dt = m.dtTimer.TotalMilliseconds() / 1000
-      if m.FakeDT <> invalid
-        m.dt = m.FakeDT
-      end if
-      m.dtTimer.Mark()
-      url_msg = m.url_port.GetMessage()
-      universal_control_events = []
-      screen_msg = m.screen_port.GetMessage()
-      ecp_msg = m.ecp_input_port.GetMessage()
-      while screen_msg <> invalid
-        if type(screen_msg) = "roUniversalControlEvent" and screen_msg.GetInt() <> 11
-          universal_control_events.Push(screen_msg)
-          if screen_msg.GetInt() < 100
-            m.buttonHeld = screen_msg.GetInt()
-            m.buttonHeldTimer.Mark()
-          else
-            m.buttonHeld = -1
-            if m.enableAudioGuideSuppression
-              if screen_msg.GetInt() = 110
-                audio_guide_suppression_ticker++
-                if audio_guide_suppression_ticker = 3
-                  audio_guide_suppression_roURLTransfer.AsyncPostFromString("")
+        if m.input_entity <> invalid and m.getEntityByID(m.input_entity) = invalid
+          m.input_entity = invalid
+        end if
+        m.current_input_entity = m.input_entity
+        m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
+
+        m.dt = m.dtTimer.TotalMilliseconds() / 1000
+        if m.FakeDT <> invalid
+          m.dt = m.FakeDT
+        end if
+        m.dtTimer.Mark()
+        url_msg = m.url_port.GetMessage()
+        universal_control_events = []
+        screen_msg = m.screen_port.GetMessage()
+        ecp_msg = m.ecp_input_port.GetMessage()
+        while screen_msg <> invalid
+          if type(screen_msg) = "roUniversalControlEvent" and screen_msg.GetInt() <> 11
+            universal_control_events.Push(screen_msg)
+            if screen_msg.GetInt() < 100
+              m.buttonHeld = screen_msg.GetInt()
+              m.buttonHeldTimer.Mark()
+            else
+              m.buttonHeld = -1
+              if m.enableAudioGuideSuppression
+                if screen_msg.GetInt() = 110
+                  audio_guide_suppression_ticker++
+                  if audio_guide_suppression_ticker = 3
+                    audio_guide_suppression_roURLTransfer.AsyncPostFromString("")
+                    audio_guide_suppression_ticker = 0
+                  end if
+                else
                   audio_guide_suppression_ticker = 0
                 end if
-              else
-                audio_guide_suppression_ticker = 0
               end if
+              m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
             end if
-            m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
+          end if
+          screen_msg = m.screen_port.GetMessage()
+        end while
+
+        music_msg = m.music_port.GetMessage()
+
+        ' ----------------------Handle entity interactions (collisions, etc)--------------------
+        m.processEntitiesPreDraw(universal_control_events)
+
+        ' ----------------------Clear the screen before drawing entities-------------------------
+        if m.background_color <> invalid
+          m.canvas.bitmap.Clear(m.background_color)
+        end if
+
+        ' ----------------------Then draw all of the entities and call onDrawBegin() and onDrawEnd()-------------------------
+        m.drawEntities()
+        m.drawDebugItems()
+
+        ' -------------------Draw everything to the screen----------------------------
+        if not m.canvas_is_screen
+          m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
+        end if
+
+        if m.debugging.draw_safe_zones
+          m.drawSafeZones()
+        end if
+
+        m.screen.SwapBuffers()
+
+        if m.debugging.limit_frame_rate > 0 and m.dtTimer.TotalMilliseconds() > 0
+          while 1000 / m.dtTimer.TotalMilliseconds() > m.debugging.limit_frame_rate
+            sleep(1)
+          end while
+        end if
+
+        ' ------------------Destroy the UrlTransfer object if it has returned an event------------------
+        if type(url_msg) = "roUrlEvent"
+          url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
+          if m.urlTransfers.DoesExist(url_transfer_id_string) then
+            m.urlTransfers.Delete(url_transfer_id_string)
           end if
         end if
-        screen_msg = m.screen_port.GetMessage()
+
       end while
 
-      music_msg = m.music_port.GetMessage()
+    end function
+    ' ################################################################ Play() function - End #####################################################################################################
 
-      ' ----------------------Handle entity interactions (collisions, etc)--------------------
-      m.processEntitiesPreDraw()
+    ' --------------------Begin giant loop for processing all game objects----------------
+    ' Before every entity interaction, the entity is checked to make sure it is still valid
+    ' in case it was deleted in the last interaction
+    private function processEntitiesPreDraw(universal_control_events as object) as void
+      started_paused = m.paused
+      for i = m.sorted_entities.Count() - 1 to 0 step -1
+        entity = m.sorted_entities[i]
+        if not m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
+          processEntity = false
+        else
 
-      ' ----------------------Clear the screen before drawing entities-------------------------
-      if m.background_color <> invalid
-        m.canvas.bitmap.Clear(m.background_color)
+
+          ' --------------------First process the onButton() function--------------------
+          if m.isValidEntity(entity)
+            m.processEntityOnButton(entity, universal_control_events)
+          end if
+
+          ' -------------------Then send the audioPlayer event msg if applicable-------------------
+          if m.isValidEntity(entity) and invalid <> entity.onAudioEvent and "roaudioPlayerEvent" = type(music_msg)
+            entity.onAudioEvent(music_msg)
+          end if
+
+          ' -------------------Then send the ecp input events if applicable-------------------
+          if m.isValidEntity(entity) and invalid <> entity.onECPInput and "roInputEvent" = type(ecp_msg) and ecp_msg.isInput()
+            entity.onECPInput(ecp_msg.GetInfo())
+          end if
+
+          ' -------------------Then send the urltransfer event msg if applicable-------------------
+          if m.isValidEntity(entity) and invalid <> entity.onUrlEvent and "roUrlEvent" = type(url_msg)
+            entity.onUrlEvent(url_msg)
+          end if
+
+
+          ' -------------------Then process the onUpdate() function----------------------
+          if m.isValidEntity(entity) and invalid <> entity.onUpdate
+            entity.onUpdate(m.dt)
+          end if
+
+
+          ' -------------------- Then handle the object movement--------------------
+          if m.isValidEntity(entity)
+            m.processEntityMovement(entity)
+          end if
+
+          ' ---------------- Give a space for any processing to happen just before collision checking occurs ------------
+          if m.isValidEntity(entity) and invalid <> entity.onPreCollision
+            entity.onPreCollision()
+          end if
+
+          ' -------------------Then handle collisions and call onCollision() for each collision---------------------------
+          if m.isValidEntity(entity) and invalid <> entity.onCollision
+            m.processEntityOnCollision(entity)
+          end if
+
+          ' ---------------- Give a space for any processing to happen just after collision checking occurs ------------
+          if m.isValidEntity(entity) and invalid <> entity.onPostCollision
+            entity.onPostCollision()
+          end if
+
+          ' --------------Adjust compositor collider at end of loop so collider is accurate for collision checking from other objects-------------
+          if m.isValidEntity(entity)
+            m.adjustEntityCompositorObjectPostCollision(entity)
+          end if
+        end if
+
+        m.deleteIfInvalidEntity(i)
+      end for
+    end function
+
+
+
+    private function isValidEntity(entity as object) as boolean
+      return BGE.isValidEntity(entity)
+    end function
+
+
+    private function deleteIfInvalidEntity(sortedEntitiesIndex as integer) as void
+      entity = m.sorted_entities[sortedEntitiesIndex]
+      if not m.isValidEntity(entity)
+        m.sorted_entities.Delete(sortedEntitiesIndex)
       end if
+    end function
+
+
+    private function processEntityOnButton(entity as object, universal_control_events as object) as boolean
+      if not m.isValidEntity(entity)
+        return false
+      end if
+      for each msg in universal_control_events
+        if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
+          entity.onButton(msg.GetInt())
+          if not m.isValidEntity(entity)
+            return false
+          end if
+        end if
+
+        if entity.onECPKeyboard <> invalid and msg.GetChar() <> 0 and msg.GetChar() = msg.GetInt()
+          entity.onECPKeyboard(Chr(msg.GetChar()))
+          if not m.isValidEntity(entity)
+            return false
+          end if
+        end if
+      end for
+      if m.buttonHeld <> -1 then
+        ' Button release codes are 100 plus the button press code
+        ' This shows a button held code as 1000 plus the button press code
+        if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
+          entity.onButton(1000 + m.buttonHeld)
+          if not m.isValidEntity(entity)
+            return false
+          end if
+        end if
+      end if
+      return true
+    end function
+
+    private function processEntityMovement(entity as object) as boolean
+      if not m.isValidEntity(entity)
+        return false
+      end if
+      if m.shouldUseIntegerMovement
+        entity.x = entity.x + cint(entity.xspeed * 60 * m.dt)
+        entity.y = entity.y + cint(entity.yspeed * 60 * m.dt)
+      else
+        entity.x = entity.x + entity.xspeed * 60 * m.dt
+        entity.y = entity.y + entity.yspeed * 60 * m.dt
+      end if
+      return true
+    end function
+
+
+    private function processEntityOnCollision(entity as object) as boolean
+      if not m.isValidEntity(entity)
+        return false
+      end if
+      for each collider_key in entity.colliders
+        collider = entity.colliders[collider_key]
+        if collider <> invalid then
+          if collider.enabled then
+            collider.compositor_object.SetMemberFlags(collider.member_flags)
+            collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
+            collider.setupCompositorObjectRegionCollider()
+            collider.compositor_object.MoveTo(entity.x, entity.y)
+            multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
+            if multiple_collisions <> invalid
+              for each other_collider in multiple_collisions
+                other_collider_data = other_collider.GetData()
+                if other_collider_data.entity_id <> entity.id and m.Entities[other_collider_data.object_name].DoesExist(other_collider_data.entity_id)
+                  entity.onCollision(collider_key, other_collider_data.collider_name, m.Entities[other_collider_data.object_name][other_collider_data.entity_id])
+                  if not m.isValidEntity(entity)
+                    return false
+                  end if
+                end if
+              end for
+              if not m.isValidEntity(entity)
+                return false
+              end if
+            end if
+          else
+            collider.compositor_object.SetMemberFlags(0)
+            collider.compositor_object.SetCollidableFlags(0)
+          end if
+        else
+          if entity.colliders.DoesExist(collider_key)
+            entity.colliders.Delete(collider_key)
+          end if
+        end if
+      end for
+      return true
+    end function
+
+    private function adjustEntityCompositorObjectPostCollision(entity as object) as boolean
+      if not m.isValidEntity(entity)
+        return false
+      end if
+      for each collider_key in entity.colliders
+        collider = entity.colliders[collider_key]
+        if collider <> invalid then
+          collider.adjustCompositorObject(entity.x, entity.y)
+        else
+          if entity.colliders.DoesExist(collider_key)
+            entity.colliders.Delete(collider_key)
+          end if
+        end if
+      end for
+
+      return true
+    end function
+
+    private function drawEntities() as void
 
       ' ----------------------Then draw all of the entities and call onDrawBegin() and onDrawEnd()-------------------------
       m.sorted_entities.SortBy("depth")
       for i = m.sorted_entities.Count() - 1 to 0 step -1
         entity = m.sorted_entities[i]
-      if entity = invalid or entity.id = invalid : goto end_of_draw_loop : end if
-      if entity.onDrawBegin <> invalid
-        entity.onDrawBegin(m.canvas.bitmap)
-      if entity = invalid or entity.id = invalid : goto end_of_draw_loop : end if
-    end if
-    for each image in entity.images
-      image.Draw()
-    end for
-    if entity.onDrawEnd <> invalid
-      entity.onDrawEnd(m.canvas.bitmap)
-    end if
-    end_of_draw_loop:
-  end for
-
-  ' Draw Debug Related Items
-  if m.debugging.draw_colliders
-    for i = m.sorted_entities.Count() - 1 to 0 step -1
-      entity = m.sorted_entities[i]
-      if entity <> invalid and entity.id <> invalid and entity.colliders <> invalid
-        m.drawColliders(entity)
-      end if
-    end for
-  end if
-
-  ' -------------------Draw everything to the screen----------------------------
-  if not m.canvas_is_screen
-    m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
-  end if
-
-  if m.debugging.draw_safe_zones
-    m.drawSafeZones()
-  end if
-
-  m.screen.SwapBuffers()
-
-  if m.debugging.limit_frame_rate > 0 and m.dtTimer.TotalMilliseconds() > 0
-    while 1000 / m.dtTimer.TotalMilliseconds() > m.debugging.limit_frame_rate
-      sleep(1)
-    end while
-  end if
-
-  ' ------------------Destroy the UrlTransfer object if it has returned an event------------------
-  if type(url_msg) = "roUrlEvent"
-    url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
-    if m.urltransfers.DoesExist(url_transfer_id_string) then
-      m.urltransfers.Delete(url_transfer_id_string)
-    end if
-  end if
-
-end while
-
-end function
-' ################################################################ Play() function - End #####################################################################################################
-
-' --------------------Begin giant loop for processing all game objects----------------
-' Before every entity interaction, the entity is checked to make sure it is still valid
-' in case it was deleted in the last interaction
-private function processEntitiesPreDraw() as void
-  started_paused = m.paused
-  for i = m.sorted_entities.Count() - 1 to 0 step -1
-    entity = m.sorted_entities[i]
-    if m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
-      processEntity = false
-    else
-
-
-      ' --------------------First process the onButton() function--------------------
-      if m.isValidEntity(entity)
-        m.processEntityOnButton(entity, universal_control_events)
-      end if
-
-      ' -------------------Then send the audioPlayer event msg if applicable-------------------
-      if m.isValidEntity(entity) and invalid <> entity.onAudioEvent and "roaudioPlayerEvent" = type(music_msg)
-        entity.onAudioEvent(music_msg)
-      end if
-
-      ' -------------------Then send the ecp input events if applicable-------------------
-      if m.isValidEntity(entity) and invalid <> entity.onECPInput and "roInputEvent" = type(ecp_msg) and ecp_msg.isInput()
-        entity.onECPInput(ecp_msg.GetInfo())
-      end if
-
-      ' -------------------Then send the urltransfer event msg if applicable-------------------
-      if m.isValidEntity(entity) and invalid <> entity.onUrlEvent and "roUrlEvent" = type(url_msg)
-        entity.onUrlEvent(url_msg)
-      end if
-
-
-      ' -------------------Then process the onUpdate() function----------------------
-      if m.isValidEntity(entity) and invalid <> entity.onUpdate
-        entity.onUpdate(m.dt)
-      end if
-
-
-      ' -------------------- Then handle the object movement--------------------
-      if m.isValidEntity(entity)
-        m.processEntityMovement(entity)
-      end if
-
-      ' ---------------- Give a space for any processing to happen just before collision checking occurs ------------
-      if m.isValidEntity(entity) and invalid <> entity.onPreCollision
-        entity.onPreCollision()
-      end if
-
-      ' -------------------Then handle collisions and call onCollision() for each collision---------------------------
-      if m.isValidEntity(entity) and invalid <> entity.onCollision
-        m.processEntityOnCollision(entity)
-      end if
-
-      ' ---------------- Give a space for any processing to happen just after collision checking occurs ------------
-      if m.isValidEntity(entity) and invalid <> entity.onPostCollision
-        entity.onPostCollision()
-      end if
-
-      ' --------------Adjust compositor collider at end of loop so collider is accurate for collision checking from other objects-------------
-      if m.isValidEntity(entity)
-        m.adjustEntityCompositorObjectPostCollision(entity)
-      end if
-    end if
-
-    m.deleteIfInvalidEntity(entity)
-  end for
-end function
-
-private function isValidEntity(entity as object) as boolean
-  return invalid <> entity and invalid <> entity.id
-end function
-
-
-private function deleteIfInvalidEntity(entity as object) as void
-  if not m.isValidEntity(entity)
-    m.sorted_entities.Delete(i)
-  end if
-end function
-
-
-private function processEntityOnButton(entity as object, universal_control_events as object) as boolean
-  if not m.isValidEntity(entity)
-    return false
-  end if
-  for each msg in universal_control_events
-    if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
-      entity.onButton(msg.GetInt())
-      if not m.isValidEntity(entity)
-        return false
-      end if
-    end if
-
-    if entity.onECPKeyboard <> invalid and msg.GetChar() <> 0 and msg.GetChar() = msg.GetInt()
-      entity.onECPKeyboard(Chr(msg.GetChar()))
-      if not m.isValidEntity(entity)
-        return false
-      end if
-    end if
-  end for
-  if m.buttonHeld <> -1 then
-    ' Button release codes are 100 plus the button press code
-    ' This shows a button held code as 1000 plus the button press code
-    if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
-      entity.onButton(1000 + m.buttonHeld)
-      if not m.isValidEntity(entity)
-        return false
-      end if
-    end if
-  end if
-  return true
-end function
-
-private function processEntityMovement(entity as object) as boolean
-  if not m.isValidEntity(entity)
-    return false
-  end if
-  if m.shouldUseIntegerMovement
-    entity.x = entity.x + cint(entity.xspeed * 60 * m.dt)
-    entity.y = entity.y + cint(entity.yspeed * 60 * m.dt)
-  else
-    entity.x = entity.x + entity.xspeed * 60 * m.dt
-    entity.y = entity.y + entity.yspeed * 60 * m.dt
-  end if
-  return true
-end function
-
-
-private function processEntityOnCollision(entity as object) as boolean
-  if not m.isValidEntity(entity)
-    return false
-  end if
-  for each collider_key in entity.colliders
-    collider = entity.colliders[collider_key]
-    if collider <> invalid then
-      if collider.enabled then
-        collider.compositor_object.SetMemberFlags(collider.member_flags)
-        collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
-        collider.setupCompositorObjectRegionCollider()
-        collider.compositor_object.MoveTo(entity.x, entity.y)
-        multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
-        if multiple_collisions <> invalid
-          for each other_collider in multiple_collisions
-            other_collider_data = other_collider.GetData()
-            if other_collider_data.entity_id <> entity.id and m.Entities[other_collider_data.object_name].DoesExist(other_collider_data.entity_id)
-              entity.onCollision(collider_key, other_collider_data.collider_name, m.Entities[other_collider_data.object_name][other_collider_data.entity_id])
-              if not m.isValidEntity(entity)
-                return false
-              end if
-            end if
-          end for
-          if not m.isValidEntity(entity)
-            return false
-          end if
-        end if
-      else
-        collider.compositor_object.SetMemberFlags(0)
-        collider.compositor_object.SetCollidableFlags(0)
-      end if
-    else
-      if entity.colliders.DoesExist(collider_key)
-        entity.colliders.Delete(collider_key)
-      end if
-    end if
-  end for
-  return true
-end function
-
-private function adjustEntityCompositorObjectPostCollision(entity as object) as boolean
-  if not m.isValidEntity(entity)
-    return false
-  end if
-  for each collider_key in entity.colliders
-    collider = entity.colliders[collider_key]
-    if collider <> invalid then
-      collider.adjustCompositorObject(entity.x, entity.y)
-    else
-      if entity.colliders.DoesExist(collider_key)
-        entity.colliders.Delete(collider_key)
-      end if
-    end if
-  end for
-
-  return true
-end function
-
-private function drawEntities() as void
-
-  ' ----------------------Then draw all of the entities and call onDrawBegin() and onDrawEnd()-------------------------
-  m.sorted_entities.SortBy("depth")
-  for i = m.sorted_entities.Count() - 1 to 0 step -1
-    entity = m.sorted_entities[i]
-    m.processEntityDraw(entity)
-  end for
-end function
-
-
-private function processEntityDraw(entity) as boolean
-  if not m.entityIsValid(entity)
-    return false
-  end if
-  if m.entityIsValid(entity) and invalid <> entity.onDrawBegin
-    entity.onDrawBegin(m.canvas.bitmap)
-  end if
-  if m.entityIsValid(entity)
-    for each image in entity.images
-      image.Draw()
-    end for
-
-    if m.entityIsValid(entity) and invalid <> entity.onDrawEnd
-      entity.onDrawEnd(m.canvas.bitmap)
-    end if
-  end if
-  return m.entityIsValid(entity)
-end function
-
-
-' ############### DebugDrawColliders() function - Begin ###############
-function debugDrawColliders(enabled as boolean) as void
-  m.debugging.draw_colliders = enabled
-end function
-' ############### DebugDrawColliders() function - End ###############
-
-' ############### DebugDrawSafeZones() function - Begin ###############
-function debugDrawSafeZones(enabled as boolean) as void
-  m.debugging.draw_safe_zones = enabled
-end function
-' ############### DebugDrawSafeZones() function - End ###############
-
-' ############### DebugLimitFrameRate() function - Begin ###############
-function debugLimitFrameRate(limit_frame_rate as integer) as void
-  m.debugging.limit_frame_rate = limit_frame_rate
-end function
-' ############### DebugLimitFrameRate() function - End ###############
-
-' ############### DrawColliders() function - Begin ###############
-function drawColliders(entity as object, color = &hFF0000FF as integer) as void
-  for each collider_key in entity.colliders
-    collider = entity.colliders[collider_key]
-    if collider.enabled then
-      collider.debugDraw(m.canvas.bitmap, entity.x, entity.y, color)
-    end if
-  end for
-end function
-' ############### DrawColliders() function - End ###############
-
-
-
-' ############### DrawSafeZones() function - End ###############
-function drawSafeZones() as void
-  screen_width = m.screen.GetWidth()
-  screen_height = m.screen.GetHeight()
-  if m.device.GetDisplayAspectRatio() = "4x3" then
-    action_offset = {w: 0.033 * screen_width, h: 0.035 * screen_height}
-    title_offset = {w: 0.067 * screen_width, h: 0.05 * screen_height}
-  else
-    action_offset = {w: 0.035 * screen_width, h: 0.035 * screen_height}
-    title_offset = {w: 0.1 * screen_width, h: 0.05 * screen_height}
-  end if
-  action_safe_zone = {x1: action_offset.w, y1: action_offset.h, x2: screen_width - action_offset.w, y2: screen_height - action_offset.h}
-  title_safe_zone = {x1: title_offset.w, y1: title_offset.h, x2: screen_width - title_offset.w, y2: screen_height - title_offset.h}
-
-  m.screen.DrawRect(action_safe_zone.x1, action_safe_zone.y1, action_safe_zone.x2 - action_safe_zone.x1, action_safe_zone.y2 - action_safe_zone.y1, &hFF00003F)
-  m.screen.DrawRect(title_safe_zone.x1, title_safe_zone.y1, title_safe_zone.x2 - title_safe_zone.x1, title_safe_zone.y2 - title_safe_zone.y1, &h0000FF3F)
-  m.screen.DrawText("Action Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Action Safe Zone", 1000) / 2, action_safe_zone.y1 + 10, &hFF0000FF, m.getFont("default"))
-  m.screen.DrawText("Title Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Title Safe Zone", 1000) / 2, action_safe_zone.y1 + 50, &hFF00FFFF, m.getFont("default"))
-end function
-' ############### DrawSafeZones() function - End ###############
-
-
-
-' ############### End() function - Begin ###############
-function End() as void
-  m.running = false
-end function
-' ############### End() function - End ###############
-
-
-
-' ############### Pause() function - Begin ###############
-function Pause() as void
-  if not m.paused then
-    m.paused = true
-
-    for each object_key in m.Entities
-      for each entity_key in m.Entities[object_key]
-        entity = m.Entities[object_key][entity_key]
-        if entity <> invalid and entity.id <> invalid and entity.onPause <> invalid
-          entity.onPause()
-        end if
+        m.processEntityDraw(entity)
       end for
-    end for
-
-    m.pauseTimer.Mark()
-  end if
-end function
-' ############### Pause() function - End ###############
+    end function
 
 
-
-' ############### Resume() function - Begin ###############
-function Resume() as dynamic
-  if m.paused then
-    m.paused = false
-    paused_time = m.pauseTimer.TotalMilliseconds()
-
-    for each object_key in m.Entities
-      for each entity_key in m.Entities[object_key]
-        entity = m.Entities[object_key][entity_key]
+    private function processEntityDraw(entity) as boolean
+      if not m.isValidEntity(entity)
+        return false
+      end if
+      if m.isValidEntity(entity) and invalid <> entity.onDrawBegin
+        entity.onDrawBegin(m.canvas.bitmap)
+      end if
+      if m.isValidEntity(entity)
         for each image in entity.images
-          if image.DoesExist("onResume") and image.onResume <> invalid
-            image.onResume(paused_time)
+          image.Draw()
+        end for
+
+        if m.isValidEntity(entity) and invalid <> entity.onDrawEnd
+          entity.onDrawEnd(m.canvas.bitmap)
+        end if
+      end if
+      return m.isValidEntity(entity)
+    end function
+
+    private function drawDebugItems() as void
+      ' Draw Debug Related Items
+      if m.debugging.draw_colliders
+        for i = m.sorted_entities.Count() - 1 to 0 step -1
+          entity = m.sorted_entities[i]
+          if m.isValidEntity(entity)
+            m.drawColliders(entity)
           end if
         end for
-        if entity <> invalid and entity.id <> invalid and entity.onResume <> invalid
-          entity.onResume(paused_time)
+      end if
+    end function
+
+    ' ############### DebugDrawColliders() function - Begin ###############
+    function debugDrawColliders(enabled as boolean) as void
+      m.debugging.draw_colliders = enabled
+    end function
+    ' ############### DebugDrawColliders() function - End ###############
+
+    ' ############### DebugDrawSafeZones() function - Begin ###############
+    function debugDrawSafeZones(enabled as boolean) as void
+      m.debugging.draw_safe_zones = enabled
+    end function
+    ' ############### DebugDrawSafeZones() function - End ###############
+
+    ' ############### DebugLimitFrameRate() function - Begin ###############
+    function debugLimitFrameRate(limit_frame_rate as integer) as void
+      m.debugging.limit_frame_rate = limit_frame_rate
+    end function
+    ' ############### DebugLimitFrameRate() function - End ###############
+
+    ' ############### DrawColliders() function - Begin ###############
+    function drawColliders(entity as object, color = &hFF0000FF as integer) as void
+      if not m.isValidEntity(entity) or invalid = entity.colliders
+        return
+      end if
+      for each collider_key in entity.colliders
+        collider = entity.colliders[collider_key]
+        if collider.enabled then
+          collider.debugDraw(m.canvas.bitmap, entity.x, entity.y, color)
         end if
       end for
-    end for
-
-    return paused_time
-  end if
-  return invalid
-end function
-' ############### Resume() function - End ###############
+    end function
+    ' ############### DrawColliders() function - End ###############
 
 
 
-' ############### isPaused() function - Begin ###############
-function isPaused() as boolean
-  return m.paused
-end function
-' ############### isPaused() function - End ###############
+    ' ############### DrawSafeZones() function - End ###############
+    function drawSafeZones() as void
+      screen_width = m.screen.GetWidth()
+      screen_height = m.screen.GetHeight()
+      if m.device.GetDisplayAspectRatio() = "4x3" then
+        action_offset = {w: 0.033 * screen_width, h: 0.035 * screen_height}
+        title_offset = {w: 0.067 * screen_width, h: 0.05 * screen_height}
+      else
+        action_offset = {w: 0.035 * screen_width, h: 0.035 * screen_height}
+        title_offset = {w: 0.1 * screen_width, h: 0.05 * screen_height}
+      end if
+      action_safe_zone = {x1: action_offset.w, y1: action_offset.h, x2: screen_width - action_offset.w, y2: screen_height - action_offset.h}
+      title_safe_zone = {x1: title_offset.w, y1: title_offset.h, x2: screen_width - title_offset.w, y2: screen_height - title_offset.h}
 
-' ############### setBackgroundColor() function - Begin ###############
-function setBackgroundColor(color as integer) as void
-  m.background_color = color
-end function
-' ############### setBackgroundColor() function - Begin ###############
-
-' ############### getDeltaTime() function - Begin ###############
-function getDeltaTime() as float
-  return m.dt
-end function
-' ############### getDeltaTime() function - Begin ###############
-
-
-' ############### getRoom() function - Begin ###############
-function getRoom() as object
-  return m.currentRoom
-end function
-' ############### getRoom() function - Begin ###############
+      m.screen.DrawRect(action_safe_zone.x1, action_safe_zone.y1, action_safe_zone.x2 - action_safe_zone.x1, action_safe_zone.y2 - action_safe_zone.y1, &hFF00003F)
+      m.screen.DrawRect(title_safe_zone.x1, title_safe_zone.y1, title_safe_zone.x2 - title_safe_zone.x1, title_safe_zone.y2 - title_safe_zone.y1, &h0000FF3F)
+      m.screen.DrawText("Action Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Action Safe Zone", 1000) / 2, action_safe_zone.y1 + 10, &hFF0000FF, m.getFont("default"))
+      m.screen.DrawText("Title Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Title Safe Zone", 1000) / 2, action_safe_zone.y1 + 50, &hFF00FFFF, m.getFont("default"))
+    end function
+    ' ############### DrawSafeZones() function - End ###############
 
 
 
-' ############### getCanvas() function - Begin ###############
-function getCanvas() as object
-  return m.canvas.bitmap
-end function
-' ############### getCanvas() function - Begin ###############
+    ' ############### End() function - Begin ###############
+    function End() as void
+      m.running = false
+    end function
+    ' ############### End() function - End ###############
 
 
 
-' ############### getScreen() function - Begin ###############
-function getScreen() as object
-  return m.screen
-end function
-' ############### getScreen() function - Begin ###############
+    ' ############### Pause() function - Begin ###############
+    function Pause() as void
+      if not m.paused then
+        m.paused = true
 
-
-
-' ############### resetScreen() function - Begin ###############
-function resetScreen() as void
-  ' UIResolution = m.device.getUIResolution()
-  ' if UIResolution.name = "SD"
-  '   m.screen = CreateObject("roScreen", true, 854, 626)
-  ' else
-  '   m.screen = CreateObject("roScreen", true, 1280, 720)
-  ' end if
-  ' m.compositor.SetDrawTo(m.screen, &h00000000)
-  ' m.screen.SetMessagePort(m.screen_port)
-  ' m.screen.SetAlphaEnable(true)
-
-  m.setUpScreen(m.screen.GetWidth(), m.screen.GetHeight(), m.canvas_is_screen)
-  if m.canvas_is_screen
-    m.canvas.bitmap = m.screen
-
-    ' This is so all entities that have images that draw to the screen get updated with the new screen.
-    for each object_key in m.Entities
-      for each entity_key in m.Entities[object_key]
-        entity = m.Entities[object_key][entity_key]
-        if entity <> invalid and entity.id <> invalid and entity.DoesExist("images")
-          for each image in entity.images
-            if type(image.draw_to) = "roScreen"
-              image.draw_to = m.screen
+        for each object_key in m.Entities
+          for each entity_key in m.Entities[object_key]
+            entity = m.Entities[object_key][entity_key]
+            if entity <> invalid and entity.id <> invalid and entity.onPause <> invalid
+              entity.onPause()
             end if
           end for
+        end for
+
+        m.pauseTimer.Mark()
+      end if
+    end function
+    ' ############### Pause() function - End ###############
+
+
+
+    ' ############### Resume() function - Begin ###############
+    function Resume() as dynamic
+      if m.paused then
+        m.paused = false
+        paused_time = m.pauseTimer.TotalMilliseconds()
+
+        for each object_key in m.Entities
+          for each entity_key in m.Entities[object_key]
+            entity = m.Entities[object_key][entity_key]
+            for each image in entity.images
+              if image.DoesExist("onResume") and image.onResume <> invalid
+                image.onResume(paused_time)
+              end if
+            end for
+            if entity <> invalid and entity.id <> invalid and entity.onResume <> invalid
+              entity.onResume(paused_time)
+            end if
+          end for
+        end for
+
+        return paused_time
+      end if
+      return invalid
+    end function
+    ' ############### Resume() function - End ###############
+
+
+
+    ' ############### isPaused() function - Begin ###############
+    function isPaused() as boolean
+      return m.paused
+    end function
+    ' ############### isPaused() function - End ###############
+
+    ' ############### setBackgroundColor() function - Begin ###############
+    function setBackgroundColor(color as integer) as void
+      m.background_color = color
+    end function
+    ' ############### setBackgroundColor() function - Begin ###############
+
+    ' ############### getDeltaTime() function - Begin ###############
+    function getDeltaTime() as float
+      return m.dt
+    end function
+    ' ############### getDeltaTime() function - Begin ###############
+
+
+    ' ############### getRoom() function - Begin ###############
+    function getRoom() as object
+      return m.currentRoom
+    end function
+    ' ############### getRoom() function - Begin ###############
+
+
+
+    ' ############### getCanvas() function - Begin ###############
+    function getCanvas() as object
+      return m.canvas.bitmap
+    end function
+    ' ############### getCanvas() function - Begin ###############
+
+
+
+    ' ############### getScreen() function - Begin ###############
+    function getScreen() as object
+      return m.screen
+    end function
+    ' ############### getScreen() function - Begin ###############
+
+
+
+    ' ############### resetScreen() function - Begin ###############
+    function resetScreen() as void
+      ' UIResolution = m.device.getUIResolution()
+      ' if UIResolution.name = "SD"
+      '   m.screen = CreateObject("roScreen", true, 854, 626)
+      ' else
+      '   m.screen = CreateObject("roScreen", true, 1280, 720)
+      ' end if
+      ' m.compositor.SetDrawTo(m.screen, &h00000000)
+      ' m.screen.SetMessagePort(m.screen_port)
+      ' m.screen.SetAlphaEnable(true)
+
+      m.setUpScreen(m.screen.GetWidth(), m.screen.GetHeight(), m.canvas_is_screen)
+      if m.canvas_is_screen
+        m.canvas.bitmap = m.screen
+
+        ' This is so all entities that have images that draw to the screen get updated with the new screen.
+        for each object_key in m.Entities
+          for each entity_key in m.Entities[object_key]
+            entity = m.Entities[object_key][entity_key]
+            if entity <> invalid and entity.id <> invalid and entity.DoesExist("images")
+              for each image in entity.images
+                if type(image.draw_to) = "roScreen"
+                  image.draw_to = m.screen
+                end if
+              end for
+            end if
+          end for
+        end for
+      end if
+    end function
+    ' ############### resetScreen() function - Begin ###############
+
+
+    ' --------------------------------Begin Object Functions----------------------------------------
+
+
+    ' ############### defineObject() function - Begin ###############
+    function defineObject(object_name as string) as void
+      'm m.Objects[object_name] = object_creation_function
+      if invalid = m.Entities[object_name]
+        m.Entities[object_name] = {}
+        m.Statics[object_name] = {}
+      end if
+    end function
+    ' ############### defineObject() function - End ###############
+
+
+
+    ' ############### defineInterface() function - Begin ###############
+    function defineInterface(interface_name as string, interface_creation_function as function) as void
+      m.Interfaces[interface_name] = interface_creation_function
+    end function
+    ' ############### defineInterface() function - End ###############
+
+
+
+    ' ############### createEntity() function - Begin ###############
+    ' function createEntity(object_name as string, constructor_args = {} as object, creation_args = {} as object) as dynamic
+    '   if m.Objects.DoesExist(object_name)
+    '     ' new_instance = m.newEmptyObject(object_name)
+    '     new_entity = m.Objects[object_name](m, object_name, constructor_args)
+    '     m.addEntity(object_name, creation_args)
+    '     return new_entity
+    '   else
+    '     return invalid
+    '   end if
+    ' end function
+    ' ############### createEntity() function - End ###############
+
+
+
+    ' ############### addEntity() function - Begin ###############
+    function addEntity(entity as object, args = {} as object) as object
+      entity.onCreate(args)
+      m.defineObject(entity.name)
+      m.Entities[entity.name][entity.id] = entity
+      m.sorted_entities.Push(entity)
+      return entity
+    end function
+    ' ############### addEntity() function - End ###############
+
+
+    ' ############### getEntityByID() function - Begin ###############
+    function getEntityByID(entity_id as string) as dynamic
+      for each entity in m.sorted_entities
+        if m.isValidEntity(entity) and entity_id = entity_id.id
+          return entity
         end if
       end for
-    end for
-  end if
-end function
-' ############### resetScreen() function - Begin ###############
-
-
-' --------------------------------Begin Object Functions----------------------------------------
-
-
-' ############### defineObject() function - Begin ###############
-function defineObject(object_name as string, object_creation_function as function) as void
-  m.Objects[object_name] = object_creation_function
-  m.Entities[object_name] = {}
-  m.Statics[object_name] = {}
-end function
-' ############### defineObject() function - End ###############
+      return invalid
+    end function
+    ' ############### getEntityByID() function - End ###############
 
 
 
-' ############### defineInterface() function - Begin ###############
-function defineInterface(interface_name as string, interface_creation_function as function) as void
-  m.Interfaces[interface_name] = interface_creation_function
-end function
-' ############### defineInterface() function - End ###############
-
-
-
-' ############### createEntity() function - Begin ###############
-function createEntity(object_name as string, constructor_args = {} as object, creation_args = {} as object) as dynamic
-  if m.Objects.DoesExist(object_name)
-    ' new_instance = m.newEmptyObject(object_name)
-    new_entity = m.Objects[object_name](m, object_name, constructor_args)
-    m.addEntity(object_name, creation_args)
-    return new_entity
-  else
-    return invalid
-  end if
-end function
-' ############### createEntity() function - End ###############
-
-
-
-' ############### addEntity() function - Begin ###############
-function addEntity(entity as object, args = {} as object) as void
-  if m.Entities.DoesExist(entity.name)
-    entity.onCreate(args)
-    m.Entities[entity.name][entity.id] = entity
-    m.sorted_instances.Push(entity)
-  end if
-end function
-' ############### addEntity() function - End ###############
-
-
-' ############### getEntityByID() function - Begin ###############
-function getEntityByID(entity_id as string) as dynamic
-  for each object_key in m.Entities
-    if m.Entities[object_key].DoesExist(entity_id) then
-      return m.Entities[object_key][entity_id]
-    end if
-  end for
-  return invalid
-end function
-' ############### getEntityByID() function - End ###############
-
-
-
-' ############### getEntityByName() function - Begin ###############
-function getEntityByName(object_name as string) as dynamic
-  if m.Entities.DoesExist(object_name) then
-    for each entity_key in m.Entities[object_name]
-      return m.Entities[object_name][entity_key] ' Obviously only retrieves the first value
-    end for
-  end if
-  return invalid
-end function
-' ############### getEntityByName() function - End ###############
-
-
-
-' ############### getAllEntities() function - Begin ###############
-function getAllEntities(object_name as string) as dynamic
-  if m.Entities.DoesExist(object_name) then
-    array = []
-    for each entity_key in m.Entities[object_name]
-      array.Push(m.Entities[object_name][entity_key])
-    end for
-    return array
-  else
-    return invalid
-  end if
-end function
-' ############### getAllEntities() function - Begin ###############
-
-
-
-' ############### getAllEntitiesWithInterface() function - Begin ###############
-function getAllEntitiesWithInterface(interface_name as string) as dynamic
-  if m.Interfaces.DoesExist(interface_name)
-    array = []
-    for each entity in m.sorted_entities
-      if entity <> invalid and entity.id <> invalid and entity.hasInterface(interface_name)
-        array.Push(entity)
+    ' ############### getEntityByName() function - Begin ###############
+    function getEntityByName(object_name as string) as dynamic
+      if m.Entities.DoesExist(object_name) then
+        for each entity_key in m.Entities[object_name]
+          return m.Entities[object_name][entity_key] ' Obviously only retrieves the first value
+        end for
       end if
-    end for
-
-    return array
-  else
-    return invalid
-  end if
-end function
-' ############### getAllEntitiesWithInterface() function - Begin ###############
+      return invalid
+    end function
+    ' ############### getEntityByName() function - End ###############
 
 
 
-' ############### destroyEntity() function - Begin ###############
-function destroyEntity(entity as object, call_on_destroy = true) as void
-  if entity <> invalid and entity.id <> invalid and m.Entities[entity.name].DoesExist(entity.id) then
-    for each collider_key in entity.colliders
-      collider = entity.colliders[collider_key]
-      if type(collider.compositor_object) = "roSprite" then
-        collider.compositor_object.Remove()
+    ' ############### getAllEntities() function - Begin ###############
+    function getAllEntities(object_name as string) as dynamic
+      if m.Entities.DoesExist(object_name) then
+        array = []
+        for each entity_key in m.Entities[object_name]
+          array.Push(m.Entities[object_name][entity_key])
+        end for
+        return array
+      else
+        return invalid
       end if
-    end for
-    if entity.onDestroy <> invalid and call_on_destroy
-      entity.onDestroy()
-    end if
-    if entity <> invalid and entity.id <> invalid and m.Entities[entity.name].DoesExist(entity.id) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
-      m.Entities[entity.name].Delete(entity.id)
-      entity.Clear()
-      entity.id = invalid
-    end if
-  end if
-end function
-' ############### destroyEntity() function - End ###############
+    end function
+    ' ############### getAllEntities() function - Begin ###############
 
 
 
-' ############### destroyAllEntities() function - Begin ###############
-function destroyAllEntities(object_name as string, call_on_destroy = true) as void
-  for each entity_key in m.Entities[object_name]
-    m.destroyEntity(m.Entities[object_name][entity_key], call_on_destroy)
-  end for
-end function
-' ############### destroyAllEntities() function - End ###############
+    ' ############### getAllEntitiesWithInterface() function - Begin ###############
+    function getAllEntitiesWithInterface(interface_name as string) as dynamic
+      if m.Interfaces.DoesExist(interface_name)
+        array = []
+        for each entity in m.sorted_entities
+          if entity <> invalid and entity.id <> invalid and entity.hasInterface(interface_name)
+            array.Push(entity)
+          end if
+        end for
+
+        return array
+      else
+        return invalid
+      end if
+    end function
+    ' ############### getAllEntitiesWithInterface() function - Begin ###############
 
 
 
-' ############### entityCount() function - Begin ###############
-function entityCount(object_name as string) as integer
-  return m.Entities[object_name].Count()
-end function
-' ############### entityCount() function - End ###############
-
-
-' --------------------------------Begin Room Functions----------------------------------------
-
-
-' ############### defineRoom() function - Begin ###############
-function defineRoom(room_name as string, room_creation_function as function) as void
-  m.Rooms[room_name] = room_creation_function
-  m.Entities[room_name] = {}
-  m.Statics[room_name] = {}
-end function
-' ############### defineRoom() function - Begin ###############
-
-
-
-' ############### changeRoom() function - Begin ###############
-function changeRoom(room_name as string, args = {} as object) as boolean
-  if m.Rooms[room_name] <> invalid then
-    for each object_key in m.Entities
-      for each entity_key in m.Entities[object_key]
-        entity = m.Entities[object_key][entity_key]
-        if entity <> invalid and entity.id <> invalid and entity.onChangeRoom <> invalid then
-          entity.onChangeRoom(room_name)
+    ' ############### destroyEntity() function - Begin ###############
+    function destroyEntity(entity as object, call_on_destroy = true) as void
+      if m.isValidEntity(entity)
+        entityName = entity.name
+        entityId = entity.id
+        for each collider_key in entity.colliders
+          collider = entity.colliders[collider_key]
+          if type(collider.compositor_object) = "roSprite" then
+            collider.compositor_object.Remove()
+          end if
+        end for
+        if entity.onDestroy <> invalid and call_on_destroy
+          entity.onDestroy()
         end if
-      end for
-    end for
-    for each object_key in m.Entities
-      for each entity_key in m.Entities[object_key]
-        entity = m.Entities[object_key][entity_key]
-        if entity.id <> invalid and not entity.persistent and entity.name <> m.currentRoom.name then
-          m.destroyEntity(entity, false)
+        if m.Entities[entityName].DoesExist(entityId) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
+          m.Entities[entityName].Delete(entityId)
         end if
-      end for
-    end for
-    if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
-      m.destroyEntity(m.currentRoom, false)
-    end if
-    m.currentRoom = room
-    m.Rooms[room_name](m.currentRoom)
-    m.currentRoomArgs = args
-    m.currentRoom.onCreate(args)
-    return true
-  else
-    print "changeRoom() - A room named " + room_name + " hasn't been defined"
-    return false
-  end if
-end function
-' ############### changeRoom() function - End ###############
-
-
-
-' ############### resetRoom() function - End ###############
-function resetRoom() as void
-  m.changeRoom(m.currentRoom.name, m.currentRoomArgs)
-end function
-' ############### resetRoom() function - End ###############
-
-
-' --------------------------------Begin Bitmap Functions----------------------------------------
-
-
-' ############### loadBitmap() function - Begin ###############
-function loadBitmap(bitmap_name as string, path as dynamic) as boolean
-  if type(path) = "roAssociativeArray" then
-    if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
-      m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
-      return true
-    else
-      print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap"
-      return false
-    end if
-  else if m.filesystem.Exists(path) then
-    path_object = CreateObject("roPath", path)
-    parts = path_object.Split()
-    if parts.extension = ".png" or parts.extension = ".jpg" then
-      m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
-      return true
-    else
-      print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg"
-      return false
-    end if
-  else
-    print "loadBitmap() - Bitmap not created, invalid path or object properties provided"
-    return false
-  end if
-end function
-' ############### loadBitmap() function - End ###############
-
-
-
-' ############### getBitmap() function - Begin ###############
-function getBitmap(bitmap_name as string) as dynamic
-  return m.Bitmaps[bitmap_name]
-end function
-' ############### getBitmap() function - End ###############
-
-
-
-' ############### unloadBitmap() function - Begin ###############
-function unloadBitmap(bitmap_name as string)
-  m.Bitmaps[bitmap_name] = invalid
-end function
-' ############### unloadBitmap() function - End ###############
-
-
-' --------------------------------Begin Font Functions----------------------------------------
-
-
-' ############### registerFont() function - Begin ###############
-function registerFont(path as string) as boolean
-  if m.filesystem.Exists(path) then
-    path_object = CreateObject("roPath", path)
-    parts = path_object.Split()
-    if parts.extension = ".ttf" or parts.extension = ".otf" then
-      m.font_registry.register(path)
-      return true
-    else
-      print "Font must be of type .ttf or .otf"
-      return false
-    end if
-  else
-    print "File at path " ; path ; " doesn't exist"
-    return false
-  end if
-end function
-' ############### registerFont() function - End ###############
-
-
-
-' ############### loadFont() function - Begin ###############
-function loadFont(font_name as string, font as string, size as integer, italic as boolean, bold as boolean) as void
-  m.Fonts[font_name] = m.font_registry.GetFont(font, size, italic, bold)
-end function
-' ############### loadFont() function - End ###############
-
-
-
-' ############### unloadFont() function - Begin ###############
-function unloadFont(font_name as string) as void
-  m.Fonts[font_name] = invalid
-end function
-' ############### unloadFont() function - End ###############
-
-
-
-' ############### getFont() function - Begin ###############
-function getFont(font_name as string) as object
-  return m.Fonts[font_name]
-end function
-' ############### getFont() function - End ###############
-
-
-' --------------------------------Begin Canvas Functions----------------------------------------
-
-' ############### canvasSetSize() function - Begin ###############
-function canvasSetSize(canvas_width as integer, canvas_height as integer) as void
-  m.canvas.bitmap = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
-end function
-' ############### canvasSetSize() function - Begin ###############
-
-
-' ############### canvasGetOffset() function - Begin ###############
-function canvasGetOffset() as object
-  return {x: m.canvas.offset_x, y: m.canvas.offset_y}
-end function
-' ############### canvasGetOffset() function - Begin ###############
-
-
-' ############### canvasGetScale() function - Begin ###############
-function canvasGetScale() as object
-  return {x: m.canvas.scale_x, y: m.canvas.scale_y}
-end function
-' ############### canvasGetScale() function - Begin ###############
-
-
-' ############### canvasSetOffset() function - Begin ###############
-' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
-function canvasSetOffset(x as float, y as float) as void
-  m.canvas.offset_x = x
-  m.canvas.offset_y = y
-end function
-' ############### canvasSetOffset() function - End ###############
-
-
-' ############### canvasSetScale() function - Begin ###############
-function canvasSetScale(scale_x as float, scale_y = invalid as dynamic) as void
-  if scale_y = invalid
-    scale_y = scale_x
-  end if
-  m.canvas.scale_x = scale_x
-  m.canvas.scale_y = scale_y
-end function
-' ############### canvasSetScale() function - End ###############
-
-
-' ############### canvasFitToScreen() function - Begin ###############
-function canvasFitToScreen() as void
-  canvas_width = m.canvas.bitmap.GetWidth()
-  canvas_height = m.canvas.bitmap.GetHeight()
-  screen_width = m.screen.GetWidth()
-  screen_height = m.screen.GetHeight()
-  if screen_width / screen_height < canvas_width / canvas_height then
-    m.canvas.scale_x = screen_width / canvas_width
-    m.canvas.scale_y = m.canvas.scale_x
-    m.canvas.offset_x = 0
-    m.canvas.offset_y = (screen_height - (screen_width / (canvas_width / canvas_height))) / 2
-  else if screen_width / screen_height > canvas_width / canvas_height then
-    m.canvas.scale_x = screen_height / canvas_height
-    m.canvas.scale_y = m.canvas.scale_x
-    m.canvas.offset_x = (screen_width - (screen_height * (canvas_width / canvas_height))) / 2
-    m.canvas.offset_y = 0
-  else
-    m.canvas.offset_x = 0
-    m.canvas.offset_y = 0
-    scale_difference = screen_width / canvas_width
-    m.canvas.scale_x = 1 * scale_difference
-    m.canvas.scale_y = 1 * scale_difference
-  end if
-end function
-' ############### canvasFitToScreen() function - End ###############
-
-
-
-' ############### canvasCenterToScreen() function - Begin ###############
-function canvasCenterToScreen() as void
-  m.canvas.offset_x = m.screen.GetWidth() / 2 - (m.canvas.scale_x * m.canvas.bitmap.GetWidth()) / 2
-  m.canvas.offset_y = m.screen.GetHeight() / 2 - (m.canvas.scale_y * m.canvas.bitmap.GetHeight()) / 2
-end function
-' ############### canvasCenterToScreen() function - End ###############
-
-
-' --------------------------------Begin Audio Functions----------------------------------------
-
-
-' ############### musicPlay() function - Begin ###############
-function musicPlay(path as string, loop = false as boolean) as boolean
-  if m.filesystem.Exists(path) then
-    m.audioPlayer.stop()
-    m.audioPlayer.ClearContent()
-    song = {}
-    song.url = path
-    m.audioPlayer.AddContent(song)
-    m.audioPlayer.SetLoop(loop)
-    m.audioPlayer.play()
-    return true
-  else
-    print "musicPlay() - No file exists at path: " ; path
-    return false
-  end if
-end function
-' ############### musicPlay() function - End ###############
-
-
-
-' ############### musicStop() function - Begin ###############
-function musicStop() as void
-  m.audioPlayer.stop()
-end function
-' ############### musicStop() function - End ###############
-
-
-
-' ############### musicPause() function - Begin ###############
-function musicPause() as void
-  m.audioPlayer.pause()
-end function
-' ############### musicPause() function - End ###############
-
-
-
-' ############### musicResume() function - Begin ###############
-function musicResume() as void
-  m.audioPlayer.resume()
-end function
-' ############### musicResume() function - End ###############
-
-
-
-' ############### loadSound() function - Begin ###############
-function loadSound(sound_name as string, path as string) as void
-  m.Sounds[sound_name] = CreateObject("roAudioResource", path)
-end function
-' ############### loadSound() function - End ###############
-
-
-
-' ############### playSound() function - Begin ###############
-function playSound(sound_name as string, volume = 100 as integer) as boolean
-  if m.Sounds.DoesExist(sound_name) then
-    m.Sounds[sound_name].trigger(volume)
-    return true
-  else
-    print "playSound() - No sound has been loaded under the name: " ; sound_name
-    return false
-  end if
-end function
-' ############### playSound() function - End ###############
-
-
-
-' ############### newAsyncUrlTransfer() function - Begin ###############
-function newAsyncUrlTransfer() as object
-  UrlTransfer = CreateObject("roUrlTransfer")
-  UrlTransfer.SetMessagePort(m.url_port)
-  m.urltransfers[UrlTransfer.GetIdentity().ToStr()] = UrlTransfer
-  return UrlTransfer
-end function
-' ############### newAsyncUrlTransfer() function - End ###############
-
-' ############### setInputEntity() function - Begin ###############
-function setInputEntity(entity as object) as void
-  m.input_entity = entity.id
-end function
-' ############### setInputEntity() function - End ###############
-
-' ############### unsetInputEntity() function - Begin ###############
-function unsetInputEntity() as void
-  m.input_entity = invalid
-end function
-' ############### unsetInputEntity() function - End ###############
-
-' ############### postGameEvent() function - Begin ###############
-function postGameEvent(eventName as string, data = {} as object) as void
-  object_keys = m.Entities.Keys()
-  for each object_key in object_keys
-    entity_keys = m.Entities[object_key].Keys()
-    for each entity_key in entity_keys
-      entity = m.Entities[object_key][entity_key]
-      if entity <> invalid and entity.id <> invalid and entity.onGameEvent <> invalid
-        entity.onGameEvent(event, data)
+        entity.Clear()
+        entity.id = invalid
       end if
-    end for
-  end for
-end function
-' ############### postGameEvent() function - End ###############
+    end function
+    ' ############### destroyEntity() function - End ###############
 
 
 
-end class
+    ' ############### destroyAllEntities() function - Begin ###############
+    function destroyAllEntities(object_name as string, call_on_destroy = true) as void
+      for each entity_key in m.Entities[object_name]
+        m.destroyEntity(m.Entities[object_name][entity_key], call_on_destroy)
+      end for
+    end function
+    ' ############### destroyAllEntities() function - End ###############
+
+
+
+    ' ############### entityCount() function - Begin ###############
+    function entityCount(object_name as string) as integer
+      return m.Entities[object_name].Count()
+    end function
+    ' ############### entityCount() function - End ###############
+
+
+    ' --------------------------------Begin Room Functions----------------------------------------
+
+
+    ' ############### defineRoom() function - Begin ###############
+    function defineRoom(room as object) as void
+      room_name = room.name
+      m.Rooms[room_name] = room
+      m.Entities[room_name] = {}
+      m.Statics[room_name] = {}
+
+      'TODO - this is wrong ! need to find way to set active room better
+      m.sorted_entities.Push(room)
+    end function
+    ' ############### defineRoom() function - Begin ###############
+
+
+
+    ' ############### changeRoom() function - Begin ###############
+    function changeRoom(room_name as string, args = {} as object) as boolean
+      if m.Rooms[room_name] <> invalid
+        room = m.Rooms[room_name]
+        for each object_key in m.Entities
+          for each entity_key in m.Entities[object_key]
+            entity = m.Entities[object_key][entity_key]
+            if m.isValidEntity(entity) and entity.onChangeRoom <> invalid then
+              entity.onChangeRoom(room)
+            end if
+          end for
+        end for
+        for each object_key in m.Entities
+          for each entity_key in m.Entities[object_key]
+            entity = m.Entities[object_key][entity_key]
+            if m.isValidEntity(entity) and not entity.persistent and entity.name <> m.currentRoom.name then
+              m.destroyEntity(entity, false)
+            end if
+          end for
+        end for
+        if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
+          m.destroyEntity(m.currentRoom, false)
+        end if
+        m.currentRoom = room
+        m.currentRoomArgs = args
+        m.currentRoom.onCreate(args)
+        return true
+      else
+        print "changeRoom() - A room named " + room_name + " hasn't been defined"
+        return false
+      end if
+    end function
+    ' ############### changeRoom() function - End ###############
+
+
+
+    ' ############### resetRoom() function - End ###############
+    function resetRoom() as void
+      m.changeRoom(m.currentRoom, m.currentRoomArgs)
+    end function
+    ' ############### resetRoom() function - End ###############
+
+
+    ' --------------------------------Begin Bitmap Functions----------------------------------------
+
+
+    ' ############### loadBitmap() function - Begin ###############
+    function loadBitmap(bitmap_name as string, path as dynamic) as boolean
+      if type(path) = "roAssociativeArray" then
+        if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
+          m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
+          return true
+        else
+          print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap"
+          return false
+        end if
+      else if m.filesystem.Exists(path) then
+        path_object = CreateObject("roPath", path)
+        parts = path_object.Split()
+        if parts.extension = ".png" or parts.extension = ".jpg" then
+          m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
+          return true
+        else
+          print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg"
+          return false
+        end if
+      else
+        print "loadBitmap() - Bitmap not created, invalid path or object properties provided"
+        return false
+      end if
+    end function
+    ' ############### loadBitmap() function - End ###############
+
+
+
+    ' ############### getBitmap() function - Begin ###############
+    function getBitmap(bitmap_name as string) as dynamic
+      return m.Bitmaps[bitmap_name]
+    end function
+    ' ############### getBitmap() function - End ###############
+
+
+
+    ' ############### unloadBitmap() function - Begin ###############
+    function unloadBitmap(bitmap_name as string)
+      m.Bitmaps[bitmap_name] = invalid
+    end function
+    ' ############### unloadBitmap() function - End ###############
+
+
+    ' --------------------------------Begin Font Functions----------------------------------------
+
+
+    ' ############### registerFont() function - Begin ###############
+    function registerFont(path as string) as boolean
+      if m.filesystem.Exists(path) then
+        path_object = CreateObject("roPath", path)
+        parts = path_object.Split()
+        if parts.extension = ".ttf" or parts.extension = ".otf" then
+          m.font_registry.register(path)
+          return true
+        else
+          print "Font must be of type .ttf or .otf"
+          return false
+        end if
+      else
+        print "File at path " ; path ; " doesn't exist"
+        return false
+      end if
+    end function
+    ' ############### registerFont() function - End ###############
+
+
+
+    ' ############### loadFont() function - Begin ###############
+    function loadFont(font_name as string, font as string, size as integer, italic as boolean, bold as boolean) as void
+      m.Fonts[font_name] = m.font_registry.GetFont(font, size, italic, bold)
+    end function
+    ' ############### loadFont() function - End ###############
+
+
+
+    ' ############### unloadFont() function - Begin ###############
+    function unloadFont(font_name as string) as void
+      m.Fonts[font_name] = invalid
+    end function
+    ' ############### unloadFont() function - End ###############
+
+
+
+    ' ############### getFont() function - Begin ###############
+    function getFont(font_name as string) as object
+      return m.Fonts[font_name]
+    end function
+    ' ############### getFont() function - End ###############
+
+
+    ' --------------------------------Begin Canvas Functions----------------------------------------
+
+    ' ############### canvasSetSize() function - Begin ###############
+    function canvasSetSize(canvas_width as integer, canvas_height as integer) as void
+      m.canvas.bitmap = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
+    end function
+    ' ############### canvasSetSize() function - Begin ###############
+
+
+    ' ############### canvasGetOffset() function - Begin ###############
+    function canvasGetOffset() as object
+      return {x: m.canvas.offset_x, y: m.canvas.offset_y}
+    end function
+    ' ############### canvasGetOffset() function - Begin ###############
+
+
+    ' ############### canvasGetScale() function - Begin ###############
+    function canvasGetScale() as object
+      return {x: m.canvas.scale_x, y: m.canvas.scale_y}
+    end function
+    ' ############### canvasGetScale() function - Begin ###############
+
+
+    ' ############### canvasSetOffset() function - Begin ###############
+    ' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
+    function canvasSetOffset(x as float, y as float) as void
+      m.canvas.offset_x = x
+      m.canvas.offset_y = y
+    end function
+    ' ############### canvasSetOffset() function - End ###############
+
+
+    ' ############### canvasSetScale() function - Begin ###############
+    function canvasSetScale(scale_x as float, scale_y = invalid as dynamic) as void
+      if scale_y = invalid
+        scale_y = scale_x
+      end if
+      m.canvas.scale_x = scale_x
+      m.canvas.scale_y = scale_y
+    end function
+    ' ############### canvasSetScale() function - End ###############
+
+
+    ' ############### canvasFitToScreen() function - Begin ###############
+    function canvasFitToScreen() as void
+      canvas_width = m.canvas.bitmap.GetWidth()
+      canvas_height = m.canvas.bitmap.GetHeight()
+      screen_width = m.screen.GetWidth()
+      screen_height = m.screen.GetHeight()
+      if screen_width / screen_height < canvas_width / canvas_height then
+        m.canvas.scale_x = screen_width / canvas_width
+        m.canvas.scale_y = m.canvas.scale_x
+        m.canvas.offset_x = 0
+        m.canvas.offset_y = (screen_height - (screen_width / (canvas_width / canvas_height))) / 2
+      else if screen_width / screen_height > canvas_width / canvas_height then
+        m.canvas.scale_x = screen_height / canvas_height
+        m.canvas.scale_y = m.canvas.scale_x
+        m.canvas.offset_x = (screen_width - (screen_height * (canvas_width / canvas_height))) / 2
+        m.canvas.offset_y = 0
+      else
+        m.canvas.offset_x = 0
+        m.canvas.offset_y = 0
+        scale_difference = screen_width / canvas_width
+        m.canvas.scale_x = 1 * scale_difference
+        m.canvas.scale_y = 1 * scale_difference
+      end if
+    end function
+    ' ############### canvasFitToScreen() function - End ###############
+
+
+
+    ' ############### canvasCenterToScreen() function - Begin ###############
+    function canvasCenterToScreen() as void
+      m.canvas.offset_x = m.screen.GetWidth() / 2 - (m.canvas.scale_x * m.canvas.bitmap.GetWidth()) / 2
+      m.canvas.offset_y = m.screen.GetHeight() / 2 - (m.canvas.scale_y * m.canvas.bitmap.GetHeight()) / 2
+    end function
+    ' ############### canvasCenterToScreen() function - End ###############
+
+
+    ' --------------------------------Begin Audio Functions----------------------------------------
+
+
+    ' ############### musicPlay() function - Begin ###############
+    function musicPlay(path as string, loop = false as boolean) as boolean
+      if m.filesystem.Exists(path) then
+        m.audioPlayer.stop()
+        m.audioPlayer.ClearContent()
+        song = {}
+        song.url = path
+        m.audioPlayer.AddContent(song)
+        m.audioPlayer.SetLoop(loop)
+        m.audioPlayer.play()
+        return true
+      else
+        print "musicPlay() - No file exists at path: " ; path
+        return false
+      end if
+    end function
+    ' ############### musicPlay() function - End ###############
+
+
+
+    ' ############### musicStop() function - Begin ###############
+    function musicStop() as void
+      m.audioPlayer.stop()
+    end function
+    ' ############### musicStop() function - End ###############
+
+
+
+    ' ############### musicPause() function - Begin ###############
+    function musicPause() as void
+      m.audioPlayer.pause()
+    end function
+    ' ############### musicPause() function - End ###############
+
+
+
+    ' ############### musicResume() function - Begin ###############
+    function musicResume() as void
+      m.audioPlayer.resume()
+    end function
+    ' ############### musicResume() function - End ###############
+
+
+
+    ' ############### loadSound() function - Begin ###############
+    function loadSound(sound_name as string, path as string) as void
+      m.Sounds[sound_name] = CreateObject("roAudioResource", path)
+    end function
+    ' ############### loadSound() function - End ###############
+
+
+
+    ' ############### playSound() function - Begin ###############
+    function playSound(sound_name as string, volume = 100 as integer) as boolean
+      if m.Sounds.DoesExist(sound_name) then
+        m.Sounds[sound_name].trigger(volume)
+        return true
+      else
+        print "playSound() - No sound has been loaded under the name: " ; sound_name
+        return false
+      end if
+    end function
+    ' ############### playSound() function - End ###############
+
+
+
+    ' ############### newAsyncUrlTransfer() function - Begin ###############
+    function newAsyncUrlTransfer() as object
+      UrlTransfer = CreateObject("roUrlTransfer")
+      UrlTransfer.SetMessagePort(m.url_port)
+      m.urlTransfers[UrlTransfer.GetIdentity().ToStr()] = UrlTransfer
+      return UrlTransfer
+    end function
+    ' ############### newAsyncUrlTransfer() function - End ###############
+
+    ' ############### setInputEntity() function - Begin ###############
+    function setInputEntity(entity as object) as void
+      m.input_entity = entity.id
+    end function
+    ' ############### setInputEntity() function - End ###############
+
+    ' ############### unsetInputEntity() function - Begin ###############
+    function unsetInputEntity() as void
+      m.input_entity = invalid
+    end function
+    ' ############### unsetInputEntity() function - End ###############
+
+    ' ############### postGameEvent() function - Begin ###############
+    function postGameEvent(eventName as string, data = {} as object) as void
+      object_keys = m.Entities.Keys()
+      for each object_key in object_keys
+        entity_keys = m.Entities[object_key].Keys()
+        for each entity_key in entity_keys
+          entity = m.Entities[object_key][entity_key]
+          if m.isValidEntity(entity) and entity.onGameEvent <> invalid
+            entity.onGameEvent(eventName, data)
+          end if
+        end for
+      end for
+    end function
+    ' ############### postGameEvent() function - End ###############
+
+
+
+  end class
+end namespace

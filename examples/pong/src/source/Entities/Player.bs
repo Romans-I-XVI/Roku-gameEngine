@@ -1,24 +1,14 @@
-class obj_player extends GameEntity
+class Player extends Paddle
 
-  x = 50
-  y = invalid
-  width = invalid
-  height = invalid
-  bounds = {top: 50, bottom: 720 - 50}
+  function new(game) as void
+    super(game)
+    m.name = "Player"
+    m.x = 50
+    m.y = invalid
+  end function
 
-  override function onCreate(args)
-    m.y = m.game.getCanvas().GetHeight() / 2
-
-    bm_paddle = m.game.getBitmap("paddle")
-    m.width = bm_paddle.GetWidth()
-    m.height = bm_paddle.GetHeight()
-    m.addColliderRectangle("front", m.width / 2 - 1, - m.height / 2, 1, m.height)
-    m.addColliderRectangle("top", - m.width / 2, - m.height / 2, m.width, 1)
-    m.addColliderRectangle("bottom", - m.width / 2, m.height / 2 - 1, m.width, 1)
-
-    region = CreateObject("roRegion", bm_paddle, 0, 0, m.width, m.height)
-    region.SetPretranslation(- m.width / 2, - m.height / 2)
-    m.addImage("main", region)
+  override function getFrontColliderXOffset() as float
+    return m.width / 2 - 1
   end function
 
   override function onUpdate(dt)

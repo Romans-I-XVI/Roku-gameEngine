@@ -1,50 +1,53 @@
-class Collider
+namespace BGE
 
-  collider_type as string = invalid
-  name = ""
-  enabled = true
-  offset_x = 0
-  offset_y = 0
+  class Collider
 
-  member_flags = 1
-  collidable_flags = 1
-  compositor_object = invalid
-  game
+    collider_type as string = invalid
+    name = ""
+    enabled = true
+    offset_x = 0
+    offset_y = 0
 
-
-  function new (collider_name as string, args as object)
-    m.name = collider_name
-    m.append(args)
-  end function
+    member_flags = 1
+    collidable_flags = 1
+    compositor_object = invalid
+    game
 
 
-  function setupCompositor(game as object, entityName as string, entityId as string, entityX as float, entityY as float) as void
-    'bs:disable-next-line
-    region = CreateObject("roRegion", m.game.empty_bitmap, 0, 0, 1, 1)
-    m.setupRegionCollision(region)
-    collider.compositor_object = m.game.compositor.NewSprite(entityX, entityY, region)
-    collider.compositor_object.SetDrawableFlag(false)
-    collider.compositor_object.SetData({collider_name: collider_name, object_name: entityName, entity_id: entityId})
-  end function
+    function new (collider_name as string, args = {} as object)
+      m.name = collider_name
+      m.append(args)
+    end function
 
-  function setupRegionCollision(region) as void
-  end function
 
-  function setupCompositorObjectRegionCollider() as void
-  end function
+    function setupCompositor(game as object, entityName as string, entityId as string, entityX as float, entityY as float) as void
+      'bs:disable-next-line
+      region = CreateObject("roRegion", game.empty_bitmap, 0, 0, 1, 1)
+      m.setupRegionCollision(region)
+      m.compositor_object = game.compositor.NewSprite(entityX, entityY, region)
+      m.compositor_object.SetDrawableFlag(false)
+      m.compositor_object.SetData({collider_name: m.name, object_name: entityName, entity_id: entityId})
+    end function
 
-  function adjustCompositorObject(x as float, y as float)
-    if m.enabled then
-      m.compositor_object.SetMemberFlags(m.member_flags)
-      m.compositor_object.SetCollidableFlags(m.collidable_flags)
-      m.setupCompositorObjectRegionCollider()
-      m.compositor_object.MoveTo(x, y)
-    else
-      m.compositor_object.SetMemberFlags(0)
-      m.compositor_object.SetCollidableFlags(0)
-    end if
-  end function
+    function setupRegionCollision(region) as void
+    end function
 
-  function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer) as void
-  end function
-end class
+    function setupCompositorObjectRegionCollider() as void
+    end function
+
+    function adjustCompositorObject(x as float, y as float)
+      if m.enabled then
+        m.compositor_object.SetMemberFlags(m.member_flags)
+        m.compositor_object.SetCollidableFlags(m.collidable_flags)
+        m.setupCompositorObjectRegionCollider()
+        m.compositor_object.MoveTo(x, y)
+      else
+        m.compositor_object.SetMemberFlags(0)
+        m.compositor_object.SetCollidableFlags(0)
+      end if
+    end function
+
+    function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer) as void
+    end function
+  end class
+end namespace
