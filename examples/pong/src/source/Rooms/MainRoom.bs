@@ -31,16 +31,16 @@ class MainRoom extends BGE.Room
   override function onDrawBegin(canvas)
     canvas.DrawRect(0, 0, 1280, 50, &hFFFFFFFF)
     canvas.DrawRect(0, 720 - 50, 1280, 50, &hFFFFFFFF)
-    if not m.game_started then
+    if not m.game_started
       BGE.DrawText(canvas, "Press OK To Play", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
     end if
   end function
 
   override function onButton(button)
-    if button = 0 then
+    if button = 0
       m.game.End()
     end if
-    if not m.game_started and button = 6 then
+    if not m.game_started and button = 6
       m.game_started = true
     end if
   end function

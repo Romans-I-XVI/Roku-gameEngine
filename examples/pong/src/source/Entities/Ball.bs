@@ -25,7 +25,7 @@ class Ball extends BGE.GameEntity
     region = CreateObject("roRegion", bm_ball, 0, 0, bm_ball.GetWidth(), bm_ball.GetHeight())
     region.SetPreTranslation(- bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2)
     m.addImage("main", region, {color: &hffffff, alpha: 0})
-    m.addRectangleCollider("main_collider", - bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2, bm_ball.GetWidth(), bm_ball.GetHeight())
+    m.addRectangleCollider("ball_collider", - bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2, bm_ball.GetWidth(), bm_ball.GetHeight())
   end function
 
   override function onCollision(collider_name as string, other_collider_name as string, other_entity as object)
@@ -62,7 +62,7 @@ class Ball extends BGE.GameEntity
 
   override function onUpdate(dt as float)
     image = m.getImage("main")
-    collider = m.getCollider("main_collider")
+    collider = m.getCollider("ball_collider")
 
     ' Increase alpha until full if not at full
     if image.alpha < 255 then
@@ -70,7 +70,7 @@ class Ball extends BGE.GameEntity
     end if
 
     ' If the left side of the ball is past the center of the player paddle position
-    if m.x - collider.width / 2 <= m.game.getEntityByName("player").x
+    if m.x - collider.width / 2 <= m.game.getEntityByName("Player").x
       m.dead = true
       if m.x <= -100
         m.game.postGameEvent("score", {team: 1})
@@ -80,7 +80,7 @@ class Ball extends BGE.GameEntity
     end if
 
     ' If the right side of the ball is past the center of the computer paddle
-    if m.x + collider.width / 2 >= m.game.getEntityByName("computer").x
+    if m.x + collider.width / 2 >= m.game.getEntityByName("Computer").x
       m.dead = true
       if m.x >= 1280 + 100
         m.game.postGameEvent("score", {team: 0})

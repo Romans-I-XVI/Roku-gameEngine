@@ -2,7 +2,7 @@ class Paddle extends BGE.GameEntity
 
   width = invalid
   height = invalid
-  bounds = {top: 50, bottom: 720 - 100}
+  bounds = {top: 50, bottom: 720 - 50}
 
   function new(game) as void
     super(game)
@@ -15,8 +15,8 @@ class Paddle extends BGE.GameEntity
     m.width = bm_paddle.GetWidth()
     m.height = bm_paddle.GetHeight()
     m.addRectangleCollider("front", m.getFrontColliderXOffset(), - m.height / 2, 1, m.height)
-    m.addRectangleCollider("top", - m.width / 2, - m.height / 2 + 2, m.width, 1)
-    m.addRectangleCollider("bottom", - m.width / 2, m.height / 2 - 2, m.width, 1)
+    m.addRectangleCollider("top", - m.width / 2, - m.height / 2, m.width - 2, 1)
+    m.addRectangleCollider("bottom", - m.width / 2, m.height / 2, m.width - 2, 1)
 
     'bs:disable-next-line
     region = CreateObject("roRegion", bm_paddle, 0, 0, m.width, m.height)
