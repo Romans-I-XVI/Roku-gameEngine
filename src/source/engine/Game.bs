@@ -6,6 +6,9 @@ namespace BGE
     private debugging = {
       draw_colliders: false
       draw_safe_zones: false
+      colliders_color: BGE.RGBAtoRGBA(&hFF, 0, 0, 0.8)
+      safe_action_zone_color: BGE.RGBAtoRGBA(0, &hFF, 0, 0.3)
+      safe_title_zone_color: BGE.RGBAtoRGBA(0, 0, &hFF, 0.3)
       limit_frame_rate: 0
     }
     private canvas_is_screen = false
@@ -218,7 +221,7 @@ namespace BGE
         ' ------------------Destroy the UrlTransfer object if it has returned an event------------------
         if type(url_msg) = "roUrlEvent"
           url_transfer_id_string = url_msg.GetSourceIdentity().ToStr()
-          if m.urlTransfers.DoesExist(url_transfer_id_string) then
+          if m.urlTransfers.DoesExist(url_transfer_id_string)
             m.urlTransfers.Delete(url_transfer_id_string)
           end if
         end if
@@ -331,7 +334,7 @@ namespace BGE
           end if
         end if
       end for
-      if m.buttonHeld <> -1 then
+      if m.buttonHeld <> -1
         ' Button release codes are 100 plus the button press code
         ' This shows a button held code as 1000 plus the button press code
         if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
@@ -365,11 +368,11 @@ namespace BGE
       end if
       for each collider_key in entity.colliders
         collider = entity.colliders[collider_key]
-        if collider <> invalid then
-          if collider.enabled then
+        if collider <> invalid
+          if collider.enabled
             collider.compositor_object.SetMemberFlags(collider.member_flags)
             collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
-            collider.setupCompositorObjectRegionCollider()
+            collider.refreshColliderRegion()
             collider.compositor_object.MoveTo(entity.x, entity.y)
             multiple_collisions = collider.compositor_object.CheckMultipleCollisions()
             if multiple_collisions <> invalid
@@ -405,7 +408,7 @@ namespace BGE
       end if
       for each collider_key in entity.colliders
         collider = entity.colliders[collider_key]
-        if collider <> invalid then
+        if collider <> invalid
           collider.adjustCompositorObject(entity.x, entity.y)
         else
           if entity.colliders.DoesExist(collider_key)
@@ -425,6 +428,7 @@ namespace BGE
         entity = m.sorted_entities[i]
         m.processEntityDraw(entity)
       end for
+
     end function
 
 
@@ -471,6 +475,25 @@ namespace BGE
     end function
     ' ############### DebugDrawSafeZones() function - End ###############
 
+    ' ############### debugSetColors() function - Begin ###############
+    ' @param {object} colors = {colliders: integer, safe_action_zone: integer, safe_title_zone:integer}
+    function debugSetColors(colors as object) as void
+      if invalid = colors
+        return
+      end if
+      allowedColorNames = ["colliders", "safe_action_zone", "safe_title_zone"]
+      colorsToAppend = {}
+      for each colorName in allowedColorNames
+        if invalid <> colors[colorName]
+          colorsToAppend[colorName + "_color"] = colors[colorName]
+        end if
+      end for
+
+      m.debugging.append(colorsToAppend)
+    end function
+    ' ############### debugSetColors() function - End ###############
+
+
     ' ############### DebugLimitFrameRate() function - Begin ###############
     function debugLimitFrameRate(limit_frame_rate as integer) as void
       m.debugging.limit_frame_rate = limit_frame_rate
@@ -478,13 +501,16 @@ namespace BGE
     ' ############### DebugLimitFrameRate() function - End ###############
 
     ' ############### DrawColliders() function - Begin ###############
-    function drawColliders(entity as object, color = &hFF0000FF as integer) as void
+    function drawColliders(entity as object, color = 0 as integer) as void
       if not m.isValidEntity(entity) or invalid = entity.colliders
         return
       end if
+      if 0 = color
+        color = m.debugging.colliders_color
+      end if
       for each collider_key in entity.colliders
         collider = entity.colliders[collider_key]
-        if collider.enabled then
+        if collider.enabled
           collider.debugDraw(m.canvas.bitmap, entity.x, entity.y, color)
         end if
       end for
@@ -497,7 +523,7 @@ namespace BGE
     function drawSafeZones() as void
       screen_width = m.screen.GetWidth()
       screen_height = m.screen.GetHeight()
-      if m.device.GetDisplayAspectRatio() = "4x3" then
+      if m.device.GetDisplayAspectRatio() = "4x3"
         action_offset = {w: 0.033 * screen_width, h: 0.035 * screen_height}
         title_offset = {w: 0.067 * screen_width, h: 0.05 * screen_height}
       else
@@ -507,8 +533,8 @@ namespace BGE
       action_safe_zone = {x1: action_offset.w, y1: action_offset.h, x2: screen_width - action_offset.w, y2: screen_height - action_offset.h}
       title_safe_zone = {x1: title_offset.w, y1: title_offset.h, x2: screen_width - title_offset.w, y2: screen_height - title_offset.h}
 
-      m.screen.DrawRect(action_safe_zone.x1, action_safe_zone.y1, action_safe_zone.x2 - action_safe_zone.x1, action_safe_zone.y2 - action_safe_zone.y1, &hFF00003F)
-      m.screen.DrawRect(title_safe_zone.x1, title_safe_zone.y1, title_safe_zone.x2 - title_safe_zone.x1, title_safe_zone.y2 - title_safe_zone.y1, &h0000FF3F)
+      m.screen.DrawRect(action_safe_zone.x1, action_safe_zone.y1, action_safe_zone.x2 - action_safe_zone.x1, action_safe_zone.y2 - action_safe_zone.y1, m.debugging.safe_action_zone_color)
+      m.screen.DrawRect(title_safe_zone.x1, title_safe_zone.y1, title_safe_zone.x2 - title_safe_zone.x1, title_safe_zone.y2 - title_safe_zone.y1, m.debugging.safe_title_zone_color)
       m.screen.DrawText("Action Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Action Safe Zone", 1000) / 2, action_safe_zone.y1 + 10, &hFF0000FF, m.getFont("default"))
       m.screen.DrawText("Title Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Title Safe Zone", 1000) / 2, action_safe_zone.y1 + 50, &hFF00FFFF, m.getFont("default"))
     end function
@@ -526,7 +552,7 @@ namespace BGE
 
     ' ############### Pause() function - Begin ###############
     function Pause() as void
-      if not m.paused then
+      if not m.paused
         m.paused = true
 
         for each object_key in m.Entities
@@ -547,7 +573,7 @@ namespace BGE
 
     ' ############### Resume() function - Begin ###############
     function Resume() as dynamic
-      if m.paused then
+      if m.paused
         m.paused = false
         paused_time = m.pauseTimer.TotalMilliseconds()
 
@@ -714,7 +740,7 @@ namespace BGE
 
     ' ############### getEntityByName() function - Begin ###############
     function getEntityByName(object_name as string) as dynamic
-      if m.Entities.DoesExist(object_name) then
+      if m.Entities.DoesExist(object_name)
         for each entity_key in m.Entities[object_name]
           return m.Entities[object_name][entity_key] ' Obviously only retrieves the first value
         end for
@@ -727,7 +753,7 @@ namespace BGE
 
     ' ############### getAllEntities() function - Begin ###############
     function getAllEntities(object_name as string) as dynamic
-      if m.Entities.DoesExist(object_name) then
+      if m.Entities.DoesExist(object_name)
         array = []
         for each entity_key in m.Entities[object_name]
           array.Push(m.Entities[object_name][entity_key])
@@ -767,7 +793,7 @@ namespace BGE
         entityId = entity.id
         for each collider_key in entity.colliders
           collider = entity.colliders[collider_key]
-          if type(collider.compositor_object) = "roSprite" then
+          if type(collider.compositor_object) = "roSprite"
             collider.compositor_object.Remove()
           end if
         end for
@@ -826,7 +852,7 @@ namespace BGE
         for each object_key in m.Entities
           for each entity_key in m.Entities[object_key]
             entity = m.Entities[object_key][entity_key]
-            if m.isValidEntity(entity) and entity.onChangeRoom <> invalid then
+            if m.isValidEntity(entity) and entity.onChangeRoom <> invalid
               entity.onChangeRoom(room)
             end if
           end for
@@ -834,12 +860,12 @@ namespace BGE
         for each object_key in m.Entities
           for each entity_key in m.Entities[object_key]
             entity = m.Entities[object_key][entity_key]
-            if m.isValidEntity(entity) and not entity.persistent and entity.name <> m.currentRoom.name then
+            if m.isValidEntity(entity) and not entity.persistent and entity.name <> m.currentRoom.name
               m.destroyEntity(entity, false)
             end if
           end for
         end for
-        if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
+        if m.currentRoom <> invalid and m.currentRoom.id <> invalid
           m.destroyEntity(m.currentRoom, false)
         end if
         m.currentRoom = room
@@ -867,18 +893,18 @@ namespace BGE
 
     ' ############### loadBitmap() function - Begin ###############
     function loadBitmap(bitmap_name as string, path as dynamic) as boolean
-      if type(path) = "roAssociativeArray" then
-        if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid then
+      if type(path) = "roAssociativeArray"
+        if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid
           m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
           return true
         else
           print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap"
           return false
         end if
-      else if m.filesystem.Exists(path) then
+      else if m.filesystem.Exists(path)
         path_object = CreateObject("roPath", path)
         parts = path_object.Split()
-        if parts.extension = ".png" or parts.extension = ".jpg" then
+        if parts.extension = ".png" or parts.extension = ".jpg"
           m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
           return true
         else
@@ -914,10 +940,10 @@ namespace BGE
 
     ' ############### registerFont() function - Begin ###############
     function registerFont(path as string) as boolean
-      if m.filesystem.Exists(path) then
+      if m.filesystem.Exists(path)
         path_object = CreateObject("roPath", path)
         parts = path_object.Split()
-        if parts.extension = ".ttf" or parts.extension = ".otf" then
+        if parts.extension = ".ttf" or parts.extension = ".otf"
           m.font_registry.register(path)
           return true
         else
@@ -1005,12 +1031,12 @@ namespace BGE
       canvas_height = m.canvas.bitmap.GetHeight()
       screen_width = m.screen.GetWidth()
       screen_height = m.screen.GetHeight()
-      if screen_width / screen_height < canvas_width / canvas_height then
+      if screen_width / screen_height < canvas_width / canvas_height
         m.canvas.scale_x = screen_width / canvas_width
         m.canvas.scale_y = m.canvas.scale_x
         m.canvas.offset_x = 0
         m.canvas.offset_y = (screen_height - (screen_width / (canvas_width / canvas_height))) / 2
-      else if screen_width / screen_height > canvas_width / canvas_height then
+      else if screen_width / screen_height > canvas_width / canvas_height
         m.canvas.scale_x = screen_height / canvas_height
         m.canvas.scale_y = m.canvas.scale_x
         m.canvas.offset_x = (screen_width - (screen_height * (canvas_width / canvas_height))) / 2
@@ -1040,7 +1066,7 @@ namespace BGE
 
     ' ############### musicPlay() function - Begin ###############
     function musicPlay(path as string, loop = false as boolean) as boolean
-      if m.filesystem.Exists(path) then
+      if m.filesystem.Exists(path)
         m.audioPlayer.stop()
         m.audioPlayer.ClearContent()
         song = {}
@@ -1092,7 +1118,7 @@ namespace BGE
 
     ' ############### playSound() function - Begin ###############
     function playSound(sound_name as string, volume = 100 as integer) as boolean
-      if m.Sounds.DoesExist(sound_name) then
+      if m.Sounds.DoesExist(sound_name)
         m.Sounds[sound_name].trigger(volume)
         return true
       else

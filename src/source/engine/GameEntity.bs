@@ -104,8 +104,7 @@ namespace BGE
 
 
     function addCircleCollider(collider_name as string, radius as float, offset_x = 0 as float, offset_y = 0 as float, enabled = true as boolean) as void
-      collider = new CircleCollider(
-      collider_name, {
+      collider = new CircleCollider(collider_name, {
         enabled: enabled,
         radius: radius,
         offset_x: offset_x,
@@ -120,8 +119,7 @@ namespace BGE
     end function
 
     function addRectangleCollider(collider_name as string, offset_x as float, offset_y as float, width as float, height as float, enabled = true as boolean) as void
-      collider = new RectangleCollider(
-      collider_name, {
+      collider = new RectangleCollider(collider_name, {
         enabled: enabled,
         offset_x: offset_x,
         offset_y: offset_y,

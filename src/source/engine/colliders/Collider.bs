@@ -11,7 +11,6 @@ namespace BGE
     member_flags = 1
     collidable_flags = 1
     compositor_object = invalid
-    game
 
 
     function new (collider_name as string, args = {} as object)
@@ -23,23 +22,22 @@ namespace BGE
     function setupCompositor(game as object, entityName as string, entityId as string, entityX as float, entityY as float) as void
       'bs:disable-next-line
       region = CreateObject("roRegion", game.empty_bitmap, 0, 0, 1, 1)
-      m.setupRegionCollision(region)
       m.compositor_object = game.compositor.NewSprite(entityX, entityY, region)
       m.compositor_object.SetDrawableFlag(false)
       m.compositor_object.SetData({collider_name: m.name, object_name: entityName, entity_id: entityId})
+      m.refreshColliderRegion()
     end function
 
-    function setupRegionCollision(region) as void
-    end function
-
-    function setupCompositorObjectRegionCollider() as void
+    function refreshColliderRegion() as void
+      region = m.compositor_object.GetRegion()
+      region.SetCollisionType(0)
     end function
 
     function adjustCompositorObject(x as float, y as float)
       if m.enabled then
         m.compositor_object.SetMemberFlags(m.member_flags)
         m.compositor_object.SetCollidableFlags(m.collidable_flags)
-        m.setupCompositorObjectRegionCollider()
+        m.refreshColliderRegion()
         m.compositor_object.MoveTo(x, y)
       else
         m.compositor_object.SetMemberFlags(0)

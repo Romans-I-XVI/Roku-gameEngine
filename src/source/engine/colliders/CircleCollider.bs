@@ -8,17 +8,15 @@ namespace BGE
 
     function new (collider_name as string, args as object)
       super(collider_name, args)
-      collider_type = "circle"
+      m.collider_type = "circle"
+      m.append(args)
     end function
 
 
-    override function setupCompositorObjectRegionCollider() as void
-      m.compositor_object.GetRegion().SetCollisionCircle(m.offset_x, m.offset_y, m.radius)
-    end function
-
-    override function setupRegionCollision(region) as void
+    override function refreshColliderRegion() as void
+      region = m.compositor_object.GetRegion()
       region.SetCollisionType(2)
-      region.SetCollisionCircle(offset_x, offset_y, radius)
+      region.SetCollisionCircle(m.offset_x, m.offset_y, m.radius)
     end function
 
 

@@ -6,12 +6,14 @@ namespace BGE
 
     function new (collider_name as string, args as object)
       super(collider_name, args)
-      collider_type = "rectangle"
+      m.collider_type = "rectangle"
+      m.append(args)
     end function
 
-
-    override function setupCompositorObjectRegionCollider() as void
-      m.compositor_object.GetRegion().SetCollisionRectangle(m.offset_x, m.offset_y, m.width, m.height)
+    override function refreshColliderRegion() as void
+      region = m.compositor_object.GetRegion()
+      region.SetCollisionType(1)
+      region.SetCollisionRectangle(m.offset_x, m.offset_y, m.width, m.height)
     end function
 
 

@@ -20,7 +20,7 @@ namespace BGE
     function new(owner as object, regions as object, canvasBitmap as object, args = {} as object)
       super(owner, invalid, canvasBitmap, args)
       m.regions = regions
-
+      m.append(args)
     end function
 
 

@@ -1,28 +1,28 @@
 namespace BGE
 
-  function HSVtoRGB(hPercent, sPercent, vPercent, a = invalid) as integer
+  function HSVtoRGBA(hPercent, sPercent, vPercent, a = invalid) as integer
     ' Romans_I_XVI port (w/ a few tweaks) of:
     ' http://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
 
     hPercent = hPercent MOD 360
 
     rgb = [0, 0, 0]
-    if sPercent = 0 then
+    if sPercent = 0
       rgb = [vPercent / 100, vPercent / 100, vPercent / 100]
     else
       s = sPercent / 100 : v = vPercent / 100 : h = hPercent / 60 : i = int(h)
 
       data = [v * (1 - s), v * (1 - s * (h - i)), v * (1 - s * (1 - (h - i)))]
 
-      if i = 0 then
+      if i = 0
         rgb = [v, data[2], data[0]]
-      else if i = 1 then
+      else if i = 1
         rgb = [data[1], v, data[0]]
-      else if i = 2 then
+      else if i = 2
         rgb = [data[0], v, data[2]]
-      else if i = 3 then
+      else if i = 3
         rgb = [data[0], data[1], v]
-      else if i = 4 then
+      else if i = 4
         rgb = [data[2], data[0], v]
       else
         rgb = [v, data[0], data[1]]
@@ -32,11 +32,27 @@ namespace BGE
     for c = 0 to rgb.count() - 1
       rgb[c] = int(rgb[c] * 255)
     end for
-    if a <> invalid then
+    if a <> invalid
       color% = (rgb[0] << 24) + (rgb[1] << 16) + (rgb[2] << 8) + a
     else
       color% = (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]
     end if
+
+    return color%
+  end function
+
+  function RGBAtoRGBA(red as integer, green as integer, blue as integer, alpha = 1 as float) as integer
+    red = red and &hFF
+    green = green and &hFF
+    blue = blue and &hFF
+
+    if 0 > alpha
+      alpha = 0
+    else if 1 < alpha
+      alpha = 1
+    end if
+    alpha = cint(alpha * &hFF)
+    color% = (red << 24) + (green << 16) + (blue << 8) + alpha
 
     return color%
   end function
@@ -49,7 +65,7 @@ namespace BGE
 
   function registryRead(registry_section as string, key as string, default_value = invalid as dynamic) as dynamic
     section = CreateObject("roRegistrySection", registry_section)
-    if section.Exists(key) then
+    if section.Exists(key)
       return ParseJson(section.Read(key))
     else
       if default_value <> invalid
