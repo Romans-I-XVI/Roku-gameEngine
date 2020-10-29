@@ -12,7 +12,7 @@ namespace BGE
       limit_frame_rate: 0
     }
     private canvas_is_screen = false
-    private background_color = &h000000FF
+    private background_color = BGE.RGBAtoRGBA(0, 0, 0, 0.8)
     private running = true
     private paused = false
     private sorted_entities = []
@@ -319,9 +319,10 @@ namespace BGE
       if not m.isValidEntity(entity)
         return false
       end if
+
       for each msg in universal_control_events
         if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
-          entity.onButton(msg.GetInt())
+          entity.onButton(new GameInput(msg.GetInt(), 0))
           if not m.isValidEntity(entity)
             return false
           end if
@@ -338,7 +339,7 @@ namespace BGE
         ' Button release codes are 100 plus the button press code
         ' This shows a button held code as 1000 plus the button press code
         if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
-          entity.onButton(1000 + m.buttonHeld)
+          entity.onButton(new GameInput(1000 + m.buttonHeld, m.buttonHeldTime))
           if not m.isValidEntity(entity)
             return false
           end if

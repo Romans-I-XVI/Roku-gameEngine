@@ -1,0 +1,18 @@
+namespace BGE
+
+  class GameInput
+    function new(buttonCode as integer, heldTimeMs as integer)
+      m.buttonCode = buttonCode
+      m.button = BGE.buttonNameFromCode(buttonCode)
+      m.press = buttonCode < 100
+      m.held = buttonCode >= 1000
+      m.release = buttonCode >= 100 and buttonCode < 1000
+      m.heldTimeMs = heldTimeMs
+    end function
+
+    function isButton(buttonName) as boolean
+      return invalid <> buttonName and invalid <> m.button and lcase(buttonName) = lcase(m.button)
+    end function
+  end class
+
+end namespace

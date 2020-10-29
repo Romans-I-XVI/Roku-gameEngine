@@ -167,4 +167,44 @@ namespace BGE
   function isValidEntity(entity as object) as boolean
     return invalid <> entity and entity.id <> invalid
   end function
+
+
+  ' 	' -------Button Code Reference--------
+  ' 	' Button  Pressed Released  Held
+  '   ' ------------------------------
+  ' 	' Back         0      100   1000
+  ' 	' Up           2      102   1002
+  ' 	' Down         3      103   1003
+  ' 	' Left         4      104   1004
+  ' 	' Right        5      105   1005
+  ' 	' OK           6      106   1006
+  ' 	' Replay       7      107   1007
+  ' 	' Rewind       8      108   1008
+  ' 	' FastForward  9      109   1009
+  ' 	' Options     10      110   1010
+  ' 	' Play        13      113   1013
+
+  function buttonNameFromCode(buttonCode as integer) as string
+    buttonId = buttonCode mod 100
+    possibleButtonNames = [
+      "back",
+      invalid,
+      "up",
+      "down"
+      "left",
+      "right",
+      "OK",
+      "replay",
+      "rewind",
+      "fastforward",
+      "options",
+      invalid,
+      invalid,
+      "play"
+    ]
+    if buttonId < possibleButtonNames.count()
+      return possibleButtonNames[buttonId]
+    end if
+    return invalid
+  end function
 end namespace
