@@ -36,7 +36,7 @@ class MainRoom extends BGE.Room
     end if
   end function
 
-  override function onButton(input)
+  override function onInput(input)
     if input.isButton("back")
       m.game.End()
     end if

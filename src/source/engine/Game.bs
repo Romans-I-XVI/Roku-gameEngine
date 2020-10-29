@@ -243,9 +243,9 @@ namespace BGE
         else
 
 
-          ' --------------------First process the onButton() function--------------------
+          ' --------------------First process the onInput() function--------------------
           if m.isValidEntity(entity)
-            m.processEntityOnButton(entity, universal_control_events)
+            m.processEntityonInput(entity, universal_control_events)
           end if
 
           ' -------------------Then send the audioPlayer event msg if applicable-------------------
@@ -315,14 +315,14 @@ namespace BGE
     end function
 
 
-    private function processEntityOnButton(entity as object, universal_control_events as object) as boolean
+    private function processEntityonInput(entity as object, universal_control_events as object) as boolean
       if not m.isValidEntity(entity)
         return false
       end if
 
       for each msg in universal_control_events
-        if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
-          entity.onButton(new GameInput(msg.GetInt(), 0))
+        if entity.onInput <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
+          entity.onInput(new GameInput(msg.GetInt(), 0))
           if not m.isValidEntity(entity)
             return false
           end if
@@ -338,8 +338,8 @@ namespace BGE
       if m.buttonHeld <> -1
         ' Button release codes are 100 plus the button press code
         ' This shows a button held code as 1000 plus the button press code
-        if entity.onButton <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
-          entity.onButton(new GameInput(1000 + m.buttonHeld, m.buttonHeldTime))
+        if entity.onInput <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
+          entity.onInput(new GameInput(1000 + m.buttonHeld, m.buttonHeldTime))
           if not m.isValidEntity(entity)
             return false
           end if

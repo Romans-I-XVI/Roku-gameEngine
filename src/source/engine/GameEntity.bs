@@ -48,7 +48,7 @@ namespace BGE
     function onDrawEnd(canvas as object) as void
     end function
 
-    function onButton(input as object) as void
+    function onInput(input as object) as void
     end function
 
     function onECPKeyboard(char) as void
