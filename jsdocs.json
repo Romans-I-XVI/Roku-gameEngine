@@ -1,0 +1,15 @@
+{
+  "plugins": [
+    "plugins/markdown",
+    "./node_modules/brighterscript-jsdocs-plugin/convert-brighterscript-docs.js"
+  ],
+  "source": {
+    "include": [
+      "src"
+    ],
+    "includePattern": ".+\\.br?s$"
+  },
+  "opts": {
+    "recurse": true
+  }
+}

@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "preversion": "npm run validate",
-    "validate": "bsc --create-package=false --copy-to-staging=false"
+    "validate": "bsc --create-package=false --copy-to-staging=false",
+    "docs": "./node_modules/.bin/jsdoc -c jsdoc.json -d docs"
   },
   "files": [
     "src/**/*"
@@ -20,7 +21,8 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "brighterscript": "^0.16.10"
+    "brighterscript": "^0.16.10",
+    "brighterscript-jsdocs-plugin": "github:markwpearce/brighterscript-jsdocs-plugin"
   },
   "repository": {
     "type": "git",
