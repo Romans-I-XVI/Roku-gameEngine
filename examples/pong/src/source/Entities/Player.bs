@@ -22,6 +22,7 @@ class Player extends Paddle
     end if
   end function
 
+
   override function onInput(input as object)
     if input.release and (input.isButton("up") or input.isButton("down"))
       m.yspeed = 0
