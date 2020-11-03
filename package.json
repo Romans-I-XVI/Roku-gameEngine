@@ -22,7 +22,7 @@
   "dependencies": {},
   "devDependencies": {
     "brighterscript": "^0.16.10",
-    "brighterscript-jsdocs-plugin": "github:markwpearce/brighterscript-jsdocs-plugin"
+    "brighterscript-jsdocs-plugin": "^0.1.4"
   },
   "repository": {
     "type": "git",
