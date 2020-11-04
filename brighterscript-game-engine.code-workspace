@@ -4,7 +4,12 @@
       "path": "examples/pong"
     },
     {
+      "path": "examples/canvas"
+    },
+    {
       "path": "."
     }
-  ]
+  ],
+  "settings": {
+  }
 }
