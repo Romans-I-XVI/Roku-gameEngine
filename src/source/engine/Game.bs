@@ -1,8 +1,10 @@
-
+' @module BGE
 namespace BGE
-  class Game
-    ' ****BEGIN - For Internal Use, Do Not Manually Alter****
 
+  ' Main Game Engine class which runs everything
+  class Game
+
+    ' ****BEGIN - For Internal Use, Do Not Manually Alter****
     private debugging = {
       draw_colliders: false
       draw_safe_zones: false
@@ -11,6 +13,7 @@ namespace BGE
       safe_title_zone_color: BGE.RGBAtoRGBA(0, 0, &hFF, 0.3)
       limit_frame_rate: 0
     }
+
     private canvas_is_screen = false
     private background_color = BGE.RGBAtoRGBA(0, 0, 0, 0.8)
     private running = true
@@ -45,17 +48,26 @@ namespace BGE
     private nextGameEntityId = 0
     ' ****END - For Internal Use, Do Not Manually Alter****
 
-    ' ****Variables****
+
+    ' Reference to the current room in play
     currentRoom = invalid
+    ' Any special arguments for the current room
     currentRoomArgs = {}
-    Entities = {} ' This holds all of the game object entities
-    Statics = {} ' This holds all static variables for a given object type
-    Objects = {} ' This holds the object definitions by name (the object creation functions)
-    Rooms = {} ' This holds the room definitions by name (the room creation functions)
-    Interfaces = {} ' This holds the interface definitions by name.
-    Bitmaps = {} ' This holds the loaded bitmaps by name
-    Sounds = {} ' This holds the loaded sounds by name
-    Fonts = {} ' This holds the loaded fonts by name
+
+    ' All of the GameEntities <entityName> => GameEntity[]
+    Entities = {}
+    ' All static variables for a given object type
+    Statics = {} '
+    ' The room definitions by name (the room creation functions)
+    Rooms = {}
+    ' The interface definitions by name.
+    Interfaces = {}
+    ' The loaded bitmaps by name
+    Bitmaps = {}
+    ' The loaded sounds by name
+    Sounds = {}
+    ' The loaded fonts by name
+    Fonts = {}
 
 
     function new(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false)
