@@ -10,4 +10,6 @@ sub Main()
   ' game.debugDrawColliders(true)
   ' game.debugDrawSafeZones(true)
   game.Play()
+
+  ' vscode_rale_tracker_entry
 end sub

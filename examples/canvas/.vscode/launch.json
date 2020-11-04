@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "brightscript",
+      "request": "launch",
+      "name": "Canvas Example Debug: Launch",
+      "stopOnEntry": false,
+      "host": "${promptForHost}",
+      "password": "${promptForPassword}",
+      "rootDir": "${workspaceFolder}/dist/",
+      //run the BrighterScript build before each launch
+      "preLaunchTask": "build",
+      "enableDebuggerAutoRecovery": true,
+      "stopDebuggerOnAppExit": false,
+      "injectRaleTrackerTask": true
+    },
+    {
+      "type": "brightscript",
+      "request": "launch",
+      "name": "Canvas Example Debug: Launch From ENV",
+      "stopOnEntry": false,
+      "envFile": "${workspaceFolder}/../../.env",
+      "host": "${env:ROKU_HOST}",
+      "password": "${env:ROKU_PASSWORD}",
+      "rootDir": "${workspaceFolder}/dist/",
+      //run the BrighterScript build before each launch
+      "preLaunchTask": "build",
+      "enableDebuggerAutoRecovery": true,
+      "stopDebuggerOnAppExit": false,
+      "injectRaleTrackerTask": true
+    }
+  ]
+}
