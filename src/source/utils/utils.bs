@@ -164,6 +164,7 @@ namespace BGE
 
 
 
+
   function isValidEntity(entity as object) as boolean
     return invalid <> entity and entity.id <> invalid
   end function

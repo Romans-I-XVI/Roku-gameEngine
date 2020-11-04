@@ -985,49 +985,10 @@ namespace BGE
 
     ' --------------------------------Begin Canvas Functions----------------------------------------
 
-    ' ############### canvasSetSize() function - Begin ###############
-    function canvasSetSize(canvas_width as integer, canvas_height as integer) as void
-      m.canvas.bitmap = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
-    end function
-    ' ############### canvasSetSize() function - Begin ###############
-
-
-    ' ############### canvasGetOffset() function - Begin ###############
-    function canvasGetOffset() as object
-      return {x: m.canvas.offset_x, y: m.canvas.offset_y}
-    end function
-    ' ############### canvasGetOffset() function - Begin ###############
-
-
-    ' ############### canvasGetScale() function - Begin ###############
-    function canvasGetScale() as object
-      return {x: m.canvas.scale_x, y: m.canvas.scale_y}
-    end function
-    ' ############### canvasGetScale() function - Begin ###############
-
-
-    ' ############### canvasSetOffset() function - Begin ###############
-    ' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
-    function canvasSetOffset(x as float, y as float) as void
-      m.canvas.offset_x = x
-      m.canvas.offset_y = y
-    end function
-    ' ############### canvasSetOffset() function - End ###############
-
-
-    ' ############### canvasSetScale() function - Begin ###############
-    function canvasSetScale(scale_x as float, scale_y = invalid as dynamic) as void
-      if scale_y = invalid
-        scale_y = scale_x
-      end if
-      m.canvas.scale_x = scale_x
-      m.canvas.scale_y = scale_y
-    end function
-    ' ############### canvasSetScale() function - End ###############
 
 
     ' ############### canvasFitToScreen() function - Begin ###############
-    function canvasFitToScreen() as void
+    function fitCanvasToScreen() as void
       canvas_width = m.canvas.bitmap.GetWidth()
       canvas_height = m.canvas.bitmap.GetHeight()
       screen_width = m.screen.GetWidth()
@@ -1055,7 +1016,7 @@ namespace BGE
 
 
     ' ############### canvasCenterToScreen() function - Begin ###############
-    function canvasCenterToScreen() as void
+    function centerCanvasToScreen() as void
       m.canvas.offset_x = m.screen.GetWidth() / 2 - (m.canvas.scale_x * m.canvas.bitmap.GetWidth()) / 2
       m.canvas.offset_y = m.screen.GetHeight() / 2 - (m.canvas.scale_y * m.canvas.bitmap.GetHeight()) / 2
     end function
