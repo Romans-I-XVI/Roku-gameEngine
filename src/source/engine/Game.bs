@@ -18,7 +18,7 @@ namespace BGE
     private background_color = BGE.RGBAtoRGBA(0, 0, 0, 0.8)
     private running = true
     private paused = false
-    private sorted_entities = []
+    private sortedEntities = []
     private buttonHeld = -1
     private buttonHeldTime = 0
     private input_entity = invalid
@@ -70,7 +70,15 @@ namespace BGE
     Fonts = {}
 
 
-    function new(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false)
+
+
+    ' Constructor for GameEngine
+    '
+    ' @param {integer} canvas_width - Width of the canvas the game is drawn to
+    ' @param {integer} canvas_height - Height of the canvas the game is drawn to
+    ' @param {boolean} [canvas_as_screen_if_possible=false] - If true, the game will draw to the roScreen directly if the canvas dimensions are the same as the screen dimensions, this improves performance but makes it so you can't do various canvas manipulations (such as screen shake or taking screenshots)
+    ' @return {void}
+    function new(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false as boolean) as void
 
       ' ############### Create Initial Object - Begin ###############
       ' Set up the screen
@@ -90,6 +98,13 @@ namespace BGE
     end function
 
 
+
+    ' Sets up the screen based on canvas dimensions, and screen size
+    '
+    ' @param {integer} canvas_width
+    ' @param {integer} canvas_height
+    ' @param {} [canvas_as_screen_if_possible=false]
+    ' @return {void}
     private function setUpScreen(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false) as void
       UIResolution = m.device.getUIResolution()
       SupportedResolutions = m.device.GetSupportedGraphicsResolutions()
@@ -128,6 +143,10 @@ namespace BGE
     end function
 
 
+
+    ' Finds fonts and registers them
+    '
+    ' @return {void}
     private function setUpFonts() as void
       ttfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
       otfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".otf")
@@ -142,13 +161,42 @@ namespace BGE
       m.Fonts["default"] = m.font_registry.GetDefaultFont(28, false, false)
     end function
 
+
+    ' Gets the next valid id for a GameEntity
+    '
+    ' @return {string}
     function getGameEntityId() as string
       id = m.nextGameEntityId.ToStr()
       m.nextGameEntityId++
       return id
     end function
 
-    ' ################################################################ Play() function - Begin #####################################################################################################
+
+
+    ' Starts the game engine.
+    ' Run this function after setting up the game
+    ' Game loop is as follows:
+    ' 1. For each GameEntity:
+    '   - Process Input from roku remote
+    '   - Process Audio Events (https://developer.roku.com/en-ca/docs/references/brightscript/events/roaudioplayerevent.md)
+    '   - Process ECP input (https://developer.roku.com/en-ca/docs/developer-program/debugging/external-control-api.md)
+    '   - Process URL events (https://developer.roku.com/en-ca/docs/references/brightscript/events/rourlevent.md)
+    '   - Runs the Entity's onUpdate() function
+    '   - Moves Entity based on velocity
+    '   - Run Entity's onPreCollision() function
+    '   - For any collisions, runs Entity's onCollision() function
+    '   - Runs entity's onPostCollision() function
+    ' (At any time, the Entity in question may Delete() itself. Before every entity interaction, the entity is checked to make sure it is still valid
+    ' in case it was deleted in the last interaction)
+    '
+    ' 2. For each GameEntity, sorted by depth
+    '   - Runs the Entity onDrawBegin() function
+    '   - For each image in the Entity, run the draw() function
+    '   - Run the Entity onDrawEnd() function
+    '
+    ' 3. Draw all debug items (e.g. colliders, screen safe zones, etc.)
+    '
+    ' @return {void}
     public function Play() as void
 
       audio_guide_suppression_roURLTransfer = CreateObject("roURLTransfer")
@@ -241,15 +289,15 @@ namespace BGE
       end while
 
     end function
-    ' ################################################################ Play() function - End #####################################################################################################
 
-    ' --------------------Begin giant loop for processing all game objects----------------
-    ' Before every entity interaction, the entity is checked to make sure it is still valid
-    ' in case it was deleted in the last interaction
+    ' Handles all the processing for the entities before drawing
+    '
+    ' @param {object} universal_control_events - array of any control events that happened since last frame
+    ' @return {void}
     private function processEntitiesPreDraw(universal_control_events as object) as void
       started_paused = m.paused
-      for i = m.sorted_entities.Count() - 1 to 0 step -1
-        entity = m.sorted_entities[i]
+      for i = m.sortedEntities.Count() - 1 to 0 step -1
+        entity = m.sortedEntities[i]
         if not m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
           processEntity = false
         else
@@ -257,7 +305,7 @@ namespace BGE
 
           ' --------------------First process the onInput() function--------------------
           if m.isValidEntity(entity)
-            m.processEntityonInput(entity, universal_control_events)
+            m.processEntityOnInput(entity, universal_control_events)
           end if
 
           ' -------------------Then send the audioPlayer event msg if applicable-------------------
@@ -314,20 +362,37 @@ namespace BGE
 
 
 
+    ' Checks if an entity is still valid
+    '
+    ' @param {object} entity
+    ' @return {boolean}
     private function isValidEntity(entity as object) as boolean
       return BGE.isValidEntity(entity)
     end function
 
 
+
+    ' Deletes an entity from the sortedEntities list by the index if that entity is not valid
+    ' Does not call the onDestroy() method of the entity
+    '
+    ' @param {integer} sortedEntitiesIndex
+    ' @return {void}
     private function deleteIfInvalidEntity(sortedEntitiesIndex as integer) as void
-      entity = m.sorted_entities[sortedEntitiesIndex]
+      entity = m.sortedEntities[sortedEntitiesIndex]
+      m.destroyEntity(entity, false)
       if not m.isValidEntity(entity)
-        m.sorted_entities.Delete(sortedEntitiesIndex)
+        m.sortedEntities.Delete(sortedEntitiesIndex)
       end if
     end function
 
 
-    private function processEntityonInput(entity as object, universal_control_events as object) as boolean
+
+    ' Processes input events and calls the entity's onInput function
+    '
+    ' @param {object} entity - the entity to relay input to
+    ' @param {object} universal_control_events - array of control events since last frame
+    ' @return {boolean} true if this entity is still valid
+    private function processEntityOnInput(entity as object, universal_control_events as object) as boolean
       if not m.isValidEntity(entity)
         return false
       end if
@@ -360,6 +425,11 @@ namespace BGE
       return true
     end function
 
+
+    ' Moves an entity based on its velocity
+    '
+    ' @param {object} entity
+    ' @return {boolean} true if this entity is still valid
     private function processEntityMovement(entity as object) as boolean
       if not m.isValidEntity(entity)
         return false
@@ -375,6 +445,12 @@ namespace BGE
     end function
 
 
+
+    ' Checks all colliders in an entity with all other colliders and if
+    ' there is a collision, will call the entity's onCollsion() function
+    '
+    ' @param {object} entity
+    ' @return {boolean} true if this entity is still valid
     private function processEntityOnCollision(entity as object) as boolean
       if not m.isValidEntity(entity)
         return false
@@ -391,8 +467,8 @@ namespace BGE
             if multiple_collisions <> invalid
               for each other_collider in multiple_collisions
                 other_collider_data = other_collider.GetData()
-                if other_collider_data.entity_id <> entity.id and m.Entities[other_collider_data.object_name].DoesExist(other_collider_data.entity_id)
-                  entity.onCollision(collider_key, other_collider_data.collider_name, m.Entities[other_collider_data.object_name][other_collider_data.entity_id])
+                if other_collider_data.entityId <> entity.id and m.Entities[other_collider_data.objectName].DoesExist(other_collider_data.entityId)
+                  entity.onCollision(collider_key, other_collider_data.collider_name, m.Entities[other_collider_data.objectName][other_collider_data.entityId])
                   if not m.isValidEntity(entity)
                     return false
                   end if
@@ -415,6 +491,12 @@ namespace BGE
       return true
     end function
 
+
+
+    ' Helper to adjust en entities colliders after movement
+    '
+    ' @param {object} entity
+    ' @return {boolean} true if this entity is still valid
     private function adjustEntityCompositorObjectPostCollision(entity as object) as boolean
       if not m.isValidEntity(entity)
         return false
@@ -433,19 +515,27 @@ namespace BGE
       return true
     end function
 
-    private function drawEntities() as void
 
-      ' ----------------------Then draw all of the entities and call onDrawBegin() and onDrawEnd()-------------------------
-      m.sorted_entities.SortBy("depth")
-      for i = m.sorted_entities.Count() - 1 to 0 step -1
-        entity = m.sorted_entities[i]
+
+    ' Draws all the entities, by depth (low depth is drawn before high depth)
+    '
+    ' @return {void}
+    private function drawEntities() as void
+      m.sortedEntities.SortBy("depth")
+      for i = m.sortedEntities.Count() - 1 to 0 step -1
+        entity = m.sortedEntities[i]
         m.processEntityDraw(entity)
       end for
-
     end function
 
 
-    private function processEntityDraw(entity) as boolean
+
+
+    ' Draws an entity, bookended by calling onDrawBegin/End functions
+    '
+    ' @param {object} entity
+    ' @return {boolean} true if this entity is still valid
+    private function processEntityDraw(entity as object) as boolean
       if not m.isValidEntity(entity)
         return false
       end if
@@ -464,11 +554,14 @@ namespace BGE
       return m.isValidEntity(entity)
     end function
 
+
+    ' Draw Debug Related Items
+    '
+    ' @return {void}
     private function drawDebugItems() as void
-      ' Draw Debug Related Items
       if m.debugging.draw_colliders
-        for i = m.sorted_entities.Count() - 1 to 0 step -1
-          entity = m.sorted_entities[i]
+        for i = m.sortedEntities.Count() - 1 to 0 step -1
+          entity = m.sortedEntities[i]
           if m.isValidEntity(entity)
             m.drawColliders(entity)
           end if
@@ -476,20 +569,29 @@ namespace BGE
       end if
     end function
 
-    ' ############### DebugDrawColliders() function - Begin ###############
+
+
+
+    ' Set if colliders should be drawn
+    '
+    ' @param {boolean} enabled
     function debugDrawColliders(enabled as boolean) as void
       m.debugging.draw_colliders = enabled
     end function
-    ' ############### DebugDrawColliders() function - End ###############
 
-    ' ############### DebugDrawSafeZones() function - Begin ###############
+
+    ' Set if Safe Zone should be drawn
+    '
+    ' @param {boolean} enabled
     function debugDrawSafeZones(enabled as boolean) as void
       m.debugging.draw_safe_zones = enabled
     end function
-    ' ############### DebugDrawSafeZones() function - End ###############
 
-    ' ############### debugSetColors() function - Begin ###############
-    ' @param {object} colors = {colliders: integer, safe_action_zone: integer, safe_title_zone:integer}
+
+    ' Sets the colors for the debug items to be drawn
+    ' colors = {colliders: integer, safe_action_zone: integer, safe_title_zone: integer}
+    '
+    ' @param {object} colors
     function debugSetColors(colors as object) as void
       if invalid = colors
         return
@@ -504,17 +606,23 @@ namespace BGE
 
       m.debugging.append(colorsToAppend)
     end function
-    ' ############### debugSetColors() function - End ###############
 
 
-    ' ############### DebugLimitFrameRate() function - Begin ###############
+    ' Limit the frame rate to the given number of frames per second
+    '
+    ' @param {integer} limit_frame_rate
+    ' @return {void}
     function debugLimitFrameRate(limit_frame_rate as integer) as void
       m.debugging.limit_frame_rate = limit_frame_rate
     end function
-    ' ############### DebugLimitFrameRate() function - End ###############
 
-    ' ############### DrawColliders() function - Begin ###############
-    function drawColliders(entity as object, color = 0 as integer) as void
+
+    ' Draw the colliders for the given entity
+    '
+    ' @param {object} entity
+    ' @param {integer} [color=0]
+    ' @return {void}
+    private function drawColliders(entity as object, color = 0 as integer) as void
       if not m.isValidEntity(entity) or invalid = entity.colliders
         return
       end if
@@ -528,12 +636,12 @@ namespace BGE
         end if
       end for
     end function
-    ' ############### DrawColliders() function - End ###############
 
 
-
-    ' ############### DrawSafeZones() function - End ###############
-    function drawSafeZones() as void
+    ' Draws the safe zones
+    '
+    ' @return {void}
+    private function drawSafeZones() as void
       screen_width = m.screen.GetWidth()
       screen_height = m.screen.GetHeight()
       if m.device.GetDisplayAspectRatio() = "4x3"
@@ -551,19 +659,21 @@ namespace BGE
       m.screen.DrawText("Action Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Action Safe Zone", 1000) / 2, action_safe_zone.y1 + 10, &hFF0000FF, m.getFont("default"))
       m.screen.DrawText("Title Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Title Safe Zone", 1000) / 2, action_safe_zone.y1 + 50, &hFF00FFFF, m.getFont("default"))
     end function
-    ' ############### DrawSafeZones() function - End ###############
 
 
-
-    ' ############### End() function - Begin ###############
+    ' Ends the Game
+    '
+    ' @return {void}
     function End() as void
       m.running = false
     end function
-    ' ############### End() function - End ###############
 
 
-
-    ' ############### Pause() function - Begin ###############
+    ' Pauses the game
+    ' Only entities marked as pausable = false will be processed in game loop
+    ' For each entity, the onPause() function will be called
+    '
+    ' @return {void}
     function Pause() as void
       if not m.paused
         m.paused = true
@@ -580,11 +690,11 @@ namespace BGE
         m.pauseTimer.Mark()
       end if
     end function
-    ' ############### Pause() function - End ###############
 
-
-
-    ' ############### Resume() function - Begin ###############
+    ' Resumes / unpauses the game
+    ' For each entity, the onResume() function will be called, and any image in the entity will have its onResume() called
+    '
+    ' @return {void}
     function Resume() as dynamic
       if m.paused
         m.paused = false
@@ -608,65 +718,67 @@ namespace BGE
       end if
       return invalid
     end function
-    ' ############### Resume() function - End ###############
 
 
 
-    ' ############### isPaused() function - Begin ###############
+    ' Is the game paused?
+    '
+    ' @return {boolean}
     function isPaused() as boolean
       return m.paused
     end function
-    ' ############### isPaused() function - End ###############
 
-    ' ############### setBackgroundColor() function - Begin ###############
+
+    ' Sets the default background color for the game
+    ' Before any entities are drawn, the screen is cleared to this color
+    '
+    ' @param {integer} color
+    ' @return {void}
     function setBackgroundColor(color as integer) as void
       m.background_color = color
     end function
-    ' ############### setBackgroundColor() function - Begin ###############
 
-    ' ############### getDeltaTime() function - Begin ###############
+
+    ' What's the time in milliseconds since last frame?
+    '
+    ' @return {float}
     function getDeltaTime() as float
       return m.dt
     end function
-    ' ############### getDeltaTime() function - Begin ###############
 
 
-    ' ############### getRoom() function - Begin ###############
+    ' Gets the current Room/Level the game is using
+    '
+    ' @return {object}
     function getRoom() as object
       return m.currentRoom
     end function
-    ' ############### getRoom() function - Begin ###############
 
 
-
-    ' ############### getCanvas() function - Begin ###############
+    ' Gets the bitmap the game is currently drawing to
+    '
+    ' @return {object}
     function getCanvas() as object
       return m.canvas.bitmap
     end function
-    ' ############### getCanvas() function - Begin ###############
 
 
-
-    ' ############### getScreen() function - Begin ###############
+    ' Gets the screen object
+    '
+    ' @return {object}
     function getScreen() as object
       return m.screen
     end function
-    ' ############### getScreen() function - Begin ###############
 
 
-
-    ' ############### resetScreen() function - Begin ###############
+    ' Resets the screen
+    ' Note: _Important_ This function is here because of a bug with the Roku.
+    ' If you ever try to use a component that displays something on the screen aside from roScreen,
+    ' such as roKeyboardScreen, roMessageDialog, etc. the screen will flicker after you return to your game
+    ' You should always call this method after using a screen that's outside of roScreen in order to prevent this bug.
+    '
+    ' @return {void}
     function resetScreen() as void
-      ' UIResolution = m.device.getUIResolution()
-      ' if UIResolution.name = "SD"
-      '   m.screen = CreateObject("roScreen", true, 854, 626)
-      ' else
-      '   m.screen = CreateObject("roScreen", true, 1280, 720)
-      ' end if
-      ' m.compositor.SetDrawTo(m.screen, &h00000000)
-      ' m.screen.SetMessagePort(m.screen_port)
-      ' m.screen.SetAlphaEnable(true)
-
       m.setUpScreen(m.screen.GetWidth(), m.screen.GetHeight(), m.canvas_is_screen)
       if m.canvas_is_screen
         m.canvas.bitmap = m.screen
@@ -686,131 +798,127 @@ namespace BGE
         end for
       end if
     end function
-    ' ############### resetScreen() function - Begin ###############
 
 
     ' --------------------------------Begin Object Functions----------------------------------------
 
 
-    ' ############### defineObject() function - Begin ###############
-    function defineObject(object_name as string) as void
-      'm m.Objects[object_name] = object_creation_function
-      if invalid = m.Entities[object_name]
-        m.Entities[object_name] = {}
-        m.Statics[object_name] = {}
+
+    ' Sets up the lookup table of entities for entities with this name
+    '
+    ' @param {string} entityName
+    ' @return {void}
+    private function defineEntity(entityName as string) as void
+      if invalid = m.Entities[entityName]
+        m.Entities[entityName] = {}
+        m.Statics[entityName] = {}
       end if
     end function
-    ' ############### defineObject() function - End ###############
 
 
-
-    ' ############### defineInterface() function - Begin ###############
+    ' TODO: work on interfaces
+    '
+    ' @param {string} interface_name
+    ' @param {callable} interface_creation_function
+    ' @return {void}
     function defineInterface(interface_name as string, interface_creation_function as function) as void
       m.Interfaces[interface_name] = interface_creation_function
     end function
-    ' ############### defineInterface() function - End ###############
 
 
 
-    ' ############### createEntity() function - Begin ###############
-    ' function createEntity(object_name as string, constructor_args = {} as object, creation_args = {} as object) as dynamic
-    '   if m.Objects.DoesExist(object_name)
-    '     ' new_instance = m.newEmptyObject(object_name)
-    '     new_entity = m.Objects[object_name](m, object_name, constructor_args)
-    '     m.addEntity(object_name, creation_args)
-    '     return new_entity
-    '   else
-    '     return invalid
-    '   end if
-    ' end function
-    ' ############### createEntity() function - End ###############
-
-
-
-    ' ############### addEntity() function - Begin ###############
+    ' Adds a game entity to be processed by the game engine
+    ' Only entities that have been added will be part of the game
+    ' Calls the entity's onCreate() function with the args provided
+    '
+    ' @param {object} entity - the entity to be added
+    ' @param {object} [args={}] - arguments to the entity's onCreate() method
+    ' @return {object} the entity that was added
     function addEntity(entity as object, args = {} as object) as object
       entity.onCreate(args)
-      m.defineObject(entity.name)
+      m.defineEntity(entity.name)
       m.Entities[entity.name][entity.id] = entity
-      m.sorted_entities.Push(entity)
+      m.sortedEntities.Push(entity)
       return entity
     end function
-    ' ############### addEntity() function - End ###############
 
 
-    ' ############### getEntityByID() function - Begin ###############
-    function getEntityByID(entity_id as string) as dynamic
-      for each entity in m.sorted_entities
-        if m.isValidEntity(entity) and entity_id = entity_id.id
+
+    ' Gets an entity by its unique id
+    '
+    ' @param {string} entityId
+    ' @return {object} the entity with the given id, if found, otherwise invalid
+    function getEntityByID(entityId as string) as object
+      for each entity in m.sortedEntities
+        if m.isValidEntity(entity) and entityId = entity.id
           return entity
         end if
       end for
       return invalid
     end function
-    ' ############### getEntityByID() function - End ###############
 
 
-
-    ' ############### getEntityByName() function - Begin ###############
-    function getEntityByName(object_name as string) as dynamic
-      if m.Entities.DoesExist(object_name)
-        for each entity_key in m.Entities[object_name]
-          return m.Entities[object_name][entity_key] ' Obviously only retrieves the first value
+    ' Gets the first entity with the given name
+    '
+    ' @param {string} objectName
+    ' @return {object} the entity with the given name, if found, otherwise invalid
+    function getEntityByName(objectName as string) as object
+      if m.Entities.DoesExist(objectName)
+        for each entityKey in m.Entities[objectName]
+          return m.Entities[objectName][entityKey] ' Obviously only retrieves the first value
         end for
       end if
       return invalid
     end function
-    ' ############### getEntityByName() function - End ###############
 
-
-
-    ' ############### getAllEntities() function - Begin ###############
-    function getAllEntities(object_name as string) as dynamic
-      if m.Entities.DoesExist(object_name)
-        array = []
-        for each entity_key in m.Entities[object_name]
-          array.Push(m.Entities[object_name][entity_key])
+    ' Gets all the entities that match the given name
+    '
+    ' @param {string} objectName
+    ' @return {object} an array with entities with the given name
+    function getAllEntities(objectName as string) as object
+      array = []
+      if m.Entities.DoesExist(objectName)
+        for each entity_key in m.Entities[objectName]
+          array.Push(m.Entities[objectName][entity_key])
         end for
-        return array
-      else
-        return invalid
       end if
+      return []
     end function
-    ' ############### getAllEntities() function - Begin ###############
 
 
-
-    ' ############### getAllEntitiesWithInterface() function - Begin ###############
+    ' TODO: work on interfaces
+    '
+    ' @param {string} interface_name
+    ' @return {dynamic}
     function getAllEntitiesWithInterface(interface_name as string) as dynamic
+      array = []
       if m.Interfaces.DoesExist(interface_name)
-        array = []
-        for each entity in m.sorted_entities
+        for each entity in m.sortedEntities
           if entity <> invalid and entity.id <> invalid and entity.hasInterface(interface_name)
             array.Push(entity)
           end if
         end for
 
-        return array
-      else
-        return invalid
       end if
+      return array
     end function
-    ' ############### getAllEntitiesWithInterface() function - Begin ###############
 
 
 
-    ' ############### destroyEntity() function - Begin ###############
-    function destroyEntity(entity as object, call_on_destroy = true) as void
-      if m.isValidEntity(entity)
+    ' Destroys an entity and all its colliders
+    ' Clears its properties, so images, etc. won't get drawn anymore
+    '
+    ' @param {object} entity - the entity to destroy
+    ' @param {boolean} [callOnDestroy=true]
+    ' @return {void}
+    function destroyEntity(entity as object, callOnDestroy = true as boolean) as void
+      if invalid <> entity
         entityName = entity.name
         entityId = entity.id
-        for each collider_key in entity.colliders
-          collider = entity.colliders[collider_key]
-          if type(collider.compositor_object) = "roSprite"
-            collider.compositor_object.Remove()
-          end if
-        end for
-        if entity.onDestroy <> invalid and call_on_destroy
+        if entity.clearAllColliders <> invalid
+          entity.clearAllColliders()
+        end if
+        if entity.onDestroy <> invalid and callOnDestroy
           entity.onDestroy()
         end if
         if m.Entities[entityName].DoesExist(entityId) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
@@ -820,59 +928,82 @@ namespace BGE
         entity.id = invalid
       end if
     end function
-    ' ############### destroyEntity() function - End ###############
 
 
 
-    ' ############### destroyAllEntities() function - Begin ###############
-    function destroyAllEntities(object_name as string, call_on_destroy = true) as void
-      for each entity_key in m.Entities[object_name]
-        m.destroyEntity(m.Entities[object_name][entity_key], call_on_destroy)
-      end for
+    ' Destroys all entities with a given name
+    '
+    ' @param {string} objectName
+    ' @param {dynamic} [callOnDestroy=true]
+    ' @return {void}
+    function destroyAllEntities(objectName as string, callOnDestroy = true) as void
+      if invalid <> m.Entities[objectName]
+        for each entityKey in m.Entities[objectName]
+          m.destroyEntity(m.Entities[objectName][entityKey], callOnDestroy)
+        end for
+      end if
     end function
-    ' ############### destroyAllEntities() function - End ###############
 
 
-
-    ' ############### entityCount() function - Begin ###############
-    function entityCount(object_name as string) as integer
-      return m.Entities[object_name].Count()
+    ' Gets the number of entities of a given name
+    '
+    ' @param {string} objectName
+    ' @return {integer}
+    function entityCount(objectName as string) as integer
+      count = 0
+      if invalid <> m.Entities[objectName]
+        count = m.Entities[objectName].Count()
+      end if
+      return count
     end function
-    ' ############### entityCount() function - End ###############
+
 
 
     ' --------------------------------Begin Room Functions----------------------------------------
 
 
-    ' ############### defineRoom() function - Begin ###############
+
+    ' Defines a room (like a level) in the game
+    ' TODO: work on rooms
+    '
+    ' @param {object} room
+    ' @return {void}
     function defineRoom(room as object) as void
-      room_name = room.name
-      m.Rooms[room_name] = room
-      m.Entities[room_name] = {}
-      m.Statics[room_name] = {}
+      roomName = room.name
+      m.Rooms[roomName] = room
+      m.Entities[roomName] = {}
+      m.Statics[roomName] = {}
 
       'TODO - this is wrong ! need to find way to set active room better
-      m.sorted_entities.Push(room)
+      m.sortedEntities.Push(room)
     end function
-    ' ############### defineRoom() function - Begin ###############
 
 
 
-    ' ############### changeRoom() function - Begin ###############
-    function changeRoom(room_name as string, args = {} as object) as boolean
-      if m.Rooms[room_name] <> invalid
-        room = m.Rooms[room_name]
-        for each object_key in m.Entities
-          for each entity_key in m.Entities[object_key]
-            entity = m.Entities[object_key][entity_key]
+    ' Changes the active room to the one with the given name
+    ' Calls the room's onCreate() method with the args given
+    ' TODO: work on rooms
+    '
+    ' @param {string} roomName
+    ' @param {object} [args={}]
+    ' @return {boolean} true if room change was successful
+    function changeRoom(roomName as string, args = {} as object) as boolean
+      if m.Rooms[roomName] <> invalid
+        room = m.Rooms[roomName]
+
+
+        ' TODO: may be more efficient way of doing this
+        for each objectKey in m.Entities
+          for each entityKey in m.Entities[objectKey]
+            entity = m.Entities[object_key][entityKey]
             if m.isValidEntity(entity) and entity.onChangeRoom <> invalid
               entity.onChangeRoom(room)
             end if
           end for
         end for
-        for each object_key in m.Entities
-          for each entity_key in m.Entities[object_key]
-            entity = m.Entities[object_key][entity_key]
+        for each objectKey in m.Entities
+          for each entityKey in m.Entities[objectKey]
+            entity = m.Entities[objectKey][entityKey]
             if m.isValidEntity(entity) and not entity.persistent and entity.name <> m.currentRoom.name
               m.destroyEntity(entity, false)
             end if
@@ -890,21 +1021,25 @@ namespace BGE
         return false
       end if
     end function
-    ' ############### changeRoom() function - End ###############
 
 
 
-    ' ############### resetRoom() function - End ###############
+    ' Resets the current room to its state at when it was first created
+    '
+    ' @return {void}
     function resetRoom() as void
       m.changeRoom(m.currentRoom, m.currentRoomArgs)
     end function
-    ' ############### resetRoom() function - End ###############
 
 
     ' --------------------------------Begin Bitmap Functions----------------------------------------
 
 
-    ' ############### loadBitmap() function - Begin ###############
+    ' Loads an image file (png/jpg) to be used as an image in the game
+    '
+    ' @param {string} bitmap_name - the name this bitmap will be referenced by later
+    ' @param {dynamic} path - The path to teh bitmap
+    ' @return {boolean} true if image was loaded
     function loadBitmap(bitmap_name as string, path as dynamic) as boolean
       if type(path) = "roAssociativeArray"
         if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid
@@ -929,29 +1064,36 @@ namespace BGE
         return false
       end if
     end function
-    ' ############### loadBitmap() function - End ###############
 
 
-
-    ' ############### getBitmap() function - Begin ###############
-    function getBitmap(bitmap_name as string) as dynamic
+    ' Gets a bitmap image (roBitmap) by the name given to it when loadBitmap() was called
+    '
+    ' @param {string} bitmap_name
+    ' @return {object}
+    function getBitmap(bitmap_name as string) as object
       return m.Bitmaps[bitmap_name]
     end function
-    ' ############### getBitmap() function - End ###############
 
 
-
-    ' ############### unloadBitmap() function - Begin ###############
-    function unloadBitmap(bitmap_name as string)
+    ' Invalidates a bitmap name, so it can't be loaded agan
+    '
+    ' @param {string} bitmap_name
+    ' @return {void}
+    function unloadBitmap(bitmap_name as string) as void
       m.Bitmaps[bitmap_name] = invalid
     end function
-    ' ############### unloadBitmap() function - End ###############
+
+
 
 
     ' --------------------------------Begin Font Functions----------------------------------------
 
 
-    ' ############### registerFont() function - Begin ###############
+
+    ' Registers a font by its path
+    '
+    ' @param {string} path
+    ' @return {boolean} true if font was registered
     function registerFont(path as string) as boolean
       if m.filesystem.Exists(path)
         path_object = CreateObject("roPath", path)
@@ -968,38 +1110,49 @@ namespace BGE
         return false
       end if
     end function
-    ' ############### registerFont() function - End ###############
 
 
-
-    ' ############### loadFont() function - Begin ###############
+    ' Loads a font from the registry, and assigns it the given name
+    '
+    ' @param {string} font_name - the lookup name to assign to this font
+    ' @param {string} font - the font to load
+    ' @param {integer} size
+    ' @param {boolean} italic
+    ' @param {boolean} bold
+    ' @return {void}
     function loadFont(font_name as string, font as string, size as integer, italic as boolean, bold as boolean) as void
       m.Fonts[font_name] = m.font_registry.GetFont(font, size, italic, bold)
     end function
-    ' ############### loadFont() function - End ###############
 
 
-
-    ' ############### unloadFont() function - Begin ###############
+    ' Unloads a font so it can't be used again
+    '
+    ' @param {string} font_name
+    ' @return {void}
     function unloadFont(font_name as string) as void
       m.Fonts[font_name] = invalid
     end function
-    ' ############### unloadFont() function - End ###############
 
 
-
-    ' ############### getFont() function - Begin ###############
+    ' Gets a font object, to be used for writing text to the screen
+    ' For example, in BGE.DrawText()
+    '
+    ' @param {string} font_name
+    ' @return {object}
     function getFont(font_name as string) as object
       return m.Fonts[font_name]
     end function
-    ' ############### getFont() function - End ###############
+
 
 
     ' --------------------------------Begin Canvas Functions----------------------------------------
 
 
 
-    ' ############### canvasFitToScreen() function - Begin ###############
+
+    ' Scales and positions the current canvas to fit the screen
+    '
+    ' @return {void}
     function fitCanvasToScreen() as void
       canvas_width = m.canvas.bitmap.GetWidth()
       canvas_height = m.canvas.bitmap.GetHeight()
@@ -1023,22 +1176,27 @@ namespace BGE
         m.canvas.scale_y = 1 * scale_difference
       end if
     end function
-    ' ############### canvasFitToScreen() function - End ###############
 
 
-
-    ' ############### canvasCenterToScreen() function - Begin ###############
+    ' Centers the canvas on the screen
+    '
+    ' @return {void}
     function centerCanvasToScreen() as void
       m.canvas.offset_x = m.screen.GetWidth() / 2 - (m.canvas.scale_x * m.canvas.bitmap.GetWidth()) / 2
       m.canvas.offset_y = m.screen.GetHeight() / 2 - (m.canvas.scale_y * m.canvas.bitmap.GetHeight()) / 2
     end function
-    ' ############### canvasCenterToScreen() function - End ###############
 
 
     ' --------------------------------Begin Audio Functions----------------------------------------
 
 
-    ' ############### musicPlay() function - Begin ###############
+
+    ' Plays an audio file at the given path
+    ' This is designed for music, where only one file can play at a time.
+    '
+    ' @param {string} path - the path of the music file
+    ' @param {boolean} [loop=false]
+    ' @return {boolean} - true if started
     function musicPlay(path as string, loop = false as boolean) as boolean
       if m.filesystem.Exists(path)
         m.audioPlayer.stop()
@@ -1054,78 +1212,100 @@ namespace BGE
         return false
       end if
     end function
-    ' ############### musicPlay() function - End ###############
 
 
-
-    ' ############### musicStop() function - Begin ###############
+    ' Stops the currently playing music file
+    '
+    ' @return {void}
     function musicStop() as void
       m.audioPlayer.stop()
     end function
-    ' ############### musicStop() function - End ###############
 
 
-
-    ' ############### musicPause() function - Begin ###############
+    ' Pauses the currently playing music
+    '
+    ' @return {void}
     function musicPause() as void
       m.audioPlayer.pause()
     end function
-    ' ############### musicPause() function - End ###############
 
 
-
-    ' ############### musicResume() function - Begin ###############
+    ' Resumes / unpauses the current music
+    '
+    ' @return {void}
     function musicResume() as void
       m.audioPlayer.resume()
     end function
-    ' ############### musicResume() function - End ###############
 
 
-
-    ' ############### loadSound() function - Begin ###############
-    function loadSound(sound_name as string, path as string) as void
-      m.Sounds[sound_name] = CreateObject("roAudioResource", path)
+    ' Loads a sound file from the given path to be played later
+    '
+    ' @param {string} soundName - the name to assign this sound to, to be referenced later
+    ' @param {string} path - the path to load
+    ' @return {void}
+    function loadSound(soundName as string, path as string) as void
+      m.Sounds[soundName] = CreateObject("roAudioResource", path)
     end function
-    ' ############### loadSound() function - End ###############
 
 
-
-    ' ############### playSound() function - Begin ###############
-    function playSound(sound_name as string, volume = 100 as integer) as boolean
-      if m.Sounds.DoesExist(sound_name)
-        m.Sounds[sound_name].trigger(volume)
+    ' Plays the given sound
+    '
+    ' @param {string} soundName - the name of the sound to play
+    ' @param {integer} [volume=100] - volume (0-100) to play the sound at
+    ' @return {boolean}
+    function playSound(soundName as string, volume = 100 as integer) as boolean
+      if m.Sounds.DoesExist(soundName)
+        volume = cint(BGE.Math_Clamp(volume, 0, 100))
+        m.Sounds[soundName].trigger(volume)
         return true
       else
         print "playSound() - No sound has been loaded under the name: " ; sound_name
         return false
       end if
     end function
-    ' ############### playSound() function - End ###############
+
+    ' --------------------------------Begin Url Functions----------------------------------------
 
 
 
-    ' ############### newAsyncUrlTransfer() function - Begin ###############
+    ' Creates a new URL Async Transfer object, which is handled by the game loop
+    ' Events from this URL transfer will be set to entities via the onUrlEvent() method
+    '
+    ' @return {object}
     function newAsyncUrlTransfer() as object
       UrlTransfer = CreateObject("roUrlTransfer")
       UrlTransfer.SetMessagePort(m.url_port)
       m.urlTransfers[UrlTransfer.GetIdentity().ToStr()] = UrlTransfer
       return UrlTransfer
     end function
-    ' ############### newAsyncUrlTransfer() function - End ###############
 
-    ' ############### setInputEntity() function - Begin ###############
+
+    ' Set only one entity to receive onInput() calls
+    ' Useful for when a menu/pause screen should handle all input
+    '
+    ' @param {object} entity
+    ' @return {void}
     function setInputEntity(entity as object) as void
       m.input_entity = entity.id
     end function
-    ' ############### setInputEntity() function - End ###############
 
-    ' ############### unsetInputEntity() function - Begin ###############
+
+    ' Unset that only one entity will receive onInputCalls()
+    '
+    ' @return {void}
     function unsetInputEntity() as void
       m.input_entity = invalid
     end function
-    ' ############### unsetInputEntity() function - End ###############
 
-    ' ############### postGameEvent() function - Begin ###############
+
+
+
+    ' General purpose event dispatch method
+    ' Game entities can listen for events via the onGameEvent() method
+    '
+    ' @param {string} eventName - identifier for the event, eg. "hit", "win", etc.
+    ' @param {object} [data={}] - any data that needs to be be passed with the event
+    ' @return {void}
     function postGameEvent(eventName as string, data = {} as object) as void
       object_keys = m.Entities.Keys()
       for each object_key in object_keys
@@ -1138,8 +1318,6 @@ namespace BGE
         end for
       end for
     end function
-    ' ############### postGameEvent() function - End ###############
-
 
 
   end class

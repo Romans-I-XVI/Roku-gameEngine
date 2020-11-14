@@ -137,6 +137,14 @@ namespace BGE
       end if
     end function
 
+    function clearAllColliders() as void
+      if invalid <> m.colliders
+        for each collider_key in m.colliders
+          m.removeCollider(collider_key)
+        end for
+      end if
+    end function
+
     function addImage(image_name as string, region as object, args = {} as object, insert_position = -1 as integer) as object
       image_object = new Image(m, region, m.game.getCanvas(), args) 'm as first arg
       return m.addImageObject(image_name, image_object, insert_position)

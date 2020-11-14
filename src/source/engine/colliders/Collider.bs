@@ -24,7 +24,7 @@ namespace BGE
       region = CreateObject("roRegion", game.empty_bitmap, 0, 0, 1, 1)
       m.compositor_object = game.compositor.NewSprite(entityX, entityY, region)
       m.compositor_object.SetDrawableFlag(false)
-      m.compositor_object.SetData({collider_name: m.name, object_name: entityName, entity_id: entityId})
+      m.compositor_object.SetData({colliderName: m.name, objectName: entityName, entityId: entityId})
       m.refreshColliderRegion()
     end function
 
