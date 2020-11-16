@@ -22,7 +22,7 @@ namespace BGE
     private buttonHeld = -1
     private buttonHeldTime = 0
     private input_entity = invalid
-    private current_input_entity = invalid
+    private currentInputEntity = invalid
     private dt = 0
     private FakeDT = invalid
     private dtTimer = CreateObject("roTimespan")
@@ -50,24 +50,24 @@ namespace BGE
 
 
     ' Reference to the current room in play
-    currentRoom = invalid
+    currentRoom as object = invalid
     ' Any special arguments for the current room
-    currentRoomArgs = {}
+    currentRoomArgs as object = {}
 
     ' All of the GameEntities <entityName> => GameEntity[]
-    Entities = {}
+    Entities as object = {}
     ' All static variables for a given object type
-    Statics = {} '
+    Statics as object = {}
     ' The room definitions by name (the room creation functions)
-    Rooms = {}
-    ' The interface definitions by name.
-    Interfaces = {}
+    Rooms as object = {}
+    ' The interface definitions by name
+    Interfaces as object = {}
     ' The loaded bitmaps by name
-    Bitmaps = {}
+    Bitmaps as object = {}
     ' The loaded sounds by name
-    Sounds = {}
+    Sounds as object = {}
     ' The loaded fonts by name
-    Fonts = {}
+    Fonts as object = {}
 
 
 
@@ -210,7 +210,7 @@ namespace BGE
         if m.input_entity <> invalid and m.getEntityByID(m.input_entity) = invalid
           m.input_entity = invalid
         end if
-        m.current_input_entity = m.input_entity
+        m.currentInputEntity = m.input_entity
         m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 
         m.dt = m.dtTimer.TotalMilliseconds() / 1000
@@ -219,12 +219,12 @@ namespace BGE
         end if
         m.dtTimer.Mark()
         url_msg = m.url_port.GetMessage()
-        universal_control_events = []
+        universalControlEvents = []
         screen_msg = m.screen_port.GetMessage()
         ecp_msg = m.ecp_input_port.GetMessage()
         while screen_msg <> invalid
           if type(screen_msg) = "roUniversalControlEvent" and screen_msg.GetInt() <> 11
-            universal_control_events.Push(screen_msg)
+            universalControlEvents.Push(screen_msg)
             if screen_msg.GetInt() < 100
               m.buttonHeld = screen_msg.GetInt()
               m.buttonHeldTimer.Mark()
@@ -250,7 +250,7 @@ namespace BGE
         music_msg = m.music_port.GetMessage()
 
         ' ----------------------Handle entity interactions (collisions, etc)--------------------
-        m.processEntitiesPreDraw(universal_control_events)
+        m.processEntitiesPreDraw(universalControlEvents)
 
         ' ----------------------Clear the screen before drawing entities-------------------------
         if m.background_color <> invalid
@@ -292,9 +292,9 @@ namespace BGE
 
     ' Handles all the processing for the entities before drawing
     '
-    ' @param {object} universal_control_events - array of any control events that happened since last frame
+    ' @param {object} universalControlEvents - array of any control events that happened since last frame
     ' @return {void}
-    private function processEntitiesPreDraw(universal_control_events as object) as void
+    private function processEntitiesPreDraw(universalControlEvents as object) as void
       started_paused = m.paused
       for i = m.sortedEntities.Count() - 1 to 0 step -1
         entity = m.sortedEntities[i]
@@ -305,7 +305,7 @@ namespace BGE
 
           ' --------------------First process the onInput() function--------------------
           if m.isValidEntity(entity)
-            m.processEntityOnInput(entity, universal_control_events)
+            m.processEntityOnInput(entity, universalControlEvents)
           end if
 
           ' -------------------Then send the audioPlayer event msg if applicable-------------------
@@ -390,15 +390,15 @@ namespace BGE
     ' Processes input events and calls the entity's onInput function
     '
     ' @param {object} entity - the entity to relay input to
-    ' @param {object} universal_control_events - array of control events since last frame
+    ' @param {object} universalControlEvents - array of control events since last frame
     ' @return {boolean} true if this entity is still valid
-    private function processEntityOnInput(entity as object, universal_control_events as object) as boolean
+    private function processEntityOnInput(entity as object, universalControlEvents as object) as boolean
       if not m.isValidEntity(entity)
         return false
       end if
 
-      for each msg in universal_control_events
-        if entity.onInput <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
+      for each msg in universalControlEvents
+        if entity.onInput <> invalid and (m.currentInputEntity = invalid or m.currentInputEntity = entity.id)
           entity.onInput(new GameInput(msg.GetInt(), 0))
           if not m.isValidEntity(entity)
             return false
@@ -415,7 +415,7 @@ namespace BGE
       if m.buttonHeld <> -1
         ' Button release codes are 100 plus the button press code
         ' This shows a button held code as 1000 plus the button press code
-        if entity.onInput <> invalid and (m.current_input_entity = invalid or m.current_input_entity = entity.id)
+        if entity.onInput <> invalid and (m.currentInputEntity = invalid or m.currentInputEntity = entity.id)
           entity.onInput(new GameInput(1000 + m.buttonHeld, m.buttonHeldTime))
           if not m.isValidEntity(entity)
             return false

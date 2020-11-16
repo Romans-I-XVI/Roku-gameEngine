@@ -1,62 +1,126 @@
 namespace BGE
 
   class GameEntity
+    '-----Constants-----
 
-    ' -----Constants-----
+    ' Constant - name of this Entity
     name as string
+    ' Constant - Unique Id
     id as string
 
     private game as object
 
     ' -----Variables-----
-    enabled = true
-    persistent = false
-    pauseable = true
-    depth = 0
-    x = 0.0
-    y = 0.0
-    xspeed = 0.0
-    yspeed = 0.0
-    colliders = {}
-    images = []
-    images_aa_reference = {}
 
+    ' Is this GameEntity enabled
+    enabled as boolean = true
+    ' Does this entity persist across room changes?
+    persistent as boolean = false
+    ' When the game is paused, does this entity pause too?
+    pauseable as boolean = true
+    ' Depth is used when handling draw order in the game loop - lower depth is drawn first
+    depth as integer = 0
+    ' x position of where this entity is in game world
+    x as float = 0.0
+    ' y position of where this entity is in game world
+    y as float = 0.0
+    ' Speed in x/horizontal direction
+    xspeed as float = 0.0
+    ' Speed in y/vertical direction
+    yspeed as float = 0.0
+
+    ' The colliders for this entity by name
+    colliders as object = {}
+    ' The array of images to draw for this entity
+    images as object = []
+    ' Associative array of images by name
+    imagesByName as object = {}
+
+
+    ' Creates a new GameEntity
+    '
+    ' @param {object} game - The game engine that this entity is going to be assigned to
+    ' @param {object} [args={}] Any extra properties to be added to this entity
+    ' @return
     function new(game as object, args = {} as object)
       m.game = game
       m.id = m.game.getGameEntityId()
       m.append(args)
     end function
 
+
+    ' Is this still a valid entity?
+    '
+    ' @return {boolean} - true if still valid
     function isValid() as boolean
       return m.id <> invalid
     end function
 
-    function onCreate(args)
+
+    ' Method to be called when this entity is added to a Game
+    '
+    ' @param {object} args
+    function onCreate(args as object) as void
     end function
 
-    ' This is the structure of the methods that can be added to an object
 
+    ' Method for handling any updates based on time since previous frame
+    '
+    ' @param {float} deltaTime - milliseconds since last frame
     function onUpdate(deltaTime as float) as void
     end function
 
+
+
+    ' Method for processing all collisions
+    '
+    ' @param {object} collider - the collider of this entity that collided
+    ' @param {object} other_collider - the collider of the other entity in the collision
+    ' @param {object} other_entity - the entity that owns the other collider
     function onCollision(collider as object, other_collider as object, other_entity as object) as void
     end function
 
+
+    ' Method called each frame before drawing any images of this entity
+    '
+    ' @param {object} canvas - the canvas images will be drawn to
     function onDrawBegin(canvas as object) as void
     end function
 
+
+    ' Method called each frame after drawing all images of this entity
+    '
+    ' @param {object} canvas - the canvas images were drawn to
     function onDrawEnd(canvas as object) as void
     end function
 
+
+    ' Method to process input per frame
+    '
+    ' @param {object} input - GameInput object for the last frame
     function onInput(input as object) as void
     end function
 
-    function onECPKeyboard(char) as void
+
+    ' Method to process an ECP keyboard event
+    ' https://developer.roku.com/en-ca/docs/developer-program/debugging/external-control-api.md
+    '
+    ' @param {integer} char
+    function onECPKeyboard(char as integer) as void
     end function
 
-    function onECPInput(data) as void
+
+    ' Method to process an External Control Protocol event
+    ' https://developer.roku.com/en-ca/docs/references/brightscript/events/roinputevent.md
+    '
+    ' @param {object} data
+    function onECPInput(data as object) as void
     end function
 
+
+    ' Method to handle audio events
+    '
+    ' @param {object} msg - roAudioPlayerEvent
     function onAudioEvent(msg as object) as void
     end function
 
@@ -163,7 +227,7 @@ namespace BGE
         return invalid
       end if
 
-      m.images_aa_reference[image_object.name] = image_object
+      m.imagesByName[image_object.name] = image_object
       if insert_position = -1
         m.images.Push(image_object)
       else if insert_position = 0
@@ -178,11 +242,11 @@ namespace BGE
     end function
 
     function getImage(image_name) as object
-      return m.images_aa_reference[image_name]
+      return m.imagesByName[image_name]
     end function
 
     function removeImage(image_name as string) as void
-      m.images_aa_reference.Delete(image_name)
+      m.imagesByName.Delete(image_name)
       if m.images.Count() > 0
         for i = 0 to m.images.Count() - 1
           if m.images[i].name = image_name
