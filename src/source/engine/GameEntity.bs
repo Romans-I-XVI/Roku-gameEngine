@@ -336,9 +336,9 @@ namespace BGE
 
     ' Gets an image by its name from the lookup table
     '
-    ' @param {} imageName - Name of image to get
+    ' @param {string} imageName - Name of image to get
     ' @return {object}
-    function getImage(imageName) as object
+    function getImage(imageName as string) as object
       return m.imagesByName[imageName]
     end function
 
