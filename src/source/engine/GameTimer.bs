@@ -1,3 +1,4 @@
+' @module BGE
 namespace BGE
 
   class GameTimer
@@ -10,7 +11,7 @@ namespace BGE
     end function
 
 
-    function Mark()
+    function Mark() as void
       m.internal_roku_timer.Mark()
       m.total_milliseconds_modifier = 0
     end function

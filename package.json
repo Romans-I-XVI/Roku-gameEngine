@@ -22,7 +22,8 @@
   "dependencies": {},
   "devDependencies": {
     "brighterscript": "^0.16.10",
-    "brighterscript-jsdocs-plugin": "^0.2.0"
+    "brighterscript-jsdocs-plugin": "^0.2.0",
+    "minami": "^1.2.3"
   },
   "repository": {
     "type": "git",

@@ -25,7 +25,7 @@ class Ball extends BGE.GameEntity
     region = CreateObject("roRegion", bm_ball, 0, 0, bm_ball.GetWidth(), bm_ball.GetHeight())
     region.SetPreTranslation(- bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2)
     m.addImage("main", region, {color: &hffffff, alpha: 0})
-    m.addRectangleCollider("ball_collider", - bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2, bm_ball.GetWidth(), bm_ball.GetHeight())
+    m.addRectangleCollider("ball_collider", bm_ball.GetWidth(), bm_ball.GetHeight(), - bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2)
   end function
 
   override function onCollision(collider_name as string, other_collider_name as string, other_entity as object)

@@ -1,5 +1,11 @@
+' @module BGE
 namespace BGE
 
+
+
+  ' Every thing (character, player, object, etc) in the game should extend this class.
+  ' This class has a number of empty methods that are designed to be overridden in subclasses.
+  ' For example, override `onInput()` to handle input event, and `onUpdate()` to handle updating each frame
   class GameEntity
     '-----Constants-----
 
@@ -41,7 +47,6 @@ namespace BGE
     '
     ' @param {object} game - The game engine that this entity is going to be assigned to
     ' @param {object} [args={}] Any extra properties to be added to this entity
-    ' @return
     function new(game as object, args = {} as object)
       m.game = game
       m.id = m.game.getGameEntityId()
@@ -57,7 +62,14 @@ namespace BGE
     end function
 
 
-    ' Method to be called when this entity is added to a Game
+    ' Marks this entity as invalid, so it will be cleared/destroyed at the end of the frame
+    private function invalidate() as void
+      m.id = invalid
+    end function
+
+
+    ' Method to be called when this entity is added to a Game.
+    ' Override in subclass
     '
     ' @param {object} args
     function onCreate(args as object) as void
@@ -103,7 +115,7 @@ namespace BGE
 
 
     ' Method to process an ECP keyboard event
-    ' https://developer.roku.com/en-ca/docs/developer-program/debugging/external-control-api.md
+    ' @see  https://developer.roku.com/en-ca/docs/developer-program/debugging/external-control-api.md
     '
     ' @param {integer} char
     function onECPKeyboard(char as integer) as void
@@ -111,7 +123,7 @@ namespace BGE
 
 
     ' Method to process an External Control Protocol event
-    ' https://developer.roku.com/en-ca/docs/references/brightscript/events/roinputevent.md
+    ' @see  https://developer.roku.com/en-ca/docs/references/brightscript/events/roinputevent.md
     '
     ' @param {object} data
     function onECPInput(data as object) as void
@@ -119,88 +131,143 @@ namespace BGE
 
 
     ' Method to handle audio events
+    ' @see  https://developer.roku.com/en-ca/docs/references/brightscript/events/roaudioplayerevent.md
     '
     ' @param {object} msg - roAudioPlayerEvent
     function onAudioEvent(msg as object) as void
     end function
 
+
+    ' Called when the game pauses
+    '
     function onPause() as void
     end function
 
-    function onResume(pause_time) as void
+
+    ' Called when teh game unpauses
+    '
+    ' @param {integer} pauseTimeMs - The number of milliseconds the game was paused
+    function onResume(pauseTimeMs as integer) as void
     end function
 
-    function onUrlEvent(msg) as void
+
+    ' Called on url event
+    ' @see  https://developer.roku.com/en-ca/docs/references/brightscript/events/rourlevent.md
+    '
+    ' @param {object} msg - roUrlEvent
+    function onUrlEvent(msg as object) as void
     end function
 
+
+    ' General purpose event handler for in-game events.
+    '
+    ' @param {string} eventName - Event name that describes the event type
+    ' @param {object} data - Any extra data to go along with the event
     function onGameEvent(eventName as string, data as object) as void
     end function
 
-    function onChangeRoom(new_room as object) as void
+
+
+    ' Method called when the current room changes.
+    ' This method is only called when the entity is marked as `persistant`,
+    ' otherwise entities are destroyed on room changes.
+    '
+    ' @param {object} newRoom - The next room
+    function onChangeRoom(newRoom as object) as void
     end function
 
+
+    ' Method called when this entity is destroyed
+    '
     function onDestroy() as void
     end function
 
 
-    function addCircleCollider(collider_name as string, radius as float, offset_x = 0 as float, offset_y = 0 as float, enabled = true as boolean) as void
-      collider = new CircleCollider(collider_name, {
+    ' Adds a circle collider to this entity
+    '
+    ' @param {string} colliderName - Name of the collider (only one collider with the same name can be added)
+    ' @param {float} radius - radius of the circle
+    ' @param {float} [offset_x=0] - horizontal offset from entity position of centre of the circle
+    ' @param {float} [offset_y=0] - vertical offset from entity position of centre of the circle
+    ' @param {boolean} [enabled=true] - is this collider enabled?
+    ' @return {object}  - the collider that was added, or `invalid` if it could not be added
+    function addCircleCollider(colliderName as string, radius as float, offset_x = 0 as float, offset_y = 0 as float, enabled = true as boolean) as object
+      collider = new CircleCollider(colliderName, {
         enabled: enabled,
         radius: radius,
         offset_x: offset_x,
         offset_y: offset_y
       })
-      collider.setupCompositor(m.game, m.name, m.id, m.x, m.y)
-      if m.colliders[collider_name] = invalid
-        m.colliders[collider_name] = collider
-      else
-        print "addColliderCircle() - Collider Name Already Exists: " + collider_name
-      end if
+      return m.addCollider(collider)
     end function
 
-    function addRectangleCollider(collider_name as string, offset_x as float, offset_y as float, width as float, height as float, enabled = true as boolean) as void
-      collider = new RectangleCollider(collider_name, {
+
+    ' Adds a rectangle collider to this entity
+    '
+    ' @param {string} colliderName - Name of the collider (only one collider with the same name can be added)
+    ' @param {float} width - Width of rectangle
+    ' @param {float} height - Height of rectangle
+    ' @param {float} [offset_x=0] - horizontal offset from entity position of top left point of rectangle
+    ' @param {float} [offset_y=0] - vertical offset from entity position of top left point of rectangle
+    ' @param {boolean} [enabled=true] - is this collider enabled?
+    ' @return {object}  - the collider that was added, or `invalid` if it could not be added
+    function addRectangleCollider(colliderName as string, width as float, height as float, offset_x = 0 as float, offset_y = 0as float, enabled = true as boolean) as object
+      collider = new RectangleCollider(colliderName, {
         enabled: enabled,
         offset_x: offset_x,
         offset_y: offset_y,
         width: width,
         height: height
       })
+      return m.addCollider(collider)
+    end function
+
+
+    ' Adds a collider that has already been constructed
+    '
+    ' @param {object} collider - the collider to add  (only one collider with the same name can be added)
+    ' @return {object}  - the collider that was added, or `invalid` if it could not be added
+    function addCollider(collider as object) as object
+      colliderName = collider.name
       collider.setupCompositor(m.game, m.name, m.id, m.x, m.y)
       if m.colliders[collider_name] = invalid
         m.colliders[collider_name] = collider
       else
-        print "addColliderRectangle() - Collider Name Already Exists: " + collider_name
+        print "addCollider() - Collider Name Already Exists: " + colliderName
+        return invalid
       end if
+      return collider
     end function
 
-    function addCollider(collider as object) as void
-      collider_name = collider.name
-      collider.setupCompositor(m.game, m.name, m.id, m.x, m.y)
-      if m.colliders[collider_name] = invalid
-        m.colliders[collider_name] = collider
-      else
-        print "addCollider() - Collider Name Already Exists: " + collider_name
-      end if
-    end function
 
-    function getCollider(collider_name as string) as object
-      if m.colliders.DoesExist(collider_name)
-        return m.colliders[collider_name]
+    ' Gets a collider based on its name
+    '
+    ' @param {string} colliderName - The name of the collider to find
+    ' @return {object} - the collider (if found) otherwise `invalid`
+    function getCollider(colliderName as string) as object
+      if m.colliders.DoesExist(colliderName)
+        return m.colliders[colliderName]
       else
         return invalid
       end if
     end function
 
-    function removeCollider(collider_name as string) as void
-      if m.colliders[collider_name] <> invalid
-        if type(m.colliders[collider_name].compositor_object) = "roSprite"
-          m.colliders[collider_name].compositor_object.Remove()
+
+    ' Removes a collider by its name
+    '
+    ' @param {string} colliderName - the name of the collider to remove
+    function removeCollider(colliderName as string) as void
+      if m.colliders[colliderName] <> invalid
+        if type(m.colliders[colliderName].compositor_object) = "roSprite"
+          m.colliders[colliderName].compositor_object.Remove()
         end if
-        m.colliders.Delete(collider_name)
+        m.colliders.Delete(colliderName)
       end if
     end function
 
+
+    ' Remove all colliders from this entity
+    '
     function clearAllColliders() as void
       if invalid <> m.colliders
         for each collider_key in m.colliders
@@ -209,47 +276,81 @@ namespace BGE
       end if
     end function
 
-    function addImage(image_name as string, region as object, args = {} as object, insert_position = -1 as integer) as object
-      image_object = new Image(m, region, m.game.getCanvas(), args) 'm as first arg
-      return m.addImageObject(image_name, image_object, insert_position)
+
+
+
+    ' Adds a basic image (non-animated) to be drawn for this entity
+    '
+    ' @param {string} imageName - Name of the image
+    ' @param {object} region - an `roRegion` of a bitmap to draw
+    ' @param {object} [args={}] - any extra properties to set (e.g. offset_x, offset_y, rotation, scale_x, scale_y, etc.)
+    ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
+    ' @return {object} - The image object that was added, or `invalid` if there was an error
+    function addImage(imageName as string, region as object, args = {} as object, insertPosition = -1 as integer) as object
+      imageObject = new Image(m, region, m.game.getCanvas(), args) 'm as first arg
+      return m.addImageObject(imageName, imageObject, insertPosition)
     end function
 
-    function addAnimatedImage(image_name as string, regions as object, args = {} as object, insert_position = -1 as integer) as object
-      image_object = new AnimatedImage(m, regions, m.game.getCanvas(), args)
-      return m.addImageObject(image_name, image_object, insert_position)
+
+    ' Adds a animated image to be drawn for this entity. Animated images cycle through regions of a bitmap (e.g. spritesheet)
+    '
+    ' @param {string} imageName - Name of the image
+    ' @param {object} regions - an array of `roRegion` of a bitmap to draw
+    ' @param {object} [args={}] - any extra properties to set (e.g. offset_x, offset_y, rotation, scale_x, scale_y, etc.)
+    ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
+    ' @return {object} - The image object that was added, or `invalid` if there was an error
+    function addAnimatedImage(imageName as string, regions as object, args = {} as object, insertPosition = -1 as integer) as object
+      imageObject = new AnimatedImage(m, regions, m.game.getCanvas(), args)
+      return m.addImageObject(imageName, imageObject, insertPosition)
     end function
 
-    function addImageObject(image_name as string, image_object as object, insert_position = invalid as integer) as object
-      image_object.name = image_name
 
-      if m.getImage(image_object.name) <> invalid
-        print "addImageObject() - An image named - " + image_object.name + " - already exists"
+    ' Adds any Image object to this entity
+    '
+    ' @param {string} imageName - Name of the image
+    ' @param {object} imageObject - The image to be added
+    ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
+    ' @return {object} - The image object that was added, or `invalid` if there was an error
+    function addImageObject(imageName as string, imageObject as object, insertPosition = -1 as integer) as object
+      imageObject.name = imageName
+
+      if m.getImage(imageObject.name) <> invalid
+        print "addImageObject() - An image named - " + imageObject.name + " - already exists"
         return invalid
       end if
 
-      m.imagesByName[image_object.name] = image_object
-      if insert_position = -1
-        m.images.Push(image_object)
-      else if insert_position = 0
-        m.images.Unshift(image_object)
-      else if insert_position < m.images.Count()
-        BGE.ArrayInsert(m.images, insert_position, image_object)
+      m.imagesByName[imageObject.name] = imageObject
+      if insertPosition = -1
+        m.images.Push(imageObject)
+      else if insertPosition = 0
+        m.images.Unshift(imageObject)
+      else if insertPosition < m.images.Count()
+        BGE.ArrayInsert(m.images, insertPosition, imageObject)
       else
-        m.images.Push(image_object)
+        m.images.Push(imageObject)
       end if
 
-      return image_object
+      return imageObject
     end function
 
-    function getImage(image_name) as object
-      return m.imagesByName[image_name]
+
+    ' Gets an image by its name from the lookup table
+    '
+    ' @param {} imageName - Name of image to get
+    ' @return {object}
+    function getImage(imageName) as object
+      return m.imagesByName[imageName]
     end function
 
-    function removeImage(image_name as string) as void
-      m.imagesByName.Delete(image_name)
+
+    ' Removes an image from the entity
+    '
+    ' @param {string} imageName - Name of image to remove
+    function removeImage(imageName as string) as void
+      m.imagesByName.Delete(imageName)
       if m.images.Count() > 0
         for i = 0 to m.images.Count() - 1
-          if m.images[i].name = image_name
+          if m.images[i].name = imageName
             m.images.Delete(i)
             exit for
           end if
@@ -257,28 +358,47 @@ namespace BGE
       end if
     end function
 
-    function getStaticVariable(static_variable_name as string) as dynamic
-      if m.game.Statics.DoesExist(m.name) and m.game.Statics[m.name].DoesExist(static_variable_name)
-        return m.game.Statics[m.name][static_variable_name]
+
+    ' TODO: work on statics
+    '
+    ' @param {string} staticVariableName
+    ' @return {dynamic}
+    function getStaticVariable(staticVariableName as string) as dynamic
+      if m.game.Statics.DoesExist(m.name) and m.game.Statics[m.name].DoesExist(staticVariableName)
+        return m.game.Statics[m.name][staticVariableName]
       else
         return invalid
       end if
     end function
 
-    function setStaticVariable(static_variable_name as string, static_variable_value as dynamic) as void
+
+    ' TODO: work on statics
+    '
+    ' @param {string} staticVariableName
+    ' @param {dynamic} staticVariableValue
+    function setStaticVariable(staticVariableName as string, staticVariableValue as dynamic) as void
       if m.game.Statics.DoesExist(m.name)
-        m.game.Statics[m.name][static_variable_name] = static_variable_value
+        m.game.Statics[m.name][staticVariableName] = staticVariableValue
       end if
     end function
 
-    function addInterface(interface_name as string) as void
+
+    ' TODO: work on Interfaces
+    '
+    ' @param {string} interfaceName
+    function addInterface(interfaceName as string) as void
       interfaceObj = {owner: m}
-      m.game.Interfaces[interface_name](interfaceObj)
-      m[interface_name] = interfaceObj
+      m.game.Interfaces[interfaceName](interfaceObj)
+      m[interfaceName] = interfaceObj
     end function
 
-    function hasInterface(interface_name as string) as boolean
-      return (m.DoesExist(interface_name) and m[interface_name] <> invalid)
+
+    ' TODO: work on Interfaces
+    '
+    ' @param {string} interfaceName
+    ' @return {boolean}
+    function hasInterface(interfaceName as string) as boolean
+      return (m.DoesExist(interfaceName) and m[interfaceName] <> invalid)
     end function
 
   end class

@@ -1,8 +1,8 @@
 namespace BGE
 
   function HSVtoRGBA(hPercent, sPercent, vPercent, a = invalid) as integer
-    ' Romans_I_XVI port (w/ a few tweaks) of:
-    ' http://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
+    ' Romans_I_XVI port (w/ a few tweaks) of: https://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
+    ' @see http://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
 
     hPercent = hPercent MOD 360
 

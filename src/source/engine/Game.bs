@@ -2,6 +2,26 @@
 namespace BGE
 
   ' Main Game Engine class which runs everything
+  ' The main game loop is as follows:
+  ' 1. For each GameEntity:
+  '   - Process Input from roku remote
+  '   - Process Audio Events (https://developer.roku.com/en-ca/docs/references/brightscript/events/roaudioplayerevent.md)
+  '   - Process ECP input (https://developer.roku.com/en-ca/docs/developer-program/debugging/external-control-api.md)
+  '   - Process URL events (https://developer.roku.com/en-ca/docs/references/brightscript/events/rourlevent.md)
+  '   - Runs the Entity's onUpdate() function
+  '   - Moves Entity based on velocity
+  '   - Run Entity's onPreCollision() function
+  '   - For any collisions, runs Entity's onCollision() function
+  '   - Runs entity's onPostCollision() function
+  ' (At any time, the Entity in question may Delete() itself. Before every entity interaction, the entity is checked to make sure it is still valid
+  ' in case it was deleted in the last interaction)
+  '
+  ' 2. For each GameEntity, sorted by depth
+  '   - Runs the Entity onDrawBegin() function
+  '   - For each image in the Entity, run the draw() function
+  '   - Run the Entity onDrawEnd() function
+  '
+  ' 3. Draw all debug items (e.g. colliders, screen safe zones, etc.)
   class Game
 
     ' ****BEGIN - For Internal Use, Do Not Manually Alter****
@@ -174,27 +194,7 @@ namespace BGE
 
 
     ' Starts the game engine.
-    ' Run this function after setting up the game
-    ' Game loop is as follows:
-    ' 1. For each GameEntity:
-    '   - Process Input from roku remote
-    '   - Process Audio Events (https://developer.roku.com/en-ca/docs/references/brightscript/events/roaudioplayerevent.md)
-    '   - Process ECP input (https://developer.roku.com/en-ca/docs/developer-program/debugging/external-control-api.md)
-    '   - Process URL events (https://developer.roku.com/en-ca/docs/references/brightscript/events/rourlevent.md)
-    '   - Runs the Entity's onUpdate() function
-    '   - Moves Entity based on velocity
-    '   - Run Entity's onPreCollision() function
-    '   - For any collisions, runs Entity's onCollision() function
-    '   - Runs entity's onPostCollision() function
-    ' (At any time, the Entity in question may Delete() itself. Before every entity interaction, the entity is checked to make sure it is still valid
-    ' in case it was deleted in the last interaction)
-    '
-    ' 2. For each GameEntity, sorted by depth
-    '   - Runs the Entity onDrawBegin() function
-    '   - For each image in the Entity, run the draw() function
-    '   - Run the Entity onDrawEnd() function
-    '
-    ' 3. Draw all debug items (e.g. colliders, screen safe zones, etc.)
+    ' Run this function after setting up the game.
     '
     ' @return {void}
     public function Play() as void
@@ -309,7 +309,7 @@ namespace BGE
           end if
 
           ' -------------------Then send the audioPlayer event msg if applicable-------------------
-          if m.isValidEntity(entity) and invalid <> entity.onAudioEvent and "roaudioPlayerEvent" = type(music_msg)
+          if m.isValidEntity(entity) and invalid <> entity.onAudioEvent and "roAudioPlayerEvent" = type(music_msg)
             entity.onAudioEvent(music_msg)
           end if
 
@@ -915,10 +915,10 @@ namespace BGE
       if invalid <> entity
         entityName = entity.name
         entityId = entity.id
-        if entity.clearAllColliders <> invalid
+        if invalid <> entity.clearAllColliders
           entity.clearAllColliders()
         end if
-        if entity.onDestroy <> invalid and callOnDestroy
+        if invalid <> entity.onDestroy and callOnDestroy
           entity.onDestroy()
         end if
         if m.Entities[entityName].DoesExist(entityId) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
