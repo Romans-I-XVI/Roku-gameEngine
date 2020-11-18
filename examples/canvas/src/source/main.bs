@@ -1,9 +1,25 @@
+class Tester
+  foo as string
+  sub new()
+    m.foo = "bar"
+  end sub
+end class
+
 sub Main()
-  game = new BGE.Game(880, 420, true) ' This initializes the game engine
-  game.loadBitmap("ball", "pkg:/sprites/ball.png")
-  main_room = new MainRoom(game)
-  game.defineRoom(main_room)
-  game.changeRoom(main_room.name)
-  game.centerCanvasToScreen()
-  game.play()
+  tester = new Tester()
+  ? tester
 end sub
+
+
+
+
+' sub Main()
+'   game = new BGE.Game(880, 420, true) ' This initializes the game engine
+'   game.loadBitmap("ball", "pkg:/sprites/ball.png")
+'   ?tester
+'   mainRoom = new MainRoom(game)
+'   game.defineRoom(mainRoom)
+'   game.changeRoom(mainRoom.name)
+'   game.centerCanvasToScreen()
+'   game.play()
+' end sub

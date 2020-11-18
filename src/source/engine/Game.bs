@@ -51,7 +51,7 @@ namespace BGE
     private currentID = 0
     private shouldUseIntegerMovement = false
     private enableAudioGuideSuppression = true
-    private empty_bitmap = CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
+    private emptyBitmap = CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
     private device = CreateObject("roDeviceInfo")
     private urlTransfers = {}
     private url_port = CreateObject("roMessagePort")
@@ -800,6 +800,14 @@ namespace BGE
     end function
 
 
+    ' Gets a 1x1 bitmap image (used for collider compositing)
+    '
+    ' @return {object} - a 1x1 empty roBitmap
+    function getEmptyBitmap() as object
+      return m.emptyBitmap
+    end function
+
+
     ' --------------------------------Begin Object Functions----------------------------------------
 
 
@@ -818,11 +826,11 @@ namespace BGE
 
     ' TODO: work on interfaces
     '
-    ' @param {string} interface_name
-    ' @param {callable} interface_creation_function
+    ' @param {string} interfaceName
+    ' @param {callable} interfaceCreationFunction
     ' @return {void}
-    function defineInterface(interface_name as string, interface_creation_function as function) as void
-      m.Interfaces[interface_name] = interface_creation_function
+    function defineInterface(interfaceName as string, interfaceCreationFunction as function) as void
+      m.Interfaces[interfaceName] = interfaceCreationFunction
     end function
 
 
@@ -888,13 +896,13 @@ namespace BGE
 
     ' TODO: work on interfaces
     '
-    ' @param {string} interface_name
+    ' @param {string} interfaceName
     ' @return {dynamic}
-    function getAllEntitiesWithInterface(interface_name as string) as dynamic
+    function getAllEntitiesWithInterface(interfaceName as string) as dynamic
       array = []
-      if m.Interfaces.DoesExist(interface_name)
+      if m.Interfaces.DoesExist(interfaceName)
         for each entity in m.sortedEntities
-          if entity <> invalid and entity.id <> invalid and entity.hasInterface(interface_name)
+          if entity <> invalid and entity.id <> invalid and entity.hasInterface(interfaceName)
             array.Push(entity)
           end if
         end for
@@ -921,7 +929,7 @@ namespace BGE
         if invalid <> entity.onDestroy and callOnDestroy
           entity.onDestroy()
         end if
-        if m.Entities[entityName].DoesExist(entityId) ' This redundency is here because if somebody would try to change rooms within the onDestroy() method the game would break.
+        if m.Entities[entityName].DoesExist(entityId) ' This redundancy is here because if somebody would try to change rooms within the onDestroy() method the game would break.
           m.Entities[entityName].Delete(entityId)
         end if
         entity.Clear()
@@ -1037,13 +1045,13 @@ namespace BGE
 
     ' Loads an image file (png/jpg) to be used as an image in the game
     '
-    ' @param {string} bitmap_name - the name this bitmap will be referenced by later
-    ' @param {dynamic} path - The path to teh bitmap
+    ' @param {string} bitmapName - the name this bitmap will be referenced by later
+    ' @param {dynamic} path - The path to the bitmap, or an associative array {width: integer, height: integer, alphaEnable:boolean}
     ' @return {boolean} true if image was loaded
-    function loadBitmap(bitmap_name as string, path as dynamic) as boolean
+    function loadBitmap(bitmapName as string, path as dynamic) as boolean
       if type(path) = "roAssociativeArray"
         if path.width <> invalid and path.height <> invalid and path.AlphaEnable <> invalid
-          m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
+          m.Bitmaps[bitmapName] = CreateObject("roBitmap", path)
           return true
         else
           print "loadBitmap() - Width as Integer, Height as Integer, and AlphaEnabled as Boolean must be provided in order to create an empty bitmap"
@@ -1053,10 +1061,10 @@ namespace BGE
         path_object = CreateObject("roPath", path)
         parts = path_object.Split()
         if parts.extension = ".png" or parts.extension = ".jpg"
-          m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
+          m.Bitmaps[bitmapName] = CreateObject("roBitmap", path)
           return true
         else
-          print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg"
+          print "loadBitmap() - Bitmap " + path + " not loaded, file must be of type .png or .jpg"
           return false
         end if
       else
@@ -1068,19 +1076,19 @@ namespace BGE
 
     ' Gets a bitmap image (roBitmap) by the name given to it when loadBitmap() was called
     '
-    ' @param {string} bitmap_name
+    ' @param {string} bitmapName
     ' @return {object}
-    function getBitmap(bitmap_name as string) as object
-      return m.Bitmaps[bitmap_name]
+    function getBitmap(bitmapName as string) as object
+      return m.Bitmaps[bitmapName]
     end function
 
 
-    ' Invalidates a bitmap name, so it can't be loaded agan
+    ' Invalidates a bitmap name, so it can't be loaded again
     '
-    ' @param {string} bitmap_name
+    ' @param {string} bitmapName
     ' @return {void}
-    function unloadBitmap(bitmap_name as string) as void
-      m.Bitmaps[bitmap_name] = invalid
+    function unloadBitmap(bitmapName as string) as void
+      m.Bitmaps[bitmapName] = invalid
     end function
 
 
@@ -1114,33 +1122,33 @@ namespace BGE
 
     ' Loads a font from the registry, and assigns it the given name
     '
-    ' @param {string} font_name - the lookup name to assign to this font
+    ' @param {string} fontName - the lookup name to assign to this font
     ' @param {string} font - the font to load
     ' @param {integer} size
     ' @param {boolean} italic
     ' @param {boolean} bold
     ' @return {void}
-    function loadFont(font_name as string, font as string, size as integer, italic as boolean, bold as boolean) as void
-      m.Fonts[font_name] = m.font_registry.GetFont(font, size, italic, bold)
+    function loadFont(fontName as string, font as string, size as integer, italic as boolean, bold as boolean) as void
+      m.Fonts[fontName] = m.font_registry.GetFont(font, size, italic, bold)
     end function
 
 
     ' Unloads a font so it can't be used again
     '
-    ' @param {string} font_name
+    ' @param {string} fontName
     ' @return {void}
-    function unloadFont(font_name as string) as void
-      m.Fonts[font_name] = invalid
+    function unloadFont(fontName as string) as void
+      m.Fonts[fontName] = invalid
     end function
 
 
     ' Gets a font object, to be used for writing text to the screen
     ' For example, in BGE.DrawText()
     '
-    ' @param {string} font_name
+    ' @param {string} fontName
     ' @return {object}
-    function getFont(font_name as string) as object
-      return m.Fonts[font_name]
+    function getFont(fontName as string) as object
+      return m.Fonts[fontName]
     end function
 
 

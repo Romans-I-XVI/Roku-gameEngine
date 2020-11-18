@@ -87,9 +87,9 @@ namespace BGE
     ' Method for processing all collisions
     '
     ' @param {object} collider - the collider of this entity that collided
-    ' @param {object} other_collider - the collider of the other entity in the collision
-    ' @param {object} other_entity - the entity that owns the other collider
-    function onCollision(collider as object, other_collider as object, other_entity as object) as void
+    ' @param {object} otherCollider - the collider of the other entity in the collision
+    ' @param {object} otherEntity - the entity that owns the other collider
+    function onCollision(collider as object, otherCollider as object, otherEntity as object) as void
     end function
 
 
@@ -230,8 +230,8 @@ namespace BGE
     function addCollider(collider as object) as object
       colliderName = collider.name
       collider.setupCompositor(m.game, m.name, m.id, m.x, m.y)
-      if m.colliders[collider_name] = invalid
-        m.colliders[collider_name] = collider
+      if m.colliders[colliderName] = invalid
+        m.colliders[colliderName] = collider
       else
         print "addCollider() - Collider Name Already Exists: " + colliderName
         return invalid
