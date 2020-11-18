@@ -14,8 +14,8 @@ namespace BGE
     compositor_object = invalid
 
 
-    function new (collider_name as string, args = {} as object)
-      m.name = collider_name
+    function new (colliderName as string, args = {} as object)
+      m.name = colliderName
       m.append(args)
     end function
 

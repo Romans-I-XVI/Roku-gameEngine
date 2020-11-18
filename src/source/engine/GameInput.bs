@@ -34,9 +34,9 @@ namespace BGE
     ' How many milliseconds was the current input held for
     heldTimeMs as integer = 0
 
-    ' Horizontal directional input: left -> -1, right -> 1
+    ' Current horizontal directional input: left -> -1, right -> 1
     x as float = 0
-    ' Vertical directional input: up -> -1, down -> 1
+    ' Current vertical directional input: up -> -1, down -> 1
     y as float = 0
 
 
@@ -53,14 +53,16 @@ namespace BGE
       m.heldTimeMs = heldTimeMs
       m.x = 0
       m.y = 0
-      if m.isButton("right")
-        m.x = 1
-      else if m.isButton("left")
-        m.x = -1
-      else if m.isButton("down")
-        m.y = 1
-      else if m.isButton("up")
-        m.y = -1
+      if not m.release
+        if m.isButton("right")
+          m.x = 1
+        else if m.isButton("left")
+          m.x = -1
+        else if m.isButton("down")
+          m.y = 1
+        else if m.isButton("up")
+          m.y = -1
+        end if
       end if
     end function
 
