@@ -1,0 +1,22 @@
+class ScoreHandler extends BGE.GameEntity
+
+  score = 0
+
+  function new(game) as void
+    super(game)
+    m.name = "ScoreHandler"
+  end function
+
+  override function onGameEvent(event as string, data as object)
+    if event = "score"
+      m.score++
+    end if
+  end function
+
+  override function onDrawEnd(canvas as object)
+    font = m.game.getFont("default")
+
+    BGE.DrawText(canvas, m.score.ToStr(), 1280 / 2 - 200, 100, font, "center")
+  end function
+
+end class

@@ -7,9 +7,11 @@
       "path": "examples/canvas"
     },
     {
+      "path": "examples/snake"
+    },
+    {
       "path": "."
     }
   ],
-  "settings": {
-  }
+  "settings": {}
 }

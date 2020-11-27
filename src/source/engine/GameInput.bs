@@ -75,6 +75,13 @@ namespace BGE
       return invalid <> buttonName and invalid <> m.button and lcase(buttonName) = lcase(m.button)
     end function
 
+    ' Is this input from the directional pad
+    '
+    ' @return {boolean} - true if this input was generated from the direction pad
+    function isDirectionalArrow() as boolean
+      return m.x <> 0 or m.y <> 0
+    end function
+
   end class
 
 end namespace

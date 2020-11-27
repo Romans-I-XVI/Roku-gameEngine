@@ -19,10 +19,9 @@
     "src/**/*"
   ],
   "license": "MIT",
-  "dependencies": {
-    "brighterscript-jsdocs-plugin": "^0.2.2"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "brighterscript-jsdocs-plugin": "^0.2.2",
     "braintree-jsdoc-template": "^3.3.0",
     "brighterscript": "^0.16.10"
   },

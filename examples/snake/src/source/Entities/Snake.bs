@@ -1,0 +1,116 @@
+class Snake extends BGE.GameEntity
+
+  segments = []
+  grid = 16
+  timeCount = 0
+  dead = false
+  maxCells = 10
+
+  color = BGE.RGBAtoRGBA(0, 255, 0)
+
+  xDirection = 0
+  yDirection = 0
+
+
+
+  function new(game) as void
+    super(game)
+    m.name = "snake"
+  end function
+
+  override function onCreate(args)
+    m.direction = args.direction
+    m.x = 1280 / 2
+    m.y = 720 / 2
+    m.xDirection = 1
+    m.yDirection = 0
+
+
+    m.addRectangleCollider("snake_head", m.grid, m.grid, 0, 0)
+  end function
+
+
+
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    ' need_to_play_hit_sound = false
+
+    ' ' If colliding with the front of the player paddle
+    ' if not m.dead and other_entity.name = "Player" and other_colliderName = "front"
+    '   m.xspeed = Abs(m.xspeed)
+    '   need_to_play_hit_sound = true
+    ' end if
+
+    ' ' If colliding with the front of the computer paddle
+    ' if not m.dead and other_entity.name = "Computer" and other_colliderName = "front"
+    '   m.xspeed = Abs(m.xspeed) * -1
+    '   need_to_play_hit_sound = true
+    ' end if
+
+    ' ' If colliding with the front or bottom of the either paddle
+    ' if (other_entity.name = "Player" or other_entity.name = "Computer")
+    '   if other_colliderName = "top" then
+    '     m.yspeed = Abs(m.yspeed) * -1
+    '     need_to_play_hit_sound = true
+    '   end if
+    '   if other_colliderName = "bottom" then
+    '     m.yspeed = Abs(m.yspeed)
+    '     need_to_play_hit_sound = true
+    '   end if
+    ' end if
+
+    ' if need_to_play_hit_sound
+    '   m.PlayHitSound()
+    ' end if
+  end function
+
+  override function onUpdate(dt as float)
+
+    ' slow game loop to 10 fps instead of 60 (60/15 = 4)
+    m.timeCount += dt
+    if m.timeCount < 0.1
+      m.xspeed = 0
+      m.yspeed = 0
+      return void
+    end if
+    m.timeCount = m.timecount - 0.10
+
+
+    m.xspeed = m.xDirection * m.grid
+    m.yspeed = m.yDirection * m.grid
+
+    ' keep track of where snake has been. front of the array is always the head
+    m.segments.unshift({x: m.x, y: m.y})
+
+    ' remove cells as we move away from them
+    if m.segments.count() > m.maxCells
+      m.segments.pop()
+    end if
+
+    ' if the snake goes out of bounds
+    if m.x < 0 or m.x > 1280 or m.y < 0 or m.y > 720
+      m.dead = true
+      m.game.postGameEvent("game_over", {team: 1})
+      m.game.destroyEntity(m)
+      return void ' If an entity destroys itself it must return immediately as all internal variables are now invalid
+    end if
+  end function
+
+  override function onInput(input)
+    if m.yDirection = 0 and (input.isButton("up") or input.isButton("down"))
+      m.yDirection = input.y
+      m.xDirection = 0
+    else if m.xDirection = 0 and (input.isButton("left") or input.isButton("right"))
+      m.xDirection = input.x
+      m.yDirection = 0
+    end if
+  end function
+
+
+
+  override function onDrawBegin(canvas)
+    for each segment in m.segments
+      canvas.DrawRect(cint(segment.x), cint(segment.y), m.grid - 2, m.grid - 2, m.color)
+    end for
+  end function
+
+end class
