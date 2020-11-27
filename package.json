@@ -13,17 +13,18 @@
   "scripts": {
     "preversion": "npm run validate",
     "validate": "bsc --create-package=false --copy-to-staging=false",
-    "docs": "./node_modules/.bin/jsdoc -c jsdoc.json -d docs"
+    "docs": "rm -rf docs && ./node_modules/.bin/jsdoc -c jsdoc.json -d docs -t ./node_modules/braintree-jsdoc-template"
   },
   "files": [
     "src/**/*"
   ],
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "brighterscript-jsdocs-plugin": "^0.2.2"
+  },
   "devDependencies": {
-    "brighterscript": "^0.16.10",
-    "brighterscript-jsdocs-plugin": "^0.2.0",
-    "minami": "^1.2.3"
+    "braintree-jsdoc-template": "^3.3.0",
+    "brighterscript": "^0.16.10"
   },
   "repository": {
     "type": "git",

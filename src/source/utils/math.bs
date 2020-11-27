@@ -1,3 +1,4 @@
+' @module BGE
 namespace BGE
 
   function Math_Clamp(number, min, max)

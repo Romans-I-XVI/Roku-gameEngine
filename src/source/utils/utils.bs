@@ -1,3 +1,4 @@
+' @module BGE
 namespace BGE
 
   function HSVtoRGBA(hPercent, sPercent, vPercent, a = invalid) as integer

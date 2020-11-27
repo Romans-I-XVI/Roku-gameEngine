@@ -1,3 +1,4 @@
+' @module BGE
 namespace BGE
 
   ' Collider with the shape of a rectangle with top left at (offset_x, offset_y), with given width and height

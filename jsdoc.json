@@ -9,8 +9,12 @@
     ],
     "includePattern": ".+\\.br?s$"
   },
+  "templates": {
+    "referenceTitle": "Brighterscript Game Engine",
+    "collapse": false
+  },
   "opts": {
     "recurse": true,
-    "template": "node_modules/minami"
+    "template": "node_modules/braintree-jsdocs-minami"
   }
 }

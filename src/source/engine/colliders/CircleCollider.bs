@@ -1,5 +1,4 @@
-
-
+' @module BGE
 namespace BGE
 
   ' Collider with the shape of a circle centered at (offset_x, offset_y), with given radius

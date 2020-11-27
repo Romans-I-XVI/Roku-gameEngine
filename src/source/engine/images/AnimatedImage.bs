@@ -1,6 +1,6 @@
 import "../../utils/tweens.bs"
 import "../../utils/math.bs"
-
+' @module BGE
 namespace BGE
 
   class AnimatedImage extends Image
