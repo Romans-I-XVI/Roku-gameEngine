@@ -458,11 +458,11 @@ namespace BGE
         collider = entity.colliders[colliderKey]
         if collider <> invalid
           if collider.enabled
-            collider.compositor_object.SetMemberFlags(collider.member_flags)
-            collider.compositor_object.SetCollidableFlags(collider.collidable_flags)
+            collider.compositorObject.SetMemberFlags(collider.memberFlags)
+            collider.compositorObject.SetCollidableFlags(collider.collidableFlags)
             collider.refreshColliderRegion()
-            collider.compositor_object.MoveTo(entity.x, entity.y)
-            multipleCollisions = collider.compositor_object.CheckMultipleCollisions()
+            collider.compositorObject.MoveTo(entity.x, entity.y)
+            multipleCollisions = collider.compositorObject.CheckMultipleCollisions()
             if multipleCollisions <> invalid
               for each otherCollider in multipleCollisions
                 otherColliderData = otherCollider.GetData()
@@ -480,8 +480,8 @@ namespace BGE
               end if
             end if
           else
-            collider.compositor_object.SetMemberFlags(0)
-            collider.compositor_object.SetCollidableFlags(0)
+            collider.compositorObject.SetMemberFlags(0)
+            collider.compositorObject.SetCollidableFlags(0)
           end if
         else
           if entity.colliders.DoesExist(colliderKey)

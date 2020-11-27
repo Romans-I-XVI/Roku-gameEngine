@@ -1,52 +1,92 @@
 ' @module BGE
 namespace BGE
 
+  ' Colliders are attached to GemEntities and when two colliders intersect, it triggers the onCollision() method in
+  ' the GameEntity
   class Collider
 
-    collider_type as string = invalid
+    ' The type of this collider - should be defined in sub classes (eg. "circle", "rectangle")
+    colliderType as string = invalid
+    ' Name this collider will be identified by
     name = ""
+    ' Does this collider trigger onCollision() ?
     enabled = true
+    ' Horizontal offset from the GameEntity it is attached to
     offset_x = 0
+    ' Vertical offset from the GameEntity it is attached to
     offset_y = 0
 
-    member_flags = 1
-    collidable_flags = 1
-    compositor_object = invalid
+    ' Bitflag for collision detection: this collider is in this group - https://developer.roku.com/en-ca/docs/references/brightscript/interfaces/ifsprite.md#setmemberflagsflags-as-integer-as-void
+    memberFlags = 1
+    ' Bitflag for collision detection: this collider will only collider with colliders in this group - https://developer.roku.com/en-ca/docs/references/brightscript/interfaces/ifsprite.md#setcollidableflagsflags-as-integer-as-void
+    collidableFlags = 1
+
+    ' Used internal to Game - should not be modified manually
+    compositorObject = invalid
 
 
-    function new (colliderName as string, args = {} as object)
+    ' Creates a new Collider
+    '
+    ' @param {string} colliderName - the name this collider will be identified by
+    ' @param {object} [args={}] - additional properties to be added to this collider
+    function new (colliderName as string, args = {} as object) as void
       m.name = colliderName
       m.append(args)
     end function
 
 
+    ' Sets up this collider to be associated with a given game and entity
+    '
+    ' @param {object} game - the game this collider is used by
+    ' @param {string} entityName - name of the entity that owns this collider
+    ' @param {string} entityId - id of the entity that owns this collider
+    ' @param {float} entityX - entity's x position
+    ' @param {float} entityY - entity's y position
     function setupCompositor(game as object, entityName as string, entityId as string, entityX as float, entityY as float) as void
       'bs:disable-next-line
       region = CreateObject("roRegion", game.getEmptyBitmap(), 0, 0, 1, 1)
-      m.compositor_object = game.compositor.NewSprite(entityX, entityY, region)
-      m.compositor_object.SetDrawableFlag(false)
-      m.compositor_object.SetData({colliderName: m.name, objectName: entityName, entityId: entityId})
+      m.compositorObject = game.compositor.NewSprite(entityX, entityY, region)
+      m.compositorObject.SetDrawableFlag(false)
+      m.compositorObject.SetData({colliderName: m.name, objectName: entityName, entityId: entityId})
       m.refreshColliderRegion()
     end function
 
+
+    ' Refreshes the collider.
+    ' Called every frame by the GameEngine.
+    ' Should be overrided by sub classes if they have specialized collision set ups (e.g. circle, rectangle).
+    '
     function refreshColliderRegion() as void
-      region = m.compositor_object.GetRegion()
+      region = m.compositorObject.GetRegion()
       region.SetCollisionType(0)
     end function
 
-    function adjustCompositorObject(x as float, y as float)
+
+    ' Moves the compositor to the new x,y position - called from Game when the entity it is attached to moves
+    '
+    ' @param {float} x
+    ' @param {float} y
+    function adjustCompositorObject(x as float, y as float) as void
       if m.enabled then
-        m.compositor_object.SetMemberFlags(m.member_flags)
-        m.compositor_object.SetCollidableFlags(m.collidable_flags)
+        m.compositorObject.SetMemberFlags(m.memberFlags)
+        m.compositorObject.SetCollidableFlags(m.collidableFlags)
         m.refreshColliderRegion()
-        m.compositor_object.MoveTo(x, y)
+        m.compositorObject.MoveTo(x, y)
       else
-        m.compositor_object.SetMemberFlags(0)
-        m.compositor_object.SetCollidableFlags(0)
+        m.compositorObject.SetMemberFlags(0)
+        m.compositorObject.SetCollidableFlags(0)
       end if
     end function
 
+
+    ' Helper function to draw an outline around the collider
+    '
+    ' @param {object} draw2d
+    ' @param {float} entityX
+    ' @param {float} entityY
+    ' @param {integer} [color=&hFF0000FF]
     function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer) as void
     end function
+
   end class
 end namespace

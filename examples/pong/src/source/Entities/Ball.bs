@@ -28,28 +28,28 @@ class Ball extends BGE.GameEntity
     m.addRectangleCollider("ball_collider", bm_ball.GetWidth(), bm_ball.GetHeight(), - bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2)
   end function
 
-  override function onCollision(collider_name as string, other_collider_name as string, other_entity as object)
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
     need_to_play_hit_sound = false
 
     ' If colliding with the front of the player paddle
-    if not m.dead and other_entity.name = "Player" and other_collider_name = "front"
+    if not m.dead and other_entity.name = "Player" and other_colliderName = "front"
       m.xspeed = Abs(m.xspeed)
       need_to_play_hit_sound = true
     end if
 
     ' If colliding with the front of the computer paddle
-    if not m.dead and other_entity.name = "Computer" and other_collider_name = "front"
+    if not m.dead and other_entity.name = "Computer" and other_colliderName = "front"
       m.xspeed = Abs(m.xspeed) * -1
       need_to_play_hit_sound = true
     end if
 
     ' If colliding with the front or bottom of the either paddle
     if (other_entity.name = "Player" or other_entity.name = "Computer")
-      if other_collider_name = "top" then
+      if other_colliderName = "top" then
         m.yspeed = Abs(m.yspeed) * -1
         need_to_play_hit_sound = true
       end if
-      if other_collider_name = "bottom" then
+      if other_colliderName = "bottom" then
         m.yspeed = Abs(m.yspeed)
         need_to_play_hit_sound = true
       end if

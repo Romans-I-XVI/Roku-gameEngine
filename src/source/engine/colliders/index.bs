@@ -1,3 +1,0 @@
-import "./Collider.bs"
-import "./CircleCollider.bs"
-import "./RectangleCollider.bs"

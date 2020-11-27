@@ -1,2 +1,0 @@
-import "./Image.bs"
-import "./AnimatedImage.bs"

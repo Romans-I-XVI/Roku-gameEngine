@@ -258,8 +258,8 @@ namespace BGE
     ' @param {string} colliderName - the name of the collider to remove
     function removeCollider(colliderName as string) as void
       if m.colliders[colliderName] <> invalid
-        if type(m.colliders[colliderName].compositor_object) = "roSprite"
-          m.colliders[colliderName].compositor_object.Remove()
+        if type(m.colliders[colliderName].compositorObject) = "roSprite"
+          m.colliders[colliderName].compositorObject.Remove()
         end if
         m.colliders.Delete(colliderName)
       end if
