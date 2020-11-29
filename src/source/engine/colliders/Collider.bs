@@ -1,7 +1,7 @@
 ' @module BGE
 namespace BGE
 
-  ' Colliders are attached to GemEntities and when two colliders intersect, it triggers the onCollision() method in
+  ' Colliders are attached to GameEntities and when two colliders intersect, it triggers the onCollision() method in
   ' the GameEntity
   class Collider
 

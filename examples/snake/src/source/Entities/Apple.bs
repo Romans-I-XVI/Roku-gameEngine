@@ -1,0 +1,23 @@
+class Apple extends BGE.GameEntity
+
+  grid = 16
+  color = BGE.RGBAtoRGBA(255, 0, 0)
+
+  function new(game) as void
+    super(game)
+    m.name = "apple"
+  end function
+
+  override function onCreate(args)
+    m.x = args.x
+    m.y = args.y
+
+    m.addRectangleCollider("apple", m.grid, m.grid, 0, 0)
+  end function
+
+
+
+  override function onDrawBegin(canvas)
+    canvas.DrawRect(cint(m.x), cint(m.y), m.grid - 2, m.grid - 2, m.color)
+  end function
+end class

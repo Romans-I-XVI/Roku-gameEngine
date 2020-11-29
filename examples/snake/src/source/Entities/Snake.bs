@@ -6,7 +6,6 @@ class Snake extends BGE.GameEntity
   dead = false
   maxCells = 10
 
-  color = BGE.RGBAtoRGBA(0, 255, 0)
 
   xDirection = 0
   yDirection = 0
@@ -32,6 +31,13 @@ class Snake extends BGE.GameEntity
 
 
   override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    if other_entity.name = "apple"
+      m.maxCells++
+      m.game.destroyEntity(other_entity)
+    end if
+    '   m.xspeed = Abs(m.xspeed)
+    '   need_to_play_hit_sound = true
+    ' end if
     ' need_to_play_hit_sound = false
 
     ' ' If colliding with the front of the player paddle
@@ -108,8 +114,12 @@ class Snake extends BGE.GameEntity
 
 
   override function onDrawBegin(canvas)
+    green = 255
+
     for each segment in m.segments
-      canvas.DrawRect(cint(segment.x), cint(segment.y), m.grid - 2, m.grid - 2, m.color)
+      color = BGE.RGBAtoRGBA(0, green, 0)
+      green = 0.9 * green ' make snake get darker, just for fun
+      canvas.DrawRect(cint(segment.x), cint(segment.y), m.grid - 2, m.grid - 2, color)
     end for
   end function
 

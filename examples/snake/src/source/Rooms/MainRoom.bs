@@ -3,6 +3,7 @@ class MainRoom extends BGE.Room
   game_started = false
 
   snake = invalid
+  apple = invalid
 
   function new(game) as void
     super(game)
@@ -23,12 +24,16 @@ class MainRoom extends BGE.Room
   override function onUpdate(dt)
     if m.game_started and not BGE.isValidEntity(m.snake)
       m.snake = m.game.addEntity(new Snake(m.game))
+      m.apple = m.game.addEntity(new Apple(m.game), {x: rnd(1280), y: rnd(720)})
+    end if
+    if m.game_started and not BGE.isValidEntity(m.apple)
+      m.apple = m.game.addEntity(new Apple(m.game), {x: rnd(1280), y: rnd(720)})
     end if
   end function
 
   override function onDrawBegin(canvas)
-    canvas.DrawRect(0, 0, 1280, 50, &hFFFFFFFF)
-    canvas.DrawRect(0, 720 - 50, 1280, 50, &hFFFFFFFF)
+    ' canvas.DrawRect(0, 0, 1280, 50, &hFFFFFFFF)
+    ' canvas.DrawRect(0, 720 - 50, 1280, 50, &hFFFFFFFF)
     if not m.game_started
       BGE.DrawText(canvas, "Press OK To Play", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
     end if
