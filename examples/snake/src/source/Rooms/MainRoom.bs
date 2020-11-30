@@ -5,29 +5,38 @@ class MainRoom extends BGE.Room
   snake = invalid
   apple = invalid
 
+  grid = 20
+
+  gridHeight = 0
+  gridWidth = 0
+
   function new(game) as void
     super(game)
     m.name = "MainRoom"
   end function
 
   override function onCreate(args)
-    'm.game.addEntity(new Computer(m.game))
-    'm.game.addEntity(new PauseHandler(m.game))
-    ' m.game.addEntity(new ScoreHandler(m.game))
-
+    m.game.addEntity(new PauseHandler(m.game))
+    m.game.addEntity(new ScoreHandler(m.game))
+    screen = m.game.getScreen()
+    m.gridHeight = cint(screen.getHeight() / m.grid)
+    if m.gridHeight mod 2 = 1
+      m.gridHeight--
+    end if
+    m.gridWidth = cint(screen.getWidth() / m.grid)
+    if m.gridWidth mod 2 = 1
+      m.gridWidth--
+    end if
     m.game_started = false
-    m.ball_spawn_timer = CreateObject("roTimespan")
-    m.ball_direction = -1
-    m.ball = invalid
   end function
 
   override function onUpdate(dt)
     if m.game_started and not BGE.isValidEntity(m.snake)
-      m.snake = m.game.addEntity(new Snake(m.game))
-      m.apple = m.game.addEntity(new Apple(m.game), {x: rnd(1280), y: rnd(720)})
+      m.snake = m.game.addEntity(new Snake(m.game), {x: cint(m.gridWidth / 2) * m.grid, y: cint(m.gridHeight / 2) * m.grid, grid: m.grid})
     end if
-    if m.game_started and not BGE.isValidEntity(m.apple)
-      m.apple = m.game.addEntity(new Apple(m.game), {x: rnd(1280), y: rnd(720)})
+    if m.game_started and not BGE.isValidEntity(m.apple) and BGE.isValidEntity(m.snake)
+      applePos = m.getAppleGrid()
+      m.apple = m.game.addEntity(new Apple(m.game), {grid: m.grid, x: applePos.x * m.grid, y: applePos.y * m.grid})
     end if
   end function
 
@@ -53,6 +62,21 @@ class MainRoom extends BGE.Room
       m.game_started = false
       m.snake = invalid
     end if
+  end function
+
+
+  function getAppleGrid() as object
+
+    applePosition = invalid
+    while applePosition = invalid
+      gridX = rnd(m.gridWidth - 2) + 1
+      gridY = rnd(m.gridHeight - 2) + 1
+      if not m.snake.checkPositionForSnake(gridX, gridY)
+        applePosition = {x: gridX, y: gridY}
+      end if
+    end while
+
+    return applePosition
   end function
 
 end class

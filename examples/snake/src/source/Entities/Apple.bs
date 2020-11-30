@@ -1,6 +1,6 @@
 class Apple extends BGE.GameEntity
 
-  grid = 16
+  grid = 20
   color = BGE.RGBAtoRGBA(255, 0, 0)
 
   function new(game) as void
