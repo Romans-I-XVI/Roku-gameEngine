@@ -7,7 +7,7 @@ sub Main()
   main_room = new MainRoom(game)
   game.defineRoom(main_room)
   game.changeRoom(main_room.name)
-  game.debugDrawColliders(true)
+  'game.debugDrawColliders(true)
   ' game.debugDrawSafeZones(true)
   game.Play()
 

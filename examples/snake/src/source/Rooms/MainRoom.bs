@@ -5,10 +5,13 @@ class MainRoom extends BGE.Room
   snake = invalid
   apple = invalid
 
-  grid = 20
+  grid = 40
 
   gridHeight = 0
   gridWidth = 0
+  wallWidth = 2 * m.grid
+  screenW = 0
+  screenH = 0
 
   function new(game) as void
     super(game)
@@ -18,33 +21,54 @@ class MainRoom extends BGE.Room
   override function onCreate(args)
     m.game.addEntity(new PauseHandler(m.game))
     m.game.addEntity(new ScoreHandler(m.game))
+
     screen = m.game.getScreen()
-    m.gridHeight = cint(screen.getHeight() / m.grid)
+    m.screenW = screen.getWidth()
+    m.screenH = screen.getHeight()
+
+    m.gridHeight = cint(m.screenH / m.grid)
     if m.gridHeight mod 2 = 1
       m.gridHeight--
     end if
-    m.gridWidth = cint(screen.getWidth() / m.grid)
+    m.gridWidth = cint(m.screenW / m.grid)
     if m.gridWidth mod 2 = 1
       m.gridWidth--
     end if
     m.game_started = false
+
+    m.addWallsColliders()
+  end function
+
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    ?"Collision: " + colliderName + " and " + other_colliderName + " of " + other_entity.name
+  end function
+
+
+  function addWallsColliders()
+    m.addRectangleCollider("wallTop", m.screenW, m.wallWidth)
+    m.addRectangleCollider("wallLeft", m.wallWidth, m.screenH)
+    m.addRectangleCollider("wallBottom", m.screenW, m.wallWidth, 0, m.screenH - m.wallWidth)
+    m.addRectangleCollider("wallRight", m.wallWidth, m.screenH, m.screenW - m.wallWidth, 0)
   end function
 
   override function onUpdate(dt)
     if m.game_started and not BGE.isValidEntity(m.snake)
-      m.snake = m.game.addEntity(new Snake(m.game), {x: cint(m.gridWidth / 2) * m.grid, y: cint(m.gridHeight / 2) * m.grid, grid: m.grid})
+      m.snake = m.game.addEntity(new Snake(m.game), {gridX: cint(m.gridWidth / 2), gridY: cint(m.gridHeight / 2), grid: m.grid})
     end if
     if m.game_started and not BGE.isValidEntity(m.apple) and BGE.isValidEntity(m.snake)
       applePos = m.getAppleGrid()
-      m.apple = m.game.addEntity(new Apple(m.game), {grid: m.grid, x: applePos.x * m.grid, y: applePos.y * m.grid})
+      m.apple = m.game.addEntity(new Apple(m.game), {grid: m.grid, gridX: applePos.x, gridY: applePos.y})
     end if
   end function
 
   override function onDrawBegin(canvas)
-    ' canvas.DrawRect(0, 0, 1280, 50, &hFFFFFFFF)
-    ' canvas.DrawRect(0, 720 - 50, 1280, 50, &hFFFFFFFF)
+    m.drawWalls(canvas)
+
     if not m.game_started
-      BGE.DrawText(canvas, "Press OK To Play", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
+      if invalid <> m.snake
+        BGE.DrawText(canvas, "Game Over!", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
+      end if
+      BGE.DrawText(canvas, "Press OK To Play", canvas.GetWidth() / 2, canvas.GetHeight() / 2 + 20, m.game.getFont("default"), "center")
     end if
   end function
 
@@ -54,13 +78,14 @@ class MainRoom extends BGE.Room
     end if
     if not m.game_started and input.isButton("ok")
       m.game_started = true
+      m.game.destroyEntity(m.snake)
     end if
   end function
 
   override function onGameEvent(event as string, data as object)
     if event = "game_over"
       m.game_started = false
-      m.snake = invalid
+
     end if
   end function
 
@@ -69,14 +94,23 @@ class MainRoom extends BGE.Room
 
     applePosition = invalid
     while applePosition = invalid
-      gridX = rnd(m.gridWidth - 2) + 1
-      gridY = rnd(m.gridHeight - 2) + 1
+      gridX = rnd(m.gridWidth - 4) + 1
+      gridY = rnd(m.gridHeight - 4) + 1
       if not m.snake.checkPositionForSnake(gridX, gridY)
         applePosition = {x: gridX, y: gridY}
       end if
     end while
 
     return applePosition
+  end function
+
+
+  function drawWalls(canvas)
+    color = BGE.Colors().White
+    canvas.DrawRect(0, 0, m.screenW, m.wallWidth, color)
+    canvas.DrawRect(0, 0, m.wallWidth, m.screenH, color)
+    canvas.DrawRect(0, m.screenH - m.wallWidth, m.screenW, m.wallWidth, color)
+    canvas.DrawRect(m.screenW - m.wallWidth, 0, m.wallWidth, m.screenH, color)
   end function
 
 end class

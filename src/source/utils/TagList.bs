@@ -1,0 +1,49 @@
+namespace BGE
+
+
+  class TagList
+
+    private tags = []
+
+    function new() as void
+    end function
+
+    function clear() as void
+      m.tags.clear()
+    end function
+
+    function add(tagName as string) as void
+      if not m.hasTag(tagName)
+        m.tags.push(lcase(tagName))
+      end if
+    end function
+
+    function remove(tagName as string) as void
+      tagName = lcase(tagName)
+      i = 0
+      for each tag in m.tags
+        if tag = tagName
+          m.tags.delete(i)
+          return
+        end if
+        i++
+      end for
+      return
+    end function
+
+    function contains(tagName as string) as boolean
+      tagName = lcase(tagName)
+      for each tag in m.tags
+        if tag = tagName
+          return true
+        end if
+      end for
+      return false
+    end function
+
+    function count() as integer
+      return m.tags.count()
+    end function
+  end class
+
+end namespace

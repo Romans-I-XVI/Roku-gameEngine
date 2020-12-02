@@ -15,8 +15,7 @@ class ScoreHandler extends BGE.GameEntity
 
   override function onDrawEnd(canvas as object)
     font = m.game.getFont("default")
-
-    BGE.DrawText(canvas, m.score.ToStr(), 1280 / 2 - 200, 100, font, "center")
+    BGE.DrawText(canvas, m.score.ToStr(), canvas.getWidth() / 2, 100, font, "center")
   end function
 
 end class

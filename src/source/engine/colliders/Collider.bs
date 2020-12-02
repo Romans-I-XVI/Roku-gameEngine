@@ -24,6 +24,9 @@ namespace BGE
     ' Used internal to Game - should not be modified manually
     compositorObject = invalid
 
+    ' Colliders can be tagged with any number of tags so they can be easily identified (e.g. "enemy", "wall", etc.)
+    tagsList = new TagList()
+
 
     ' Creates a new Collider
     '
@@ -87,6 +90,8 @@ namespace BGE
     ' @param {integer} [color=&hFF0000FF]
     function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer) as void
     end function
+
+
 
   end class
 end namespace

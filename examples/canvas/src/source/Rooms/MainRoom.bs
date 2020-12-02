@@ -17,9 +17,9 @@ class MainRoom extends BGE.Room
   override function onDrawBegin(canvas)
     w = canvas.GetWidth()
     h = canvas.GetHeight()
-    white = BGE.RGBAtoRGBA(&hFF, &hFF, &hFF)
-    red = BGE.RGBAtoRGBA(&hFF, 0, 0)
-    grey = BGE.RGBAtoRGBA(&hFF, &hFF, &hFF, 0.5)
+    white = BGE.Colors().White
+    red = BGE.Colors().Red
+    grey = BGE.Colors().Grey
     canvas.DrawRect(0, 0, w, h, grey)
     BGE.DrawRectangleOutline(canvas, 3, 3, w - 3, h - 3, red)
 

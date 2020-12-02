@@ -42,6 +42,9 @@ namespace BGE
     ' Associative array of images by name
     imagesByName as object = {}
 
+    ' Colliders can be tagged with any number of tags so they can be easily identified (e.g. "enemy", "wall", etc.)
+    tagsList = new TagList()
+
 
     ' Creates a new GameEntity
     '

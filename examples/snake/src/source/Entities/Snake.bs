@@ -1,7 +1,7 @@
-class Snake extends BGE.GameEntity
+class Snake extends GridEntity
 
   segments = []
-  grid = 16
+
   timeCount = 0
   dead = false
   maxCells = 10
@@ -10,7 +10,10 @@ class Snake extends BGE.GameEntity
   xDirection = 0
   yDirection = 0
 
+  ' slow game loop to 10 fps instead of 60
+  secondsPerFrame = 0.1
 
+  snakeHeadCollider = invalid
 
   function new(game) as void
     super(game)
@@ -18,20 +21,24 @@ class Snake extends BGE.GameEntity
   end function
 
   override function onCreate(args)
-    m.x = args.x
-    m.y = args.y
+    m.gridX = args.gridX
+    m.gridY = args.gridY
     m.xDirection = 1
     m.yDirection = 0
     m.grid = args.grid
 
-    m.addRectangleCollider("snake_head", m.grid, m.grid, 0, 0)
+    m.snakeHeadCollider = m.addRectangleCollider("snake_head", m.grid, m.grid, 0, 0)
+    m.snakeHeadCollider.enabled = false
   end function
 
 
 
   override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    ?"Collision: " + colliderName + " and " + other_colliderName + " of " + other_entity.name
+
     if other_entity.name = "apple"
       m.maxCells++
+      m.game.postGameEvent("score")
       m.game.destroyEntity(other_entity)
     end if
     '   m.xspeed = Abs(m.xspeed)
@@ -66,6 +73,11 @@ class Snake extends BGE.GameEntity
     ' if need_to_play_hit_sound
     '   m.PlayHitSound()
     ' end if
+
+    if other_entity.name = "MainRoom"
+      m.die()
+      return void
+    end if
   end function
 
   override function onUpdate(dt as float)
@@ -73,33 +85,31 @@ class Snake extends BGE.GameEntity
       return void
     end if
 
-    ' slow game loop to 10 fps instead of 60 (60/15 = 4)
     m.timeCount += dt
-    if m.timeCount < 0.1
-      m.xspeed = 0
-      m.yspeed = 0
+    if m.timeCount < m.secondsPerFrame
       return void
     end if
-    m.timeCount = m.timecount - 0.10
+    m.timeCount = m.timecount - m.secondsPerFrame
+    m.snakeHeadCollider.enabled = true
 
+    m.gridX += m.xDirection
+    m.gridY += m.yDirection
 
-    m.xspeed = m.xDirection * m.grid
-    m.yspeed = m.yDirection * m.grid
+    m.refreshPosition()
 
     ' keep track of where snake has been. front of the array is always the head
-    m.segments.unshift({x: m.x, y: m.y})
+    m.segments.unshift({x: m.gridX, y: m.gridY})
 
     ' remove cells as we move away from them
     if m.segments.count() > m.maxCells
       m.segments.pop()
     end if
 
+
+
     ' if the snake goes out of bounds
-    if m.x < 0 or m.x > 1280 or m.y < 0 or m.y > 720 or m.checkPositionForSnake(m.x, m.y, true)
-      m.dead = true
-      m.xspeed = 0
-      m.yspeed = 0
-      m.game.postGameEvent("game_over")
+    if m.checkPositionForSnake(m.gridX, m.gridY, true)
+      m.die()
       return void
     end if
   end function
@@ -117,24 +127,26 @@ class Snake extends BGE.GameEntity
 
 
   override function onDrawBegin(canvas)
-    green = 255
+    ' Draw Head
+    m.drawRectangleOnGrid(canvas, m.gridX, m.gridY, BGE.Colors().Green)
 
+    green = 255
     for each segment in m.segments
-      color = BGE.RGBAtoRGBA(0, green, 0)
       green = 0.95 * green ' make snake get darker, just for fun
       if green < 128
         green = 128
       end if
-      canvas.DrawRect(cint(segment.x), cint(segment.y), m.grid - 2, m.grid - 2, color)
+
+      m.drawRectangleOnGrid(canvas, segment.x, segment.y, BGE.RGBAtoRGBA(0, green, 0))
     end for
   end function
 
 
-  function checkPositionForSnake(x, y, ignoreHead = false) as boolean
+  function checkPositionForSnake(gridX, gridY, ignoreHead = false) as boolean
     hitSnake = false
     i = 0
     for each segment in m.segments
-      if x = segment.x and y = segment.y
+      if gridX = segment.x and gridY = segment.y
         if not ignoreHead or i > 0
           return true
         end if
@@ -142,6 +154,12 @@ class Snake extends BGE.GameEntity
       i++
     end for
     return false
+  end function
+
+  function die()
+    m.dead = true
+    m.snakeHeadCollider.enabled = false
+    m.game.postGameEvent("game_over")
   end function
 
 end class

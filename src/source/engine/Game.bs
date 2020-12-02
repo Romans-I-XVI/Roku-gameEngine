@@ -3,25 +3,26 @@ namespace BGE
 
   ' Main Game Engine class which runs everything
   ' The main game loop is as follows:
-  ' 1. For each GameEntity:
+  ' 1. Update - For each GameEntity:
   '   - Process Input from roku remote
   '   - Process Audio Events (https://developer.roku.com/en-ca/docs/references/brightscript/events/roaudioplayerevent.md)
   '   - Process ECP input (https://developer.roku.com/en-ca/docs/developer-program/debugging/external-control-api.md)
   '   - Process URL events (https://developer.roku.com/en-ca/docs/references/brightscript/events/rourlevent.md)
   '   - Runs the Entity's onUpdate() function
   '   - Moves Entity based on velocity
+  ' 2. Collisions - For each GameEntity:
   '   - Run Entity's onPreCollision() function
   '   - For any collisions, runs Entity's onCollision() function
   '   - Runs entity's onPostCollision() function
   ' (At any time, the Entity in question may Delete() itself. Before every entity interaction, the entity is checked to make sure it is still valid
   ' in case it was deleted in the last interaction)
   '
-  ' 2. For each GameEntity, sorted by depth
+  ' 3. Draw - For each GameEntity, sorted by depth
   '   - Runs the Entity onDrawBegin() function
   '   - For each image in the Entity, run the draw() function
   '   - Run the Entity onDrawEnd() function
   '
-  ' 3. Draw all debug items (e.g. colliders, screen safe zones, etc.)
+  ' 4. Debug - Draw all debug items (e.g. colliders, screen safe zones, etc.)
   class Game
 
     ' ****BEGIN - For Internal Use, Do Not Manually Alter****
@@ -296,12 +297,13 @@ namespace BGE
     ' @return {void}
     private function processEntitiesPreDraw(universalControlEvents as object) as void
       started_paused = m.paused
+
+      ' Process all Entity Updates
       for i = m.sortedEntities.Count() - 1 to 0 step -1
         entity = m.sortedEntities[i]
         if not m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
           processEntity = false
         else
-
 
           ' --------------------First process the onInput() function--------------------
           if m.isValidEntity(entity)
@@ -323,17 +325,27 @@ namespace BGE
             entity.onUrlEvent(url_msg)
           end if
 
-
           ' -------------------Then process the onUpdate() function----------------------
           if m.isValidEntity(entity) and invalid <> entity.onUpdate
             entity.onUpdate(m.dt)
           end if
 
-
           ' -------------------- Then handle the object movement--------------------
           if m.isValidEntity(entity)
             m.processEntityMovement(entity)
           end if
+
+        end if
+
+        m.deleteIfInvalidEntityByIndex(i)
+      end for
+
+      ' Process all Entity Collisions
+      for i = m.sortedEntities.Count() - 1 to 0 step -1
+        entity = m.sortedEntities[i]
+        if not m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
+          processEntity = false
+        else
 
           ' ---------------- Give a space for any processing to happen just before collision checking occurs ------------
           if m.isValidEntity(entity) and invalid <> entity.onPreCollision
@@ -358,6 +370,7 @@ namespace BGE
 
         m.deleteIfInvalidEntityByIndex(i)
       end for
+
     end function
 
 
@@ -467,10 +480,19 @@ namespace BGE
               for each otherCollider in multipleCollisions
                 otherColliderData = otherCollider.GetData()
                 if invalid <> otherColliderData and invalid <> otherColliderData.entityId
-                  if otherColliderData.entityId <> entity.id and m.Entities[otherColliderData.objectName].DoesExist(otherColliderData.entityId)
-                    entity.onCollision(colliderKey, otherColliderData.colliderName, m.Entities[otherColliderData.objectName][otherColliderData.entityId])
-                    if not m.isValidEntity(entity)
-                      return false
+                  if otherColliderData.entityId <> entity.id
+                    otherEntity = invalid
+                    if m.Entities[otherColliderData.objectName].DoesExist(otherColliderData.entityId)
+                      otherEntity = m.Entities[otherColliderData.objectName][otherColliderData.entityId]
+                    else if invalid <> m.currentRoom and otherColliderData.objectName = m.currentRoom.name
+                      ' Or is it the current room?
+                      otherEntity = m.currentRoom
+                    end if
+                    if invalid <> otherEntity and otherEntity.id <> entity.id
+                      entity.onCollision(colliderKey, otherColliderData.colliderName, otherEntity)
+                      if not m.isValidEntity(entity)
+                        return false
+                      end if
                     end if
                   end if
                 end if
@@ -1326,6 +1348,9 @@ namespace BGE
           end if
         end for
       end for
+      if invalid <> m.currentRoom
+        m.currentRoom.onGameEvent(eventName, data)
+      end if
     end function
 
 

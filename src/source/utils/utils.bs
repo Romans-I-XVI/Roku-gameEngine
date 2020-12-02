@@ -58,6 +58,49 @@ namespace BGE
     return color%
   end function
 
+
+  function Colors() as object
+    if invalid <> m and invalid <> m.BGEColorsConstant
+      return m.BGEColorsConstant
+    end if
+
+    colorsObj = {
+      Black: BGE.RGBAtoRGBA(0, 0, 0),
+      White: BGE.RGBAtoRGBA(255, 255, 255),
+      Red: BGE.RGBAtoRGBA(255, 0, 0),
+      Lime: BGE.RGBAtoRGBA(0, 255, 0),
+      Blue: BGE.RGBAtoRGBA(0, 0, 255),
+      Yellow: BGE.RGBAtoRGBA(255, 255, 0),
+      Cyan: BGE.RGBAtoRGBA(0, 255, 255),
+      Aqua: BGE.RGBAtoRGBA(0, 255, 255),
+      Magenta: BGE.RGBAtoRGBA(255, 0, 255),
+      Fuchsia: BGE.RGBAtoRGBA(255, 0, 255),
+      Silver: BGE.RGBAtoRGBA(192, 192, 192),
+      Gray: BGE.RGBAtoRGBA(128, 128, 128),
+      Grey: BGE.RGBAtoRGBA(128, 128, 128),
+      Maroon: BGE.RGBAtoRGBA(128, 0, 0),
+      Olive: BGE.RGBAtoRGBA(128, 128, 0),
+      Green: BGE.RGBAtoRGBA(0, 128, 0),
+      Purple: BGE.RGBAtoRGBA(128, 0, 128),
+      Teal: BGE.RGBAtoRGBA(0, 128, 128),
+      Navy: BGE.RGBAtoRGBA(0, 0, 128),
+    }
+
+    if invalid <> m
+      m.BGEColorsConstant = colorsObj
+    end if
+
+    return colorsObj
+  end function
+
+  function GetColor(name as string) as integer
+    colorsObj = BGE.Colors()
+    color = colorsObj.White
+    if invalid <> colorsObj[name]
+      return colorsObj[name]
+    end if
+  end function
+
   function registryWrite(registry_section as string, key as string, value as dynamic) as void
     section = CreateObject("roRegistrySection", registry_section)
     section.Write(key, FormatJson(value))
@@ -77,7 +120,7 @@ namespace BGE
     end if
   end function
 
-  function DrawText(draw2d as object, text as string, x as integer, y as integer, font as object, alignment = "left" as string, color = &hEBEBEBFF as integer) as void
+  function DrawText(draw2d as object, text as string, x as integer, y as integer, font as object, alignment = "left" as string, color = -1 as integer) as void
     if alignment = "left"
       draw2d.DrawText(text, x, y, color, font)
     else if alignment = "right"
@@ -88,7 +131,7 @@ namespace BGE
   end function
 
   ' NOTE: This function is unsafe! It creates an roBitmap of the required size to be able to both scale and rotate the drawing, this action requires free video memory of the appropriate amount.
-  function DrawScaledAndRotatedObject(draw2d as object, x as float, y as float, scale_x as float, scale_y as float, theta as float, drawable as object, color = &hFFFFFFFF as integer) as void
+  function DrawScaledAndRotatedObject(draw2d as object, x as float, y as float, scale_x as float, scale_y as float, theta as float, drawable as object, color = -1 as integer) as void
     new_width = Abs(int(drawable.GetWidth() * scale_x))
     new_height = Abs(int(drawable.GetHeight() * scale_y))
     if new_width <> 0 and new_height <> 0

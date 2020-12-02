@@ -1,0 +1,25 @@
+class GridEntity extends BGE.GameEntity
+
+  grid = 20
+  gridPadding = 4
+  gridX = 0
+  gridY = 0
+
+
+  function new(game) as void
+    super(game)
+  end function
+
+  function refreshPosition() as void
+    m.x = m.gridX * m.grid
+    m.y = m.gridY * m.grid
+  end function
+
+
+  function drawRectangleOnGrid(canvas, gridX, gridY, color)
+    x = cint(gridX * m.grid + m.gridPadding / 2)
+    y = cint(gridY * m.grid + m.gridPadding / 2)
+    sideLength = cint(m.grid - m.gridPadding / 2)
+    canvas.DrawRect(x, y, sideLength, sideLength, color)
+  end function
+end class

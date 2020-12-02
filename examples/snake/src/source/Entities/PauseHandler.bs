@@ -12,7 +12,7 @@ class PauseHandler extends BGE.GameEntity
   end function
 
   override function onInput(input as object)
-    if input.isButton("play")
+    if input.isButton("play") and input.press
       if not m.game.isPaused()
         m.game.Pause()
       else
