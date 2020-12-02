@@ -34,45 +34,12 @@ class Snake extends GridEntity
 
 
   override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
-    ?"Collision: " + colliderName + " and " + other_colliderName + " of " + other_entity.name
-
     if other_entity.name = "apple"
       m.maxCells++
       m.game.postGameEvent("score")
+      m.game.playSound("score", 50)
       m.game.destroyEntity(other_entity)
     end if
-    '   m.xspeed = Abs(m.xspeed)
-    '   need_to_play_hit_sound = true
-    ' end if
-    ' need_to_play_hit_sound = false
-
-    ' ' If colliding with the front of the player paddle
-    ' if not m.dead and other_entity.name = "Player" and other_colliderName = "front"
-    '   m.xspeed = Abs(m.xspeed)
-    '   need_to_play_hit_sound = true
-    ' end if
-
-    ' ' If colliding with the front of the computer paddle
-    ' if not m.dead and other_entity.name = "Computer" and other_colliderName = "front"
-    '   m.xspeed = Abs(m.xspeed) * -1
-    '   need_to_play_hit_sound = true
-    ' end if
-
-    ' ' If colliding with the front or bottom of the either paddle
-    ' if (other_entity.name = "Player" or other_entity.name = "Computer")
-    '   if other_colliderName = "top" then
-    '     m.yspeed = Abs(m.yspeed) * -1
-    '     need_to_play_hit_sound = true
-    '   end if
-    '   if other_colliderName = "bottom" then
-    '     m.yspeed = Abs(m.yspeed)
-    '     need_to_play_hit_sound = true
-    '   end if
-    ' end if
-
-    ' if need_to_play_hit_sound
-    '   m.PlayHitSound()
-    ' end if
 
     if other_entity.name = "MainRoom"
       m.die()
@@ -159,6 +126,8 @@ class Snake extends GridEntity
   function die()
     m.dead = true
     m.snakeHeadCollider.enabled = false
+
+    m.game.playSound("die", 75)
     m.game.postGameEvent("game_over")
   end function
 

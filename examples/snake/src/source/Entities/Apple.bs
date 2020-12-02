@@ -17,11 +17,6 @@ class Apple extends GridEntity
     m.addRectangleCollider("apple", m.grid, m.grid, 0, 0)
   end function
 
-  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
-    ?"Collision: " + colliderName + " and " + other_colliderName + " of " + other_entity.name
-  end function
-
-
   override function onDrawBegin(canvas)
     m.drawRectangleOnGrid(canvas, m.gridX, m.gridY, m.color)
   end function
