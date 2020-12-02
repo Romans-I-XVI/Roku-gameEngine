@@ -1,0 +1,96 @@
+' @module BGE
+namespace BGE
+  ' Contains a roku roBitmap which all game objects get drawn to.
+  class Canvas
+
+    ' bitmap GameEntity images get drawn to
+    bitmap as object = invalid
+    'horizontal position offset from screen coordinates
+    offset_x as float = 0.0
+    ' vertical position offset from screen coordinates
+    offset_y as float = 0.0
+    ' horizontal scale
+    scale_x as float = 1.0
+    'vertical scale
+    scale_y as float = 1.0
+
+
+    ' Creates a Canvas object and bitmap
+    '
+    ' @param {integer} canvasWidth - width of canvas
+    ' @param {integer} canvasHeight - height of canvas
+    function new(canvasWidth as integer, canvasHeight as integer) as void
+      m.setSize(canvasWidth, canvasHeight)
+    end function
+
+
+    ' Changes the size of the canvas
+    '
+    ' @param {integer} canvasWidth - width of canvas
+    ' @param {integer} canvasHeight - height of canvas
+    function setSize(canvasWidth as integer, canvasHeight as integer) as void
+      m.bitmap = CreateObject("roBitmap", {width: canvasWidth, height: canvasHeight, AlphaEnable: true})
+    end function
+
+
+    ' Gets the offset of the canvas from the screen
+    '
+    ' @return {object} - Position as object: {x, y}
+    function getOffset() as object
+      return {x: m.offset_x, y: m.offset_y}
+    end function
+
+
+    ' Gets the scale of the canvas
+    '
+    ' @return {object} - Scale as object: {x, y}
+    function getScale() as object
+      return {x: m.scale_x, y: m.scale_y}
+    end function
+
+
+    ' Sets the offset of the canvase.
+    ' This is as Float to allow incrementing by less than 1 pixel, it is converted to integer internally
+    '
+    '
+    ' @param {float} x - x offset
+    ' @param {float} y - y offset
+    function setOffset(x as float, y as float) as void
+      m.offset_x = x
+      m.offset_y = y
+    end function
+
+
+    ' Sets the scale of the canvas
+    '
+    ' @param {float} scale_x - horizontal scale
+    ' @param {dynamic} [scale_y=invalid] - vertical scale, or if invalid, use the horizontal scale as vertical scale
+    function setScale(scale_x as float, scale_y = invalid as dynamic) as void
+      if scale_y = invalid
+        scale_y = scale_x
+      end if
+      m.scale_x = scale_x
+      m.scale_y = scale_y
+    end function
+
+
+    ' Gets the width of the underlying bitmap
+    '
+    ' @return {integer}
+    function getWidth() as integer
+      if invalid <> m.bitmap
+        return m.bitmap.getWidth()
+      end if
+    end function
+
+    ' Gets the height of the underlying bitmap
+    '
+    ' @return {integer}
+    function getHeight() as integer
+      if invalid <> m.bitmap
+        return m.bitmap.getHeight()
+      end if
+    end function
+
+  end class
+end namespace

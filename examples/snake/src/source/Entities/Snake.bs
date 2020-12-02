@@ -1,0 +1,165 @@
+class Snake extends GridEntity
+
+  segments = []
+
+  timeCount = 0
+  dead = false
+  maxCells = 10
+
+
+  xDirection = 0
+  yDirection = 0
+
+  ' slow game loop to 10 fps instead of 60
+  secondsPerFrame = 0.1
+
+  snakeHeadCollider = invalid
+
+  function new(game) as void
+    super(game)
+    m.name = "snake"
+  end function
+
+  override function onCreate(args)
+    m.gridX = args.gridX
+    m.gridY = args.gridY
+    m.xDirection = 1
+    m.yDirection = 0
+    m.grid = args.grid
+
+    m.snakeHeadCollider = m.addRectangleCollider("snake_head", m.grid, m.grid, 0, 0)
+    m.snakeHeadCollider.enabled = false
+  end function
+
+
+
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    ?"Collision: " + colliderName + " and " + other_colliderName + " of " + other_entity.name
+
+    if other_entity.name = "apple"
+      m.maxCells++
+      m.game.postGameEvent("score")
+      m.game.destroyEntity(other_entity)
+    end if
+    '   m.xspeed = Abs(m.xspeed)
+    '   need_to_play_hit_sound = true
+    ' end if
+    ' need_to_play_hit_sound = false
+
+    ' ' If colliding with the front of the player paddle
+    ' if not m.dead and other_entity.name = "Player" and other_colliderName = "front"
+    '   m.xspeed = Abs(m.xspeed)
+    '   need_to_play_hit_sound = true
+    ' end if
+
+    ' ' If colliding with the front of the computer paddle
+    ' if not m.dead and other_entity.name = "Computer" and other_colliderName = "front"
+    '   m.xspeed = Abs(m.xspeed) * -1
+    '   need_to_play_hit_sound = true
+    ' end if
+
+    ' ' If colliding with the front or bottom of the either paddle
+    ' if (other_entity.name = "Player" or other_entity.name = "Computer")
+    '   if other_colliderName = "top" then
+    '     m.yspeed = Abs(m.yspeed) * -1
+    '     need_to_play_hit_sound = true
+    '   end if
+    '   if other_colliderName = "bottom" then
+    '     m.yspeed = Abs(m.yspeed)
+    '     need_to_play_hit_sound = true
+    '   end if
+    ' end if
+
+    ' if need_to_play_hit_sound
+    '   m.PlayHitSound()
+    ' end if
+
+    if other_entity.name = "MainRoom"
+      m.die()
+      return void
+    end if
+  end function
+
+  override function onUpdate(dt as float)
+    if m.dead
+      return void
+    end if
+
+    m.timeCount += dt
+    if m.timeCount < m.secondsPerFrame
+      return void
+    end if
+    m.timeCount = m.timecount - m.secondsPerFrame
+    m.snakeHeadCollider.enabled = true
+
+    m.gridX += m.xDirection
+    m.gridY += m.yDirection
+
+    m.refreshPosition()
+
+    ' keep track of where snake has been. front of the array is always the head
+    m.segments.unshift({x: m.gridX, y: m.gridY})
+
+    ' remove cells as we move away from them
+    if m.segments.count() > m.maxCells
+      m.segments.pop()
+    end if
+
+
+
+    ' if the snake goes out of bounds
+    if m.checkPositionForSnake(m.gridX, m.gridY, true)
+      m.die()
+      return void
+    end if
+  end function
+
+  override function onInput(input)
+    if m.yDirection = 0 and (input.isButton("up") or input.isButton("down"))
+      m.yDirection = input.y
+      m.xDirection = 0
+    else if m.xDirection = 0 and (input.isButton("left") or input.isButton("right"))
+      m.xDirection = input.x
+      m.yDirection = 0
+    end if
+  end function
+
+
+
+  override function onDrawBegin(canvas)
+    ' Draw Head
+    m.drawRectangleOnGrid(canvas, m.gridX, m.gridY, BGE.Colors().Green)
+
+    green = 255
+    for each segment in m.segments
+      green = 0.95 * green ' make snake get darker, just for fun
+      if green < 128
+        green = 128
+      end if
+
+      m.drawRectangleOnGrid(canvas, segment.x, segment.y, BGE.RGBAtoRGBA(0, green, 0))
+    end for
+  end function
+
+
+  function checkPositionForSnake(gridX, gridY, ignoreHead = false) as boolean
+    hitSnake = false
+    i = 0
+    for each segment in m.segments
+      if gridX = segment.x and gridY = segment.y
+        if not ignoreHead or i > 0
+          return true
+        end if
+      end if
+      i++
+    end for
+    return false
+  end function
+
+  function die()
+    m.dead = true
+    m.snakeHeadCollider.enabled = false
+    m.game.postGameEvent("game_over")
+  end function
+
+end class

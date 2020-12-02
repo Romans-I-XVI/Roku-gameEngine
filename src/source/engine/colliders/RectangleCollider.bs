@@ -1,0 +1,35 @@
+' @module BGE
+namespace BGE
+
+  ' Collider with the shape of a rectangle with top left at (offset_x, offset_y), with given width and height
+  class RectangleCollider extends Collider
+    width as float = 0.0
+    height as float = 0.0
+
+
+    ' Create a new RectangleCollider
+    '
+    ' @param {string} colliderName - name of this collider
+    ' @param {object} [args={}] - additional properties (e.g {width: 10, height: 20})
+    function new (colliderName as string, args = {} as object) as void
+      super(colliderName, args)
+      m.colliderType = "rectangle"
+      m.append(args)
+    end function
+
+    ' Refreshes the collider
+    '
+    override function refreshColliderRegion() as void
+      region = m.compositorObject.GetRegion()
+      region.SetCollisionType(1)
+      region.SetCollisionRectangle(m.offset_x, m.offset_y, m.width, m.height)
+    end function
+
+
+    ' Draws the rectangle outline around the collider
+    override function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer)
+      BGE.DrawRectangleOutline(draw2d, entityX + m.offset_x, entityY + m.offset_y, m.width, m.height, color)
+    end function
+
+  end class
+end namespace

@@ -1,0 +1,41 @@
+' @module BGE
+namespace BGE
+
+  ' Wrapper for Roku's roTimeSpan that allows time adjustment
+  class GameTimer
+
+    private internal_roku_timer as object = invalid
+    private total_milliseconds_modifier as integer = 0
+
+    function new()
+      m.internal_roku_timer = CreateObject("roTimespan")
+    end function
+
+
+    function mark() as void
+      m.internal_roku_timer.Mark()
+      m.total_milliseconds_modifier = 0
+    end function
+
+    function totalMilliseconds() as integer
+      return m.internal_roku_timer.TotalMilliseconds() + m.total_milliseconds_modifier
+    end function
+
+    function totalSeconds()as integer
+      return m.internal_roku_timer.TotalSeconds() + cint(m.total_milliseconds_modifier / 1000)
+    end function
+
+    function getSecondsToISO8601Date(date as string)as integer
+      return m.internal_roku_timer.GetSecondsToISO8601Date(date)
+    end function
+
+    function addTime(milliseconds as integer)as void
+      m.total_milliseconds_modifier += milliseconds
+    end function
+
+    function removeTime(milliseconds as integer)as void
+      m.total_milliseconds_modifier -= milliseconds
+    end function
+
+  end class
+end namespace

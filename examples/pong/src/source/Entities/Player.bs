@@ -1,0 +1,30 @@
+class Player extends Paddle
+
+  function new(game) as void
+    super(game)
+    m.name = "Player"
+    m.x = 50
+    m.y = invalid
+  end function
+
+  override function getFrontColliderXOffset() as float
+    return m.width / 2 - 1
+  end function
+
+  override function onUpdate(dt)
+    if m.y < m.bounds.top + m.height / 2
+      m.y = m.bounds.top + m.height / 2
+      m.yspeed = 0
+    end if
+    if m.y > m.bounds.bottom - m.height / 2
+      m.y = m.bounds.bottom - m.height / 2
+      m.yspeed = 0
+    end if
+  end function
+
+
+  override function onInput(input as object)
+    m.yspeed = input.y * 3.5
+  end function
+
+end class

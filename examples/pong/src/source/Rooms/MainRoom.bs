@@ -1,0 +1,60 @@
+class MainRoom extends BGE.Room
+
+  game_started = false
+  ball_spawn_timer = invalid 'CreateObject("roTimespan")
+  ball_direction = -1
+  ball = invalid
+
+  function new(game) as void
+    super(game)
+    m.name = "MainRoom"
+  end function
+
+  override function onCreate(args)
+    m.game.addEntity(new Player(m.game))
+    m.game.addEntity(new Computer(m.game))
+    m.game.addEntity(new PauseHandler(m.game))
+    m.game.addEntity(new ScoreHandler(m.game))
+
+    m.game_started = true
+    m.ball_spawn_timer = CreateObject("roTimespan")
+    m.ball_direction = -1
+    m.ball = invalid
+  end function
+
+  override function onUpdate(dt)
+    if m.game_started and not BGE.isValidEntity(m.ball) and m.ball_spawn_timer.TotalMilliseconds() > 1000
+      m.ball = m.game.addEntity(new Ball(m.game), {direction: m.ball_direction})
+    end if
+  end function
+
+  override function onDrawBegin(canvas)
+    canvas.DrawRect(0, 0, 1280, 50, &hFFFFFFFF)
+    canvas.DrawRect(0, 720 - 50, 1280, 50, &hFFFFFFFF)
+    if not m.game_started
+      BGE.DrawText(canvas, "Press OK To Play", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
+    end if
+  end function
+
+  override function onInput(input)
+    if input.isButton("back")
+      m.game.End()
+    end if
+    if not m.game_started and input.isButton("ok")
+      m.game_started = true
+    end if
+  end function
+
+  override function onGameEvent(event as string, data as object)
+    if event = "score"
+      if data.team = 0
+        m.ball_direction = -1
+      else
+        m.ball_direction = 1
+      end if
+      m.ball = invalid
+      m.ball_spawn_timer.Mark()
+    end if
+  end function
+
+end class

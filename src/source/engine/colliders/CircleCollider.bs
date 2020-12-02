@@ -1,0 +1,39 @@
+' @module BGE
+namespace BGE
+
+  ' Collider with the shape of a circle centered at (offset_x, offset_y), with given radius
+  class CircleCollider extends Collider
+
+    ' Radius of the collider
+    radius = 0
+
+
+    ' Create a new CircleCollider
+    '
+    ' @param {string} colliderName - name of this collider
+    ' @param {object} [args={}] - additional properties (e.g {radius: 10})
+    function new (colliderName as string, args = {} as object) as void
+      super(colliderName, args)
+      m.colliderType = "circle"
+      m.append(args)
+    end function
+
+
+    ' Refreshes the collider
+    '
+    override function refreshColliderRegion() as void
+      region = m.compositorObject.GetRegion()
+      region.SetCollisionType(2)
+      region.SetCollisionCircle(m.offset_x, m.offset_y, m.radius)
+    end function
+
+
+    ' Draws the circle outline around the collider
+    override function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer)
+      ' This function is slow as I'm making draw calls for every section of the line.
+      ' It's for debugging purposes only!
+      BGE.DrawCircleOutline(draw2d, 16, entityX + collider.offset_x, entityY + collider.offset_y, collider.radius, color)
+    end function
+
+  end class
+end namespace

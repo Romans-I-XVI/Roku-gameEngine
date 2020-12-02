@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "bsc",
+    "package": "bsc --create-package"
+  },
+  "ropm": {
+    "rootDir": "src"
+  },
+  "dependencies": {
+    "bge": "file:../../"
+  },
+  "devDependencies": {
+    "brighterscript": "^0.20.1",
+    "ropm": "^0.7.3"
+  }
+}

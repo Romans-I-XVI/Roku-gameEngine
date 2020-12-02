@@ -1,0 +1,7 @@
+{
+  "files.exclude": {
+    "examples": true,
+    "*.code-workspace": true,
+    "node_modules": true
+  }
+}

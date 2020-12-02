@@ -1,0 +1,20 @@
+{
+  "plugins": [
+    "plugins/markdown",
+    "./node_modules/brighterscript-jsdocs-plugin/convert-brighterscript-docs.js"
+  ],
+  "source": {
+    "include": [
+      "src"
+    ],
+    "includePattern": ".+\\.br?s$"
+  },
+  "templates": {
+    "referenceTitle": "Brighterscript Game Engine",
+    "collapse": false
+  },
+  "opts": {
+    "recurse": true,
+    "template": "node_modules/braintree-jsdocs-minami"
+  }
+}

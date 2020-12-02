@@ -1,0 +1,28 @@
+class Apple extends GridEntity
+
+  color = BGE.Colors().Red
+
+  function new(game) as void
+    super(game)
+    m.name = "apple"
+  end function
+
+  override function onCreate(args)
+    m.gridX = args.gridX
+    m.gridY = args.gridY
+    m.grid = args.grid
+    m.x = m.grid
+    m.refreshPosition()
+
+    m.addRectangleCollider("apple", m.grid, m.grid, 0, 0)
+  end function
+
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    ?"Collision: " + colliderName + " and " + other_colliderName + " of " + other_entity.name
+  end function
+
+
+  override function onDrawBegin(canvas)
+    m.drawRectangleOnGrid(canvas, m.gridX, m.gridY, m.color)
+  end function
+end class

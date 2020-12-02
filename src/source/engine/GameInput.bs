@@ -1,0 +1,87 @@
+' @module BGE
+namespace BGE
+
+
+
+  ' Class that contains all information about the current input during a given frame from the remote
+  '   @example
+  '   ' -------Button Code Reference--------
+  ' 	' Button  Pressed Released  Held
+  '   ' ------------------------------
+  ' 	' Back         0      100   1000
+  ' 	' Up           2      102   1002
+  ' 	' Down         3      103   1003
+  ' 	' Left         4      104   1004
+  ' 	' Right        5      105   1005
+  ' 	' OK           6      106   1006
+  ' 	' Replay       7      107   1007
+  ' 	' Rewind       8      108   1008
+  ' 	' FastForward  9      109   1009
+  ' 	' Options     10      110   1010
+  ' 	' Play        13      113   1013
+  class GameInput
+
+    ' The name of the button associated with the current input
+    button as string
+    ' The code for the input
+    buttonCode as integer
+    ' Was the button pressed since the last frame
+    press as boolean = false
+    ' Was the button held down since last frame
+    held as boolean = false
+    ' Was the button released this frame
+    release as boolean = false
+    ' How many milliseconds was the current input held for
+    heldTimeMs as integer = 0
+
+    ' Current horizontal directional input: left -> -1, right -> 1
+    x as float = 0
+    ' Current vertical directional input: up -> -1, down -> 1
+    y as float = 0
+
+
+    ' Creates a GameInput object based on the buttonCode
+    '
+    ' @param {integer} buttonCode - button to use for the data
+    ' @param {integer} heldTimeMs - how long was this button held for
+    function new(buttonCode as integer, heldTimeMs as integer) as void
+      m.buttonCode = buttonCode
+      m.button = BGE.buttonNameFromCode(buttonCode)
+      m.press = buttonCode < 100
+      m.held = buttonCode >= 1000
+      m.release = buttonCode >= 100 and buttonCode < 1000
+      m.heldTimeMs = heldTimeMs
+      m.x = 0
+      m.y = 0
+      if not m.release
+        if m.isButton("right")
+          m.x = 1
+        else if m.isButton("left")
+          m.x = -1
+        else if m.isButton("down")
+          m.y = 1
+        else if m.isButton("up")
+          m.y = -1
+        end if
+      end if
+    end function
+
+
+    ' Is this input for the given button name?
+    '
+    ' @param {string} buttonName - the button name to check (case insensitive - e.g. "ok" is same as "OK")
+    ' @return {boolean} - true if this input matches the given button name
+    function isButton(buttonName as string) as boolean
+      return invalid <> buttonName and invalid <> m.button and lcase(buttonName) = lcase(m.button)
+    end function
+
+    ' Is this input from the directional pad
+    '
+    ' @return {boolean} - true if this input was generated from the direction pad
+    function isDirectionalArrow() as boolean
+      return m.x <> 0 or m.y <> 0
+    end function
+
+  end class
+
+end namespace
