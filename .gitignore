@@ -6,4 +6,3 @@ out
 .env
 roku_modules
 *.tgz
-/docs
