@@ -89,6 +89,46 @@
       
 
 
+  <section class="readme">
+    <article>
+      <h1>Brighterscript Game Engine</h1>
+<p>An object oriented game engine for the Roku, written in <a href="https://github.com/rokucommunity/brighterscript">Brighterscript</a>, and available via <a href="https://github.com/rokucommunity/ropm">ROPM</a>.</p>
+<p>This project is designed to be used with VScode.</p>
+<p>This is forked from <a href="https://github.com/Romans-I-XVI/Roku-gameEngine">Roku-gameEngine</a> by Austin Sojka, and converted into Brighterscript. This work owes almost everything to this original project!</p>
+<h2>Introduction</h2>
+<p>The purpose of this project is to make it easy to develop games for the Roku in an object oriented fashion. Similar to how you would with an engine such as Phaser, HaxeFlixel, Gamemaker or Unity (minus any visual software that is).</p>
+<h2>Cloning and Running Examples</h2>
+<p>The Brighterscript Game Engine public repository is on <a href="https://github.com/markwpearce/brighterscript-game-engine/">Github</a></p>
+<p>Clone the project:</p>
+<pre class="prettyprint source"><code>git clone https://github.com/markwpearce/brighterscript-game-engine.git
+</code></pre>
+<p>This project includes various example Roku apps in the <code>examples</code> directory. To run them, you will need a Roku and have it set up properly for doing development. See: https://developer.roku.com/en-ca/docs/developer-program/getting-started/developer-setup.md.</p>
+<p>To run the examples:</p>
+<p>Open in VScode:</p>
+<pre class="prettyprint source"><code>cd brighterscript-game-engine
+npm install
+code brighterscript-game-engine.workspace
+</code></pre>
+<p>We recommend you install the great <a href="https://marketplace.visualstudio.com/items?itemName=RokuCommunity.brightscript">Brightscript Language vscode extension</a>.</p>
+<p>Create/edit a <code>.env</code> file to specify the details for you target Roku device:</p>
+<pre class="prettyprint source lang-env"><code>ROKU_USERNAME=&lt;roku development username - default is rokudev>
+ROKU_PASSWORD=&lt;roku development password>
+ROKU_HOST=&lt;local IP address of the target roku>
+</code></pre>
+<p>Then simply run one of the Debug configurations from the Debug tab.</p>
+<h2>Installation</h2>
+<p><em>NOTE - Not available yet from ropm!</em></p>
+<p>Use ropm:</p>
+<pre class="prettyprint source"><code>ropm install brighterscript-game-engine
+</code></pre>
+<p>Suggestion - use a shorter prefix (we use <code>bge</code> in the documentation):</p>
+<pre class="prettyprint source"><code>ropm install bge@npm:brighterscript-game-engine
+</code></pre>
+<h2>Documentation</h2>
+<p>Documentation can be found <a href="https://markwpearce.github.io/brighterscript-game-engine">here</a></p>
+    </article>
+  </section>
+
 
     
 

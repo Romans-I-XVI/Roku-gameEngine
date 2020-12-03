@@ -12,6 +12,8 @@ The purpose of this project is to make it easy to develop games for the Roku in 
 
 ## Cloning and Running Examples
 
+The Brighterscript Game Engine public repository is on [Github](https://github.com/markwpearce/brighterscript-game-engine/)
+
 Clone the project:
 
 ```
@@ -60,4 +62,4 @@ ropm install bge@npm:brighterscript-game-engine
 
 ## Documentation
 
-Documentation can be found here: https://markwpearce.github.io/brighterscript-game-engine
+Documentation can be found [here](https://markwpearce.github.io/brighterscript-game-engine)
