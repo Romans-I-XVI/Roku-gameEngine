@@ -7,6 +7,7 @@ class Player extends SpaceEntity
   thrust = 0
 
   acceleration = 2
+  rotationAdjustment = 90 ' rocket image points up, so it adds 90 degrees
 
   function new(game) as void
     super(game)
@@ -40,15 +41,12 @@ class Player extends SpaceEntity
   override function onUpdate(deltaTime as float)
     super.onUpdate(deltaTime)
 
-    radRotation = (m.rotation + 90) * 0.01745329
-    m.xspeed += deltaTime * m.thrust * cos(radRotation) * m.acceleration
-    m.yspeed += deltaTime * m.thrust * sin(radRotation) * m.acceleration
+    m.xspeed += deltaTime * m.thrust * cos(m.getRocketRadRotation()) * m.acceleration
+    m.yspeed += deltaTime * m.thrust * sin(m.getRocketRadRotation()) * m.acceleration
     m.rocketImage.enabled = m.thrust = 0
     m.rocketOnImage.enabled = m.thrust <> 0
 
   end function
-
-
 
 
   override function onInput(input as object)
@@ -60,10 +58,14 @@ class Player extends SpaceEntity
     end if
   end function
 
-
+  function getRocketRadRotation() as float
+    return (m.rotation + m.rotationAdjustment) * 0.01745329
+  end function
 
 
   override function shoot()
-    m.game.addEntity(new Bullet(m.game), {x: m.x, y: m.y, rotation: m.rotation, speed: 10 + Abs(m.xspeed * m.yspeed)})
+    bulletX = m.x - m.rocketCollider.radius * 1.2 * cos(m.getRocketRadRotation())
+    bulletY = m.y - m.rocketCollider.radius * 1.2 * sin(m.getRocketRadRotation())
+    m.game.addEntity(new Bullet(m.game), {x: bulletX, y: bulletY, rotation: m.rotation - m.rotationAdjustment, speed: 10 + Abs(m.xspeed * m.yspeed)})
   end function
 end class
