@@ -24,22 +24,23 @@ namespace BGE
     end function
 
 
-    override function Draw()
+    override function Draw(additionalRotation = 0 as float)
       if m.enabled
         if m.animation_speed > 0 and not m.owner.game.isPaused()
           m.Animate()
         end if
+        totalRotation = additionalRotation + m.rotation
 
         region = m.regions[m.index]
         x = m.owner.x + m.offset_x
         y = m.owner.y + m.offset_y
         rgba = (m.color << 8) + int(m.alpha)
-        if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
+        if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0
           m.draw_to.DrawObject(x, y, region, rgba)
-        else if m.rotation = 0
+        else if totalRotation = 0
           m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, region, rgba)
         else
-          m.draw_to.DrawRotatedObject(x, y, - m.rotation, region, rgba)
+          m.draw_to.DrawRotatedObject(x, y, - totalRotation, region, rgba)
         end if
       end if
     end function

@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ropm",
+      "command": "ropm",
+      "type": "shell",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "args": ["install"]
+    },
+    {
+      "label": "build",
+      "command": "npm",
+      "type": "shell",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "args": ["run", "build"]
+    }
+  ]
+}

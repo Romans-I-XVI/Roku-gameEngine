@@ -35,6 +35,9 @@ namespace BGE
     ' Speed in y/vertical direction
     yspeed as float = 0.0
 
+    ' Rotation of entity - applies to all images
+    rotation = 0
+
     ' The colliders for this entity by name
     colliders as object = {}
     ' The array of images to draw for this entity

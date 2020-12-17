@@ -1,0 +1,61 @@
+class MainRoom extends BGE.Room
+
+  game_started = false
+
+  player = invalid
+  rock = invalid
+
+  function new(game) as void
+    super(game)
+    m.name = "MainRoom"
+  end function
+
+  override function onCreate(args)
+    m.game.addEntity(new PauseHandler(m.game))
+    'm.game.addEntity(new ScoreHandler(m.game))
+
+  end function
+
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    ?"Collision: " + colliderName + " and " + other_colliderName + " of " + other_entity.name
+  end function
+
+
+
+  override function onUpdate(dt)
+    if m.game_started and not BGE.isValidEntity(m.player)
+      m.player = m.game.addEntity(new Player(m.game))
+    end if
+    if m.game_started and not BGE.isValidEntity(m.rock)
+      m.rock = m.game.addEntity(new Rock(m.game), {x: rnd(1000) + 140, y: rnd(600) + 60})
+    end if
+  end function
+
+  override function onDrawBegin(canvas)
+    if not m.game_started
+      if invalid <> m.snake
+        BGE.DrawText(canvas, "Game Over!", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
+      end if
+      BGE.DrawText(canvas, "Press OK To Play", canvas.GetWidth() / 2, canvas.GetHeight() / 2 + 20, m.game.getFont("default"), "center")
+    end if
+  end function
+
+  override function onInput(input)
+    if input.isButton("back")
+      m.game.End()
+    end if
+    if not m.game_started and input.isButton("ok")
+      m.game_started = true
+      m.game.destroyEntity(m.player)
+    end if
+  end function
+
+  override function onGameEvent(event as string, data as object)
+    if event = "game_over"
+      m.game_started = false
+
+    end if
+  end function
+
+
+end class

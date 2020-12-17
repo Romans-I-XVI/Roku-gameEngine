@@ -1,0 +1,68 @@
+
+class Rock extends SpaceEntity
+
+  level = 0
+  rockCollider = invalid
+  rockImage = invalid
+
+  function new(game) as void
+    super(game)
+    m.name = "Player"
+  end function
+
+
+
+  override function onCreate(args)
+    m.y = args.x
+    m.x = args.y
+    m.rotation = rnd(360)
+    if invalid <> args.rotation
+      m.rotation = args.rotation
+    end if
+    m.rotationalThrust = rnd(2)
+    if m.rotationalThrust = 0
+      m.rotationalThrust = -1
+    end if
+    if invalid <> args.rotationalThrust
+      m.rotationalThrust = args.rotationalThrust
+    end if
+    m.rotationalThrust = BGE.Math_Clamp(m.rotationalThrust, -0.5, 0.5)
+    scale = 1
+    if invalid <> args.scale
+      scale = args.scale
+    end if
+
+    m.level = 1
+    if invalid <> args.scale
+      m.level = args.scale
+    end if
+
+
+    m.speed = 1
+    if invalid <> args.speed
+      m.speed = args.speed
+    end if
+
+    radRotation = BGE.Math_DegreesToRadians(m.rotation + 90)
+    m.xspeed = m.speed * cos(radRotation)
+    m.yspeed = m.speed * sin(radRotation)
+
+    rockBitmap = m.game.getBitmap("rock")
+    rockWidth = rockBitmap.GetWidth()
+    rockHeight = rockBitmap.GetHeight()
+    size = BGE.Math_Min(rockWidth, rockHeight) / m.level
+
+    m.width = rockWidth
+    m.height = rockHeight
+    m.rockCollider = m.addCircleCollider("rock", size / 2)
+
+    'bs:disable-next-line
+    region = CreateObject("roRegion", rockBitmap, 0, 0, rockWidth, rockHeight)
+    region.SetPreTranslation(- rockWidth / 2, - rockHeight / 2)
+    m.rockImage = m.addImage("rock", region, {})
+
+  end function
+
+
+
+end class

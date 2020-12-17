@@ -1,0 +1,69 @@
+
+class Player extends SpaceEntity
+
+  rocketCollider = invalid
+  rocketImage = invalid
+  rocketOnImage = invalid
+  thrust = 0
+
+  acceleration = 2
+
+  function new(game) as void
+    super(game)
+    m.name = "Player"
+  end function
+
+
+  override function onCreate(args)
+    m.y = m.game.getCanvas().GetHeight() / 2
+    m.x = m.game.getCanvas().GetWidth() / 2
+    m.rotation = 0
+    rocketBitmap = m.game.getBitmap("rocket")
+    rocketOnBitmap = m.game.getBitmap("rocket_on")
+    m.width = rocketBitmap.GetWidth()
+    m.height = rocketBitmap.GetHeight()
+    rocketOnHeight = rocketOnBitmap.getHeight()
+    m.rocketCollider = m.addCircleCollider("rocket", m.width / 3)
+
+    'bs:disable-next-line
+    region = CreateObject("roRegion", rocketBitmap, 0, 0, m.width, m.height)
+    region.SetPreTranslation(- m.width / 2, - m.height / 2)
+    m.rocketImage = m.addImage("rocket", region, {})
+    'bs:disable-next-line
+    region2 = CreateObject("roRegion", rocketOnBitmap, 0, 0, m.width, rocketOnHeight)
+    region2.SetPreTranslation(- m.width / 2, - m.height / 2)
+    m.rocketOnImage = m.addImage("rocket_on", region2, {})
+
+  end function
+
+
+  override function onUpdate(deltaTime as float)
+    super.onUpdate(deltaTime)
+
+    radRotation = (m.rotation + 90) * 0.01745329
+    m.xspeed += deltaTime * m.thrust * cos(radRotation) * m.acceleration
+    m.yspeed += deltaTime * m.thrust * sin(radRotation) * m.acceleration
+    m.rocketImage.enabled = m.thrust = 0
+    m.rocketOnImage.enabled = m.thrust <> 0
+
+  end function
+
+
+
+
+  override function onInput(input as object)
+    m.rotationalThrust = input.x
+    if input.isButton("up")
+      m.thrust = input.y
+    else if input.isButton("ok") and input.press
+      m.shoot()
+    end if
+  end function
+
+
+
+
+  override function shoot()
+    m.game.addEntity(new Bullet(m.game), {x: m.x, y: m.y, rotation: m.rotation, speed: 10 + Abs(m.xspeed * m.yspeed)})
+  end function
+end class

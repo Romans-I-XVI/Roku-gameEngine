@@ -32,7 +32,7 @@ namespace BGE
     override function debugDraw(draw2d as object, entityX as float, entityY as float, color = &hFF0000FF as integer)
       ' This function is slow as I'm making draw calls for every section of the line.
       ' It's for debugging purposes only!
-      BGE.DrawCircleOutline(draw2d, 16, entityX + collider.offset_x, entityY + collider.offset_y, collider.radius, color)
+      BGE.DrawCircleOutline(draw2d, 16, entityX + m.offset_x, entityY + m.offset_y, m.radius, color)
     end function
 
   end class

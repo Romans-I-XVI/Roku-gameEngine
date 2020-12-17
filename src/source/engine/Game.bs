@@ -212,7 +212,7 @@ namespace BGE
           m.input_entity = invalid
         end if
         m.currentInputEntity = m.input_entity
-        m.compositor.Draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
+        m.compositor.draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 
         m.dt = m.dtTimer.TotalMilliseconds() / 1000
         if m.FakeDT <> invalid
@@ -567,7 +567,7 @@ namespace BGE
       end if
       if m.isValidEntity(entity)
         for each image in entity.images
-          image.Draw()
+          image.Draw(entity.rotation)
         end for
 
         if m.isValidEntity(entity) and invalid <> entity.onDrawEnd
@@ -831,6 +831,34 @@ namespace BGE
     end function
 
 
+
+    ' --------------------------------Begin Raycast Functions----------------------------------------
+
+
+    ' Performs a raycast from a certain location along a vector to find any colliders on that line
+    '
+    ' @param {float} sourceX x position of ray start
+    ' @param {float} sourceY y position of ray start
+    ' @param {float} vectorX x value of vector
+    ' @param {float} vectorY y value of vector
+    ' @return {object} {collider: collider, entity: entity} of first collider along the vector, or invalid if no collisions
+    function raycastVector(sourceX as float, sourceY as float, vectorX as float, vectorY as float) as object
+
+      ' TODO Do Raycasts!
+      return invalid
+    end function
+
+    ' Performs a raycast from a certain location along a n angle to find any colliders on that line
+    '
+    ' @param {float} sourceX x position of ray start
+    ' @param {float} sourceY y position of ray start
+    ' @param {float} angle angle of ray
+    ' @return {object} {collider: collider, entity: entity} of first collider along the angle, or invalid if no collisions
+    function raycastAngle(sourceX as float, sourceY as float, angle as float) as object
+      ' TODO Do Raycasts!
+      return invalid
+    end function
+
     ' --------------------------------Begin Object Functions----------------------------------------
 
 
@@ -952,7 +980,7 @@ namespace BGE
         if invalid <> entity.onDestroy and callOnDestroy
           entity.onDestroy()
         end if
-        if invalid <> entity.name and m.Entities[entityName].DoesExist(entityId) ' This redundancy is here because if somebody would try to change rooms within the onDestroy() method the game would break.
+        if invalid <> entity.name and invalid <> entityId and m.Entities[entityName].DoesExist(entityId) ' This redundancy is here because if somebody would try to change rooms within the onDestroy() method the game would break.
           m.Entities[entityName].Delete(entityId)
         end if
         entity.Clear()

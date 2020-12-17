@@ -28,17 +28,18 @@ namespace BGE
     end function
 
 
-    function Draw()
+    function Draw(additionalRotation = 0 as float)
       if m.enabled
         x = m.owner.x + m.offset_x
         y = m.owner.y + m.offset_y
         rgba = (m.color << 8) + int(m.alpha)
-        if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
+        totalRotation = additionalRotation + m.rotation
+        if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0
           m.draw_to.DrawObject(x, y, m.region, rgba)
-        else if m.rotation = 0
+        else if totalRotation = 0
           m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
         else
-          m.draw_to.DrawRotatedObject(x, y, - m.rotation, m.region, rgba)
+          m.draw_to.DrawRotatedObject(x, y, - totalRotation, m.region, rgba)
         end if
       end if
     end function

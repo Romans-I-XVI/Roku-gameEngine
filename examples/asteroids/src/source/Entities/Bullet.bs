@@ -1,0 +1,57 @@
+class Bullet extends BGE.GameEntity
+
+  speed = 100
+  angle = 0
+  bulletCollider = invalid
+
+  function new(game) as void
+    super(game)
+    m.name = "Bullet"
+  end function
+
+
+  override function onCreate(args)
+    m.y = args.y
+    m.x = args.x
+    m.rotation = args.rotation
+
+
+    m.speed = args.speed
+    radRotation = BGE.Math_DegreesToRadians(m.rotation)
+    m.xspeed = m.speed * cos(radRotation)
+    m.yspeed = m.speed * sin(radRotation)
+
+
+    m.width = 10
+    m.height = 10
+    m.bulletCollider = m.addCircleCollider("bullet", m.width / 2)
+
+  end function
+
+
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    ?"Collision: " + colliderName + " and " + other_colliderName + " of " + other_entity.name
+  end function
+
+
+
+  override function onUpdate(deltaTime as float)
+    m.checkOffScreen()
+  end function
+
+
+  function checkOffScreen() as void
+    w = m.game.getCanvas().GetWidth()
+    h = m.game.getCanvas().GetHeight()
+
+    if m.x < 0 or m.x > w or m.y < 0 or m.y > h
+      m.invalidate()
+    end if
+  end function
+
+
+  override function onDrawBegin(canvas as object)
+    canvas.drawPoint(m.x, m.y, m.width / 2, BGE.Colors().Green)
+  end function
+
+end class

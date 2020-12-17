@@ -1,6 +1,20 @@
 ' @module BGE
 namespace BGE
 
+  function Math_Min(a, b)
+    if a <= b
+      return a
+    end if
+    return b
+  end function
+
+  function Math_Max(a, b)
+    if a >= b
+      return a
+    end if
+    return b
+  end function
+
   function Math_Clamp(number, min, max)
     if number < min
       return min
@@ -16,16 +30,17 @@ namespace BGE
   end function
 
   function Math_Atan2(y as float, x as float)
+    pi = BGE.Math_PI()
     if x > 0
       angle = Atn(y / x)
     else if y >= 0 and x < 0
-      angle = Atn(y / x) + 3.14159265359
+      angle = Atn(y / x) + pi
     else if y < 0 and x < 0
-      angle = Atn(y / x) - 3.14159265359
+      angle = Atn(y / x) - pi
     else if y > 0 and x = 0
-      angle = 3.14159265359 / 2
+      angle = pi / 2
     else if y < 0 and x = 0
-      angle = (3.14159265359 / 2) * -1
+      angle = (pi / 2) * -1
     else
       angle = 0
     end if

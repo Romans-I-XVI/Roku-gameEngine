@@ -1,0 +1,39 @@
+class SpaceEntity extends BGE.GameEntity
+
+  rotationalThrust as float = 0
+
+  rotationalVelocity = 100
+
+  function new(game) as void
+    super(game)
+  end function
+
+
+
+  override function onUpdate(deltaTime as float)
+    m.rotation += m.rotationalThrust * m.rotationalVelocity * deltaTime
+
+    m.repositionOnBounds()
+  end function
+
+
+  function repositionOnBounds() as void
+    w = m.game.getCanvas().GetWidth()
+    h = m.game.getCanvas().GetHeight()
+    if m.x < 0
+      m.x = w + m.x
+    end if
+    if m.x > w
+      m.x = m.x mod w
+    end if
+
+    if m.y < 0
+      m.y = h + m.y
+    end if
+    if m.y > h
+      m.y = m.y mod h
+    end if
+
+  end function
+
+end class
