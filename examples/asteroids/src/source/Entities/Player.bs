@@ -5,6 +5,7 @@ class Player extends SpaceEntity
   rocketImage = invalid
   rocketOnImage = invalid
   thrust = 0
+  dead = false
 
   acceleration = 2
   rotationAdjustment = 90 ' rocket image points up, so it adds 90 degrees
@@ -37,6 +38,14 @@ class Player extends SpaceEntity
 
   end function
 
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    if other_entity.name = "Rock"
+      m.dead = true
+      m.acceleration = 0
+      m.game.postGameEvent("game_over")
+    end if
+  end function
+
 
   override function onUpdate(deltaTime as float)
     super.onUpdate(deltaTime)
@@ -50,11 +59,13 @@ class Player extends SpaceEntity
 
 
   override function onInput(input as object)
-    m.rotationalThrust = input.x
-    if input.isButton("up")
-      m.thrust = input.y
-    else if input.isButton("ok") and input.press
-      m.shoot()
+    if not m.dead
+      m.rotationalThrust = input.x
+      if input.isButton("up")
+        m.thrust = input.y
+      else if input.isButton("ok") and input.press
+        m.shoot()
+      end if
     end if
   end function
 

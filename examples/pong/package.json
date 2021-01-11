@@ -12,6 +12,6 @@
   },
   "devDependencies": {
     "brighterscript": "^0.22.1",
-    "ropm": "^0.7.4"
+    "ropm": "^0.7.7"
   }
 }

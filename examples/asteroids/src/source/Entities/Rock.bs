@@ -4,53 +4,62 @@ class Rock extends SpaceEntity
   level = 0
   rockCollider = invalid
   rockImage = invalid
+  totalAliveTime = 0
+  scale = 1
+  rotXFlavor = 0
+  rotYFlavor = 0
 
+  maxLifeSeconds = 60
   function new(game) as void
     super(game)
-    m.name = "Player"
+    m.name = "Rock"
+    m.rotXFlavor = rnd(0) / 10
+
+    m.rotYFlavor = rnd(0) / 10
   end function
 
 
 
   override function onCreate(args)
-    m.y = args.x
-    m.x = args.y
+    m.y = args.y
+    m.x = args.x
     m.rotation = rnd(360)
     if invalid <> args.rotation
       m.rotation = args.rotation
     end if
-    m.rotationalThrust = rnd(2)
+    if invalid <> args.rotationalThrust and 0 <> args.rotationalThrust
+      m.rotationalThrust = args.rotationalThrust
+
+    else
+      m.rotationalThrust = rnd(2) - 1
+    end if
     if m.rotationalThrust = 0
       m.rotationalThrust = -1
     end if
-    if invalid <> args.rotationalThrust
-      m.rotationalThrust = args.rotationalThrust
-    end if
     m.rotationalThrust = BGE.Math_Clamp(m.rotationalThrust, -0.5, 0.5)
-    scale = 1
-    if invalid <> args.scale
-      scale = args.scale
-    end if
-
     m.level = 1
-    if invalid <> args.scale
-      m.level = args.scale
+    if invalid <> args.level
+      m.level = args.level
     end if
-
 
     m.speed = 1
     if invalid <> args.speed
       m.speed = args.speed
     end if
 
-    radRotation = BGE.Math_DegreesToRadians(m.rotation + 90)
+    if invalid <> args.repositionable
+      m.repositionable = args.repositionable
+    end if
+
+    radRotation = BGE.Math_DegreesToRadians(m.rotation)
     m.xspeed = m.speed * cos(radRotation)
     m.yspeed = m.speed * sin(radRotation)
 
     rockBitmap = m.game.getBitmap("rock")
     rockWidth = rockBitmap.GetWidth()
     rockHeight = rockBitmap.GetHeight()
-    size = BGE.Math_Min(rockWidth, rockHeight) / m.level
+    m.scale = 1 / (m.level * 2)
+    size = BGE.Math_Min(rockWidth, rockHeight) * m.scale
 
     m.width = rockWidth
     m.height = rockHeight
@@ -60,9 +69,31 @@ class Rock extends SpaceEntity
     region = CreateObject("roRegion", rockBitmap, 0, 0, rockWidth, rockHeight)
     region.SetPreTranslation(- rockWidth / 2, - rockHeight / 2)
     m.rockImage = m.addImage("rock", region, {})
+    ?"Setting rock scale to "; m.scale
+    m.rockImage.scale_x = m.scale
+    m.rockImage.scale_y = m.scale
 
   end function
 
+  override function onUpdate(dt)
+    super.onUpdate(dt)
+    m.totalAliveTime += dt
+    newScaleX = sin(m.totalAliveTime) * (m.rotXFlavor) + m.scale
+    newScaleY = - sin(m.totalAliveTime) * (m.rotYFlavor) + m.scale
+    m.rockImage.scale_x = newScaleX
+    m.rockImage.scale_y = newScaleY
+    if m.totalAliveTime > m.maxLifeSeconds
+      m.dieOutOfBounds = true
+    end if
+  end function
+
+
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+    if other_entity.name = "Bullet"
+
+      m.game.postGameEvent("rock_hit", {rock: m, bullet: other_entity})
+    end if
+  end function
 
 
 end class

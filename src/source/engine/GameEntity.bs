@@ -293,7 +293,7 @@ namespace BGE
     ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
     ' @return {object} - The image object that was added, or `invalid` if there was an error
     function addImage(imageName as string, region as object, args = {} as object, insertPosition = -1 as integer) as object
-      imageObject = new Image(m, region, m.game.getCanvas(), args) 'm as first arg
+      imageObject = new Image(m, m.game.getCanvas(), region, args) 'm as first arg
       return m.addImageObject(imageName, imageObject, insertPosition)
     end function
 
@@ -306,7 +306,24 @@ namespace BGE
     ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
     ' @return {object} - The image object that was added, or `invalid` if there was an error
     function addAnimatedImage(imageName as string, regions as object, args = {} as object, insertPosition = -1 as integer) as object
-      imageObject = new AnimatedImage(m, regions, m.game.getCanvas(), args)
+      imageObject = new AnimatedImage(m, m.game.getCanvas(), regions, args)
+      return m.addImageObject(imageName, imageObject, insertPosition)
+    end function
+
+    '
+    ' @param {object} regions - an array of `roRegion` of a bitmap to draw
+
+    ' Adds a Sprite to be drawn for this entity. Sprites can have specific animations configured buy choosing series of cells from a sprite sheet
+    '
+    ' @param {string} imageName - Name of the image
+    ' @param {object} bitmap - the bitmap object to use for teh SpriteSheet (e.g response from game.getBitmap("bitmap_name"))
+    ' @param {integer} cellWidth - the height in pixels of a dingle cell in the sprite
+    ' @param {integer} cellHeight - the height in pixels of a dingle cell in the sprite
+    ' @param {object} [args={}] - any extra properties to set (e.g. offset_x, offset_y, rotation, scale_x, scale_y, etc.)
+    ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
+    ' @return {object} - The image object that was added, or `invalid` if there was an error
+    function addSprite(imageName as string, spriteSheet as object, cellWidth as integer, cellHeight as integer, args = {} as object, insertPosition = -1 as integer) as object
+      imageObject = new Sprite(m, m.game.getCanvas(), spriteSheet, cellWidth, cellHeight, args)
       return m.addImageObject(imageName, imageObject, insertPosition)
     end function
 

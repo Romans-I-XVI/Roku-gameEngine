@@ -812,8 +812,8 @@ namespace BGE
             entity = m.Entities[object_key][entity_key]
             if entity <> invalid and entity.id <> invalid and entity.DoesExist("images")
               for each image in entity.images
-                if type(image.draw_to) = "roScreen"
-                  image.draw_to = m.screen
+                if type(image.drawTo) = "roScreen"
+                  image.drawTo = m.screen
                 end if
               end for
             end if

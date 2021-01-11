@@ -25,7 +25,7 @@ class Bullet extends BGE.GameEntity
     m.width = 10
     m.height = 10
     m.bulletCollider = m.addCircleCollider("bullet", m.width / 2)
-
+    m.game.playSound("laser", 50)
   end function
 
 

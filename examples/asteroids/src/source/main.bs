@@ -3,14 +3,21 @@ sub Main()
   game.loadBitmap("rocket", "pkg:/sprites/rocket_off.png")
   game.loadBitmap("rocket_on", "pkg:/sprites/rocket_on.png")
   game.loadBitmap("rock", "pkg:/sprites/rock_a.png")
-  game.loadSound("die", "pkg:/sounds/die.wav")
-  game.loadSound("score", "pkg:/sounds/score.wav")
+  game.loadBitmap("boom", "pkg:/sprites/boom3.png")
+  game.loadSound("die", "pkg:/sounds/big_explosion_3.wav")
+  game.loadSound("laser", "pkg:/sounds/laser.wav")
+  for i = 1 to 9
+    explosionSoundName = "explosion0" + stri(i).trim()
+    game.loadSound(explosionSoundName, `pkg:/sounds/explosions/${explosionSoundName}.wav`)
+  end for
+
   main_room = new MainRoom(game)
   game.defineRoom(main_room)
   game.changeRoom(main_room.name)
-  game.debugDrawColliders(true)
+  ' game.debugDrawColliders(true)
   ' game.debugDrawSafeZones(true)
   game.Play()
 
   ' vscode_rale_tracker_entry
+
 end sub

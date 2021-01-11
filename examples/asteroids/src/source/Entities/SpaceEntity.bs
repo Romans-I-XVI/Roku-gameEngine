@@ -3,6 +3,8 @@ class SpaceEntity extends BGE.GameEntity
   rotationalThrust as float = 0
 
   rotationalVelocity = 100
+  repositionable as boolean = true
+  dieOutOfBounds as boolean = false
 
   function new(game) as void
     super(game)
@@ -20,18 +22,33 @@ class SpaceEntity extends BGE.GameEntity
   function repositionOnBounds() as void
     w = m.game.getCanvas().GetWidth()
     h = m.game.getCanvas().GetHeight()
+    if not m.repositionable and m.x > 0 and m.y > 0 and m.x < w and m.y < h
+      ' it is now on screen
+      m.repositionable = true
+    end if
+    if not m.repositionable
+      return
+    end if
+    out = false
     if m.x < 0
       m.x = w + m.x
+      out = true
     end if
     if m.x > w
       m.x = m.x mod w
+      out = true
     end if
 
     if m.y < 0
       m.y = h + m.y
+      out = true
     end if
     if m.y > h
       m.y = m.y mod h
+      out = true
+    end if
+    if out and m.dieOutOfBounds
+      m.invalidate()
     end if
 
   end function

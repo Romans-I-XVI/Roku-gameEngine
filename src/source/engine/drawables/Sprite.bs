@@ -1,0 +1,130 @@
+' @module BGE
+namespace BGE
+
+
+  class SpriteAnimation
+    name as string
+    frameRate as integer
+    frameList as object
+    playMode as string = "loop" ' TODO: Options: loop, forward, reverse, pingpong
+
+
+    function new(name as string, frameList as object, frameRate as integer, playMode = "loop" as string) as void
+      m.name = name
+
+      m.frameList = frameList
+      m.frameRate = frameRate
+      m.playMode = playMode
+    end function
+
+    private function setFrameList(frameList as object) as void
+      m.frameList = []
+      if invalid <> frameList.startFrame and invalid <> frameList.frameCount and frameList.startFrame >= 0 and frameList.frameCount >= 0
+        for i = frameList.startFrame to frameList.startFrame + frameList.frameCount
+          m.frameList.push(i)
+        end for
+      else if 0 < frameList.count()
+        m.frameList = frameList
+      end if
+    end function
+  end class
+
+
+  class Sprite extends AnimatedImage
+
+    spriteSheet as object ' roBitmap to pick cells from
+    cellWidth as integer ' Width of each animation cell in the sprite image in pixels
+    cellHeight as integer ' Height of each animation cell in the sprite image in pixels
+
+    animations as object = {} ' Lookup map of animation name -> SpriteAnimation object
+
+    activeAnimation as object
+
+    function new(owner as object, canvasBitmap as object, spriteSheet as object, cellWidth as integer, cellHeight as integer, args = {} as object)
+      super(owner, canvasBitmap, invalid, args)
+      m.spriteSheet = spriteSheet
+      m.cellWidth = cellWidth
+      m.cellHeight = cellHeight
+      m.setCellRegions()
+      m.append(args)
+    end function
+
+    private function setCellRegions() as void
+      cols = cint(m.spriteSheet.getWidth() / m.cellWidth)
+      rows = cint(m.spriteSheet.getHeight() / m.cellHeight)
+      m.regions = []
+      for col = 0 to cols - 1
+        for row = 0 to rows - 1
+          'bs:disable-next-line
+          cellRegion = CreateObject("roRegion", m.spriteSheet, col * m.cellWidth, row * m.cellHeight, m.cellWidth, m.cellHeight)
+          m.regions.push(cellRegion)
+        end for
+      end for
+    end function
+
+
+    function applyPreTranslation(x as integer, y as integer) as void
+      for each region in m.regions
+        region.SetPreTranslation(x, y)
+      end for
+    end function
+
+    function addAnimation(name as string, frameList as object, frameRate as integer, playMode = "loop" as string) as object
+      if invalid <> m.animations[name]
+        spriteAnim = new SpriteAnimation(name, frameList, frameRate, playMode)
+        m.animations[name] = spriteAnim
+        return spriteAnim
+      end if
+      print `addAnimation() - An animation named '${name}' already exists`
+      return invalid
+    end function
+
+
+    function playAnimation(animationName as string) as void
+      spriteAnim = m.animations[animationName]
+      if invalid <> spriteAnim
+        m.animationSpeed = spriteAnim.frameList.count() * 1.0 / spriteAnim.frameRate
+      else
+        print `playAnimation() - No animation named '${animationName}' exists`
+      end if
+      m.activeAnimation = spriteAnim
+    end function
+
+
+    override function getCellDrawIndex() as integer
+      if invalid = m.activeAnimation
+        return -1
+      end if
+      frameCount = m.activeAnimation.frameList.Count()
+      currentTime = m.animationTimer.TotalMilliseconds()
+      if currentTime > m.animationSpeed
+        if "loop" = m.activeAnimation.playMode
+          currentTime -= m.animationSpeed
+          m.animationTimer.RemoveTime(m.animationSpeed)
+        else if "forward" = m.activeAnimation.playMode or "reverse" = m.activeAnimation.playMode
+          currentTime = m.animationSpeed
+        else if "pingpong" = m.activeAnimation.playMode
+          if currentTime > (2 * m.animationSpeed)
+            currentTime -= m.animationSpeed
+            m.animationTimer.RemoveTime(m.animationSpeed * 2)
+          else
+            currentTime = m.animationSpeed - currentTime
+          end if
+        end if
+      end if
+      if "reverse" = m.activeAnimation.playMode
+        index = m.tweensReference[m.animationTween](frameCount, 0, currentTime, m.animationSpeed)
+      else
+        index = m.tweensReference[m.animationTween](0, frameCount, currentTime, m.animationSpeed)
+      end if
+      if index > frameCount - 1
+        index = frameCount - 1
+      else if m.index < 0
+        index = 0
+      end if
+      return m.activeAnimation.frameList[index]
+    end function
+
+  end class
+
+end namespace

@@ -135,17 +135,27 @@ namespace BGE
     new_width = Abs(int(drawable.GetWidth() * scale_x))
     new_height = Abs(int(drawable.GetHeight() * scale_y))
     if new_width <> 0 and new_height <> 0
-      new_drawable = CreateObject("roBitmap", {width: new_width, height: new_height, AlphaEnable: true})
-      scaled_draw_x = 0
-      scaled_draw_y = 0
+
+      scaledBitmap = CreateObject("roBitmap", {width: new_width, height: new_height, AlphaEnable: true})
+      'bs:disable-next-line
+      scaledRegion = CreateObject("roRegion", scaledBitmap, 0, 0, new_width, new_height)
+      pretranslation_x = drawable.GetPretranslationX()
+      pretranslation_y = drawable.GetPretranslationY()
+      newPreX = pretranslation_x * scale_x
       if scale_x < 0
-        scaled_draw_x = new_width
+        newPreX = - newPreX
       end if
+      newPreY = pretranslation_y * scale_y
       if scale_y < 0
-        scaled_draw_y = new_height
+        newPreY = - newPreY
       end if
-      new_drawable.DrawScaledObject(scaled_draw_x, scaled_draw_y, scale_x, scale_y, drawable)
-      draw2d.ifDraw2D.DrawRotatedObject(x, y, theta, new_drawable, color)
+      scaledRegion.setPretranslation(- Abs(newPreX), - Abs(newPreY))
+      scaled_draw_x = Abs(newPreX)
+      scaled_draw_y = Abs(newPreY)
+
+      scaledRegion.DrawScaledObject(scaled_draw_x, scaled_draw_y, scale_x, scale_y, drawable)
+
+      draw2d.ifDraw2D.DrawRotatedObject(x, y, theta, scaledRegion, color)
       new_drawable = invalid
     end if
   end function

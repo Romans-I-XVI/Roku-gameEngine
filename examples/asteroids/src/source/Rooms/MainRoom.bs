@@ -3,7 +3,9 @@ class MainRoom extends BGE.Room
   game_started = false
 
   player = invalid
-  rock = invalid
+  rocks = []
+  timeSinceLastRoc = 0
+  timeBetweenRocks = 10
 
   function new(game) as void
     super(game)
@@ -12,8 +14,8 @@ class MainRoom extends BGE.Room
 
   override function onCreate(args)
     m.game.addEntity(new PauseHandler(m.game))
-    'm.game.addEntity(new ScoreHandler(m.game))
-
+    ' m.game.addEntity(new ScoreHandler(m.game))
+    m.timeSinceLastRock = m.timeBetweenRocks
   end function
 
   override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
@@ -26,14 +28,18 @@ class MainRoom extends BGE.Room
     if m.game_started and not BGE.isValidEntity(m.player)
       m.player = m.game.addEntity(new Player(m.game))
     end if
-    if m.game_started and not BGE.isValidEntity(m.rock)
-      m.rock = m.game.addEntity(new Rock(m.game), {x: rnd(1000) + 140, y: rnd(600) + 60})
+    if m.game_started and not m.player.dead
+      m.timeSinceLastRock += dt
+      if m.timeSinceLastRock >= m.timeBetweenRocks
+        m.timeSinceLastRock = 0
+        m.addNewRock()
+      end if
     end if
   end function
 
   override function onDrawBegin(canvas)
     if not m.game_started
-      if invalid <> m.snake
+      if invalid <> m.player
         BGE.DrawText(canvas, "Game Over!", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
       end if
       BGE.DrawText(canvas, "Press OK To Play", canvas.GetWidth() / 2, canvas.GetHeight() / 2 + 20, m.game.getFont("default"), "center")
@@ -46,14 +52,83 @@ class MainRoom extends BGE.Room
     end if
     if not m.game_started and input.isButton("ok")
       m.game_started = true
-      m.game.destroyEntity(m.player)
+
     end if
+  end function
+
+
+  function clearEntities()
+    m.game.destroyEntity(m.player)
+    for each rockOld in m.rocks
+      m.game.destroyEntity(rockOld)
+
+    end for
+    m.rocks = []
+  end function
+
+  function addNewRock(x = -1 as float, y = -1 as float, level = 1 as integer, rotationalThrust = 0 as integer, parentRotation = -1000 as float)
+    height = m.game.getCanvas().GetHeight()
+    width = m.game.getCanvas().GetWidth()
+    repositionable = true
+    rotation = invalid
+    if x = -1 and y = -1
+      repositionable = false
+      ' generate a position outside the screen
+      q = rnd(2)
+      x = rnd(200)
+      y = rnd(200)
+      fudge = 50
+      if q = 1
+        x = x - fudge
+        y = y - fudge
+        rotation = 345 - rnd(60) + 90
+      else
+        x = width - x + fudge
+        y = height - y + fudge
+        rotation = 115 + rnd(60) + 90
+      end if
+
+      ?"New rock";x, y, rotation
+    else if parentRotation <> -1000
+      rotation = parentRotation + 45 * rotationalThrust
+    end if
+
+    m.rocks.push(m.game.addEntity(new Rock(m.game), {
+      x: x,
+      y: y,
+      level: level,
+      rotationalThrust: rotationalThrust,
+      rotation: rotation,
+      repositionable: repositionable
+    }))
+  end function
+
+  private function addExplosion(rockToDie as object) as void
+    m.game.addEntity(new Explosion(m.game), {
+      x: rockToDie.x,
+      y: rockToDie.y,
+      scale: rockToDie.scale,
+      rotation: rockToDie.rotation
+    })
   end function
 
   override function onGameEvent(event as string, data as object)
     if event = "game_over"
       m.game_started = false
+      m.game.playSound("boom")
+    end if
 
+    if event = "rock_hit"
+      rockToDie = data.rock
+      nextLevel = rockToDie.level + 1
+      if nextLevel < 4
+        m.addNewRock(rockToDie.x, rockToDie.y, nextLevel, 1, rockToDie.rotation)
+        m.addNewRock(rockToDie.x, rockToDie.y, nextLevel, -1, rockToDie.rotation)
+      end if
+      m.addExplosion(rockToDie)
+      m.game.destroyEntity(rockToDie)
+
+      m.game.destroyEntity(data.bullet)
     end if
   end function
 

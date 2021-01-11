@@ -6,3 +6,19 @@ by: https://opengameart.org/users/jmatencia
 Rocks:
 https://opengameart.org/content/rocks
 by: https://opengameart.org/users/%C3%A9crivain
+
+Explosion Sprite:
+https://opengameart.org/content/explosion-sheet
+by: https://opengameart.org/users/stumpystrust
+
+
+Explosion Sounds:
+https://opengameart.org/content/9-explosion-sounds
+by: https://opengameart.org/users/unnamed
+
+https://opengameart.org/content/big-low-frequency-explosion-boom
+by: https://opengameart.org/users/varkalandar
+
+Laser Sound:
+https://opengameart.org/content/sound-effects-sfx007
+by: https://opengameart.org/users/jalastram

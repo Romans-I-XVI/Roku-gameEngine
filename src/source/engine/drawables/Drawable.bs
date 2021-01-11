@@ -1,0 +1,37 @@
+' @module BGE
+namespace BGE
+
+  class Drawable
+    ' --------------Values That Can Be Changed------------
+    name = ""
+    offset_x = 0 ' The offset of the image.
+    offset_y = 0
+    scale_x = 1.0 ' The image scale.
+    scale_y = 1.0
+    rotation = 0
+    color = &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+    alpha = 255 ' Change the image alpha (transparency).
+    enabled = true ' Whether or not the image will be drawn.
+    drawTo as object ' m.game.getCanvas()
+
+    ' -------------Never To Be Manually Changed-----------------
+    ' These values should never need to be manually changed.
+    protected owner as object
+
+
+    function new(owner as object, canvasBitmap as object, args = {} as object) as void
+      m.owner = owner
+      m.drawTo = canvasBitmap
+      m.append(args)
+    end function
+
+
+    function draw(additionalRotation = 0 as float) as void
+      if m.enabled
+      end if
+    end function
+
+    function onResume(pausedTimeMs as integer)
+    end function
+  end class
+end namespace
