@@ -74,6 +74,7 @@ namespace BGE
       Cyan: BGE.RGBAtoRGBA(0, 255, 255),
       Aqua: BGE.RGBAtoRGBA(0, 255, 255),
       Magenta: BGE.RGBAtoRGBA(255, 0, 255),
+      Pink: BGE.RGBAtoRGBA(255, 0, 255),
       Fuchsia: BGE.RGBAtoRGBA(255, 0, 255),
       Silver: BGE.RGBAtoRGBA(192, 192, 192),
       Gray: BGE.RGBAtoRGBA(128, 128, 128),

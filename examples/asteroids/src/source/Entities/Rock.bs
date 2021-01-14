@@ -8,8 +8,10 @@ class Rock extends SpaceEntity
   scale = 1
   rotXFlavor = 0
   rotYFlavor = 0
+  OkToBounce = true
+  bounceTimeOut = 2
 
-  maxLifeSeconds = 60
+  maxLifeSeconds = 30
   function new(game) as void
     super(game)
     m.name = "Rock"
@@ -85,6 +87,10 @@ class Rock extends SpaceEntity
     if m.totalAliveTime > m.maxLifeSeconds
       m.dieOutOfBounds = true
     end if
+    m.bounceTimeOut -= dt
+    if m.bounceTimeOut < 0
+      m.bounceTimeOut = 0
+    end if
   end function
 
 
@@ -92,6 +98,16 @@ class Rock extends SpaceEntity
     if other_entity.name = "Bullet"
 
       m.game.postGameEvent("rock_hit", {rock: m, bullet: other_entity})
+    end if
+    if other_entity.name = "Rock" and m.bounceTimeOut <= 0
+      oldxSpeed = m.xspeed
+      oldyspeed = m.yspeed
+      m.xspeed = other_entity.yspeed
+      m.yspeed = other_entity.xspeed
+      other_entity.xspeed = oldyspeed
+      other_entity.yspeed = oldxSpeed
+      m.bounceTimeOut = 2
+      other_entity.bounceTimeOut = 2
     end if
   end function
 

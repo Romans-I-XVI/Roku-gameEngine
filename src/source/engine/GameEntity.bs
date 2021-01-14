@@ -14,7 +14,7 @@ namespace BGE
     ' Constant - Unique Id
     id as string
 
-    private game as object
+    private game as Game
 
     ' -----Variables-----
 
@@ -24,8 +24,8 @@ namespace BGE
     persistent as boolean = false
     ' When the game is paused, does this entity pause too?
     pauseable as boolean = true
-    ' Depth is used when handling draw order in the game loop - lower depth is drawn first
-    depth as integer = 0
+    ' zIndex is used when handling draw order in the game loop - lower zIndex is drawn first
+    zIndex as integer = 0
     ' x position of where this entity is in game world
     x as float = 0.0
     ' y position of where this entity is in game world
@@ -45,17 +45,17 @@ namespace BGE
     ' Associative array of images by name
     imagesByName as object = {}
 
-    ' Colliders can be tagged with any number of tags so they can be easily identified (e.g. "enemy", "wall", etc.)
+    ' Game Entities can be tagged with any number of tags so they can be easily identified (e.g. "enemy", "wall", etc.)
     tagsList = new TagList()
 
 
     ' Creates a new GameEntity
     '
-    ' @param {object} game - The game engine that this entity is going to be assigned to
+    ' @param {Game} game - The game engine that this entity is going to be assigned to
     ' @param {object} [args={}] Any extra properties to be added to this entity
-    function new(game as object, args = {} as object)
+    function new(game as Game, args = {} as object)
       m.game = game
-      m.id = m.game.getGameEntityId()
+      m.id = m.game.getNextGameEntityId()
       m.append(args)
     end function
 
@@ -92,10 +92,10 @@ namespace BGE
 
     ' Method for processing all collisions
     '
-    ' @param {object} collider - the collider of this entity that collided
-    ' @param {object} otherCollider - the collider of the other entity in the collision
-    ' @param {object} otherEntity - the entity that owns the other collider
-    function onCollision(collider as object, otherCollider as object, otherEntity as object) as void
+    ' @param {Collider} collider - the collider of this entity that collided
+    ' @param {Collider} otherCollider - the collider of the other entity in the collision
+    ' @param {GameEntity} otherEntity - the entity that owns the other collider
+    function onCollision(collider as Collider, otherCollider as Collider, otherEntity as GameEntity) as void
     end function
 
 
@@ -178,8 +178,8 @@ namespace BGE
     ' This method is only called when the entity is marked as `persistant`,
     ' otherwise entities are destroyed on room changes.
     '
-    ' @param {object} newRoom - The next room
-    function onChangeRoom(newRoom as object) as void
+    ' @param {Room} newRoom - The next room
+    function onChangeRoom(newRoom as Room) as void
     end function
 
 
@@ -231,9 +231,9 @@ namespace BGE
 
     ' Adds a collider that has already been constructed
     '
-    ' @param {object} collider - the collider to add  (only one collider with the same name can be added)
-    ' @return {object}  - the collider that was added, or `invalid` if it could not be added
-    function addCollider(collider as object) as object
+    ' @param {Collider} collider - the collider to add  (only one collider with the same name can be added)
+    ' @return {Collider}  - the collider that was added, or `invalid` if it could not be added
+    function addCollider(collider as Collider) as Collider
       colliderName = collider.name
       collider.setupCompositor(m.game, m.name, m.id, m.x, m.y)
       if m.colliders[colliderName] = invalid
@@ -249,8 +249,8 @@ namespace BGE
     ' Gets a collider based on its name
     '
     ' @param {string} colliderName - The name of the collider to find
-    ' @return {object} - the collider (if found) otherwise `invalid`
-    function getCollider(colliderName as string) as object
+    ' @return {Collider} - the collider (if found) otherwise `invalid`
+    function getCollider(colliderName as string) as Collider
       if m.colliders.DoesExist(colliderName)
         return m.colliders[colliderName]
       else
@@ -276,8 +276,8 @@ namespace BGE
     '
     function clearAllColliders() as void
       if invalid <> m.colliders
-        for each collider_key in m.colliders
-          m.removeCollider(collider_key)
+        for each colliderKey in m.colliders
+          m.removeCollider(colliderKey)
         end for
       end if
     end function
@@ -291,8 +291,8 @@ namespace BGE
     ' @param {object} region - an `roRegion` of a bitmap to draw
     ' @param {object} [args={}] - any extra properties to set (e.g. offset_x, offset_y, rotation, scale_x, scale_y, etc.)
     ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
-    ' @return {object} - The image object that was added, or `invalid` if there was an error
-    function addImage(imageName as string, region as object, args = {} as object, insertPosition = -1 as integer) as object
+    ' @return {Image} - The image object that was added, or `invalid` if there was an error
+    function addImage(imageName as string, region as object, args = {} as object, insertPosition = -1 as integer) as Image
       imageObject = new Image(m, m.game.getCanvas(), region, args) 'm as first arg
       return m.addImageObject(imageName, imageObject, insertPosition)
     end function
@@ -304,8 +304,8 @@ namespace BGE
     ' @param {object} regions - an array of `roRegion` of a bitmap to draw
     ' @param {object} [args={}] - any extra properties to set (e.g. offset_x, offset_y, rotation, scale_x, scale_y, etc.)
     ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
-    ' @return {object} - The image object that was added, or `invalid` if there was an error
-    function addAnimatedImage(imageName as string, regions as object, args = {} as object, insertPosition = -1 as integer) as object
+    ' @return {AnimatedImage} - The image object that was added, or `invalid` if there was an error
+    function addAnimatedImage(imageName as string, regions as object, args = {} as object, insertPosition = -1 as integer) as AnimatedImage
       imageObject = new AnimatedImage(m, m.game.getCanvas(), regions, args)
       return m.addImageObject(imageName, imageObject, insertPosition)
     end function
@@ -321,8 +321,8 @@ namespace BGE
     ' @param {integer} cellHeight - the height in pixels of a dingle cell in the sprite
     ' @param {object} [args={}] - any extra properties to set (e.g. offset_x, offset_y, rotation, scale_x, scale_y, etc.)
     ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
-    ' @return {object} - The image object that was added, or `invalid` if there was an error
-    function addSprite(imageName as string, spriteSheet as object, cellWidth as integer, cellHeight as integer, args = {} as object, insertPosition = -1 as integer) as object
+    ' @return {Sprite} - The image object that was added, or `invalid` if there was an error
+    function addSprite(imageName as string, spriteSheet as object, cellWidth as integer, cellHeight as integer, args = {} as object, insertPosition = -1 as integer) as Sprite
       imageObject = new Sprite(m, m.game.getCanvas(), spriteSheet, cellWidth, cellHeight, args)
       return m.addImageObject(imageName, imageObject, insertPosition)
     end function
@@ -331,10 +331,10 @@ namespace BGE
     ' Adds any Image object to this entity
     '
     ' @param {string} imageName - Name of the image
-    ' @param {object} imageObject - The image to be added
+    ' @param {Drawable} imageObject - The image to be added
     ' @param {integer} [insertPosition=-1] - the position/order in the images array where the image should be added (defaults to being added at the end)
-    ' @return {object} - The image object that was added, or `invalid` if there was an error
-    function addImageObject(imageName as string, imageObject as object, insertPosition = -1 as integer) as object
+    ' @return {Drawable} - The image object that was added, or `invalid` if there was an error
+    function addImageObject(imageName as string, imageObject as Drawable, insertPosition = -1 as integer) as Drawable
       imageObject.name = imageName
 
       if m.getImage(imageObject.name) <> invalid
@@ -360,8 +360,8 @@ namespace BGE
     ' Gets an image by its name from the lookup table
     '
     ' @param {string} imageName - Name of image to get
-    ' @return {object}
-    function getImage(imageName as string) as object
+    ' @return {Drawable}
+    function getImage(imageName as string) as Drawable
       return m.imagesByName[imageName]
     end function
 

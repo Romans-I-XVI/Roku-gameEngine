@@ -8,9 +8,9 @@ namespace BGE
     ' The type of this collider - should be defined in sub classes (eg. "circle", "rectangle")
     colliderType as string = invalid
     ' Name this collider will be identified by
-    name = ""
+    name as string = ""
     ' Does this collider trigger onCollision() ?
-    enabled = true
+    enabled as boolean = true
     ' Horizontal offset from the GameEntity it is attached to
     offset_x = 0
     ' Vertical offset from the GameEntity it is attached to

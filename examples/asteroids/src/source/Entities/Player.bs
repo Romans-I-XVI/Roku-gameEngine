@@ -39,9 +39,10 @@ class Player extends SpaceEntity
   end function
 
   override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
-    if other_entity.name = "Rock"
+    if other_entity.name = "Rock" and not m.dead
       m.dead = true
-      m.acceleration = 0
+      m.thrust = 0
+      m.rotationalThrust = other_entity.rotationalThrust
       m.game.postGameEvent("game_over")
     end if
   end function
@@ -63,6 +64,7 @@ class Player extends SpaceEntity
       m.rotationalThrust = input.x
       if input.isButton("up")
         m.thrust = input.y
+        m.game.playSound("engine", 50)
       else if input.isButton("ok") and input.press
         m.shoot()
       end if

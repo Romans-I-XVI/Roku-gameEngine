@@ -5,7 +5,7 @@ class MainRoom extends BGE.Room
   player = invalid
   rocks = []
   timeSinceLastRoc = 0
-  timeBetweenRocks = 10
+  timeBetweenRocks = 5
 
   function new(game) as void
     super(game)
@@ -52,13 +52,15 @@ class MainRoom extends BGE.Room
     end if
     if not m.game_started and input.isButton("ok")
       m.game_started = true
-
+      m.game.postGameEvent("game_start")
     end if
   end function
 
 
   function clearEntities()
-    m.game.destroyEntity(m.player)
+    if invalid <> m.player
+      m.game.destroyEntity(m.player)
+    end if
     for each rockOld in m.rocks
       m.game.destroyEntity(rockOld)
 
@@ -87,8 +89,6 @@ class MainRoom extends BGE.Room
         y = height - y + fudge
         rotation = 115 + rnd(60) + 90
       end if
-
-      ?"New rock";x, y, rotation
     else if parentRotation <> -1000
       rotation = parentRotation + 45 * rotationalThrust
     end if
@@ -103,19 +103,24 @@ class MainRoom extends BGE.Room
     }))
   end function
 
-  private function addExplosion(rockToDie as object) as void
+  private function addExplosion(rockToDie as object, scale = 1 as float, soundName = invalid) as void
     m.game.addEntity(new Explosion(m.game), {
       x: rockToDie.x,
       y: rockToDie.y,
-      scale: rockToDie.scale,
+      scale: scale,
       rotation: rockToDie.rotation
+      soundName: soundName
     })
   end function
 
   override function onGameEvent(event as string, data as object)
     if event = "game_over"
       m.game_started = false
-      m.game.playSound("boom")
+      m.addExplosion(m.player, 5, "die")
+
+    end if
+    if event = "game_start"
+      m.clearEntities()
     end if
 
     if event = "rock_hit"
@@ -125,7 +130,7 @@ class MainRoom extends BGE.Room
         m.addNewRock(rockToDie.x, rockToDie.y, nextLevel, 1, rockToDie.rotation)
         m.addNewRock(rockToDie.x, rockToDie.y, nextLevel, -1, rockToDie.rotation)
       end if
-      m.addExplosion(rockToDie)
+      m.addExplosion(rockToDie, 3 / rockToDie.level)
       m.game.destroyEntity(rockToDie)
 
       m.game.destroyEntity(data.bullet)

@@ -3,7 +3,7 @@ namespace BGE
 
   class Room extends GameEntity
 
-    function new(game as object, args = {} as object)
+    function new(game as Game, args = {} as object)
       super(game, args)
     end function
   end class

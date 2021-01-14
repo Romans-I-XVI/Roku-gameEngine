@@ -6,6 +6,8 @@ sub Main()
   game.loadBitmap("boom", "pkg:/sprites/boom3.png")
   game.loadSound("die", "pkg:/sounds/big_explosion_3.wav")
   game.loadSound("laser", "pkg:/sounds/laser.wav")
+
+  game.loadSound("engine", "pkg:/sounds/engine.wav")
   for i = 1 to 9
     explosionSoundName = "explosion0" + stri(i).trim()
     game.loadSound(explosionSoundName, `pkg:/sounds/explosions/${explosionSoundName}.wav`)

@@ -17,7 +17,7 @@ namespace BGE
   ' (At any time, the Entity in question may Delete() itself. Before every entity interaction, the entity is checked to make sure it is still valid
   ' in case it was deleted in the last interaction)
   '
-  ' 3. Draw - For each GameEntity, sorted by depth
+  ' 3. Draw - For each GameEntity, sorted by zIndex
   '   - Runs the Entity onDrawBegin() function
   '   - For each image in the Entity, run the draw() function
   '   - Run the Entity onDrawEnd() function
@@ -64,14 +64,14 @@ namespace BGE
     private audioPlayer = CreateObject("roAudioPlayer")
     private music_port = CreateObject("roMessagePort")
     private font_registry = CreateObject("roFontRegistry")
-    private screen = invalid
-    private canvas = invalid
-    private nextGameEntityId = 0
+    private screen as object = invalid
+    private canvas as Canvas = invalid
+    private nextGameEntityId as integer = 0
     ' ****END - For Internal Use, Do Not Manually Alter****
 
 
     ' Reference to the current room in play
-    currentRoom as object = invalid
+    currentRoom as Room = invalid
     ' Any special arguments for the current room
     currentRoomArgs as object = {}
 
@@ -186,7 +186,7 @@ namespace BGE
     ' Gets the next valid id for a GameEntity
     '
     ' @return {string}
-    function getGameEntityId() as string
+    function getNextGameEntityId() as string
       id = m.nextGameEntityId.ToStr()
       m.nextGameEntityId++
       return id
@@ -377,9 +377,9 @@ namespace BGE
 
     ' Checks if an entity is still valid
     '
-    ' @param {object} entity
+    ' @param {GameEntity} entity
     ' @return {boolean}
-    private function isValidEntity(entity as object) as boolean
+    private function isValidEntity(entity as GameEntity) as boolean
       return BGE.isValidEntity(entity)
     end function
 
@@ -401,10 +401,10 @@ namespace BGE
 
     ' Processes input events and calls the entity's onInput function
     '
-    ' @param {object} entity - the entity to relay input to
+    ' @param {GameEntity} entity - the entity to relay input to
     ' @param {object} universalControlEvents - array of control events since last frame
     ' @return {boolean} true if this entity is still valid
-    private function processEntityOnInput(entity as object, universalControlEvents as object) as boolean
+    private function processEntityOnInput(entity as GameEntity, universalControlEvents as object) as boolean
       if not m.isValidEntity(entity)
         return false
       end if
@@ -440,9 +440,9 @@ namespace BGE
 
     ' Moves an entity based on its velocity
     '
-    ' @param {object} entity
+    ' @param {GameEntity} entity
     ' @return {boolean} true if this entity is still valid
-    private function processEntityMovement(entity as object) as boolean
+    private function processEntityMovement(entity as GameEntity) as boolean
       if not m.isValidEntity(entity)
         return false
       end if
@@ -461,9 +461,9 @@ namespace BGE
     ' Checks all colliders in an entity with all other colliders and if
     ' there is a collision, will call the entity's onCollsion() function
     '
-    ' @param {object} entity
+    ' @param {GameEntity} entity
     ' @return {boolean} true if this entity is still valid
-    private function processEntityOnCollision(entity as object) as boolean
+    private function processEntityOnCollision(entity as GameEntity) as boolean
       if not m.isValidEntity(entity)
         return false
       end if
@@ -518,9 +518,9 @@ namespace BGE
 
     ' Helper to adjust en entities colliders after movement
     '
-    ' @param {object} entity
+    ' @param {GameEntity} entity
     ' @return {boolean} true if this entity is still valid
-    private function adjustEntityCompositorObjectPostCollision(entity as object) as boolean
+    private function adjustEntityCompositorObjectPostCollision(entity as GameEntity) as boolean
       if not m.isValidEntity(entity)
         return false
       end if
@@ -540,13 +540,12 @@ namespace BGE
 
 
 
-    ' Draws all the entities, by depth (low depth is drawn before high depth)
+    ' Draws all the entities, by zIndex (low zIndex is drawn before high zIndex)
     '
     ' @return {void}
     private function drawEntities() as void
-      m.sortedEntities.SortBy("depth")
-      for i = m.sortedEntities.Count() - 1 to 0 step -1
-        entity = m.sortedEntities[i]
+      m.sortedEntities.sortBy("zIndex")
+      for each entity in m.sortedEntities
         m.processEntityDraw(entity)
       end for
     end function
@@ -556,9 +555,9 @@ namespace BGE
 
     ' Draws an entity, bookended by calling onDrawBegin/End functions
     '
-    ' @param {object} entity
+    ' @param {GameEntity} entity
     ' @return {boolean} true if this entity is still valid
-    private function processEntityDraw(entity as object) as boolean
+    private function processEntityDraw(entity as GameEntity) as boolean
       if not m.isValidEntity(entity)
         return false
       end if
@@ -642,10 +641,10 @@ namespace BGE
 
     ' Draw the colliders for the given entity
     '
-    ' @param {object} entity
+    ' @param {GameEntity} entity
     ' @param {integer} [color=0]
     ' @return {void}
-    private function drawColliders(entity as object, color = 0 as integer) as void
+    private function drawColliders(entity as GameEntity, color = 0 as integer) as void
       if not m.isValidEntity(entity) or invalid = entity.colliders
         return
       end if
@@ -772,8 +771,8 @@ namespace BGE
 
     ' Gets the current Room/Level the game is using
     '
-    ' @return {object}
-    function getRoom() as object
+    ' @return {Room}
+    function getRoom() as Room
       return m.currentRoom
     end function
 
@@ -890,10 +889,10 @@ namespace BGE
     ' Only entities that have been added will be part of the game
     ' Calls the entity's onCreate() function with the args provided
     '
-    ' @param {object} entity - the entity to be added
+    ' @param {GameEntity} entity - the entity to be added
     ' @param {object} [args={}] - arguments to the entity's onCreate() method
-    ' @return {object} the entity that was added
-    function addEntity(entity as object, args = {} as object) as object
+    ' @return {GameEntity} the entity that was added
+    function addEntity(entity as GameEntity, args = {} as object) as GameEntity
       entity.onCreate(args)
       m.defineEntity(entity.name)
       m.Entities[entity.name][entity.id] = entity
@@ -906,8 +905,8 @@ namespace BGE
     ' Gets an entity by its unique id
     '
     ' @param {string} entityId
-    ' @return {object} the entity with the given id, if found, otherwise invalid
-    function getEntityByID(entityId as string) as object
+    ' @return {GameEntity} the entity with the given id, if found, otherwise invalid
+    function getEntityByID(entityId as string) as GameEntity
       for each entity in m.sortedEntities
         if m.isValidEntity(entity) and entityId = entity.id
           return entity
@@ -920,8 +919,8 @@ namespace BGE
     ' Gets the first entity with the given name
     '
     ' @param {string} objectName
-    ' @return {object} the entity with the given name, if found, otherwise invalid
-    function getEntityByName(objectName as string) as object
+    ' @return {GameEntity} the entity with the given name, if found, otherwise invalid
+    function getEntityByName(objectName as string) as GameEntity
       if invalid <> objectName and m.Entities.DoesExist(objectName)
         for each entityKey in m.Entities[objectName]
           return m.Entities[objectName][entityKey] ' Obviously only retrieves the first value
@@ -948,7 +947,7 @@ namespace BGE
     ' TODO: work on interfaces
     '
     ' @param {string} interfaceName
-    ' @return {dynamic}
+    ' @return {object}
     function getAllEntitiesWithInterface(interfaceName as string) as dynamic
       array = []
       if invalid <> interfaceName and m.Interfaces.DoesExist(interfaceName)
@@ -967,10 +966,10 @@ namespace BGE
     ' Destroys an entity and all its colliders
     ' Clears its properties, so images, etc. won't get drawn anymore
     '
-    ' @param {object} entity - the entity to destroy
+    ' @param {GameEntity} entity - the entity to destroy
     ' @param {boolean} [callOnDestroy=true]
     ' @return {void}
-    function destroyEntity(entity as object, callOnDestroy = true as boolean) as void
+    function destroyEntity(entity as GameEntity, callOnDestroy = true as boolean) as void
       if invalid <> entity
         entityName = entity.name
         entityId = entity.id
@@ -1025,9 +1024,9 @@ namespace BGE
     ' Defines a room (like a level) in the game
     ' TODO: work on rooms
     '
-    ' @param {object} room
+    ' @param {Room} room
     ' @return {void}
-    function defineRoom(room as object) as void
+    function defineRoom(room as Room) as void
       roomName = room.name
       m.Rooms[roomName] = room
       m.Entities[roomName] = {}
@@ -1342,9 +1341,9 @@ namespace BGE
     ' Set only one entity to receive onInput() calls
     ' Useful for when a menu/pause screen should handle all input
     '
-    ' @param {object} entity
+    ' @param {GameEntity} entity
     ' @return {void}
-    function setInputEntity(entity as object) as void
+    function setInputEntity(entity as GameEntity) as void
       m.input_entity = entity.id
     end function
 

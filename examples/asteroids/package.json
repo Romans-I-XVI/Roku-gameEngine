@@ -11,7 +11,7 @@
     "bge": "file:../../"
   },
   "devDependencies": {
-    "brighterscript": "^0.24.1",
+    "brighterscript": "^0.25.0",
     "ropm": "^0.7.7"
   }
 }

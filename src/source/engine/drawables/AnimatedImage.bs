@@ -6,7 +6,7 @@ namespace BGE
     ' The following values should only be changed if the image is a spritesheet that needs to be animated.
     ' The spritesheet can have any assortment of multiple columns and rows.
     index = 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
-    animationSpeed = 0 ' The time in milliseconds for a single cycle through the animation to play.
+    animationSpeedMs = 0 ' The time in milliseconds for a single cycle through the animation to play.
     animationTween = "LinearTween"
 
     ' -------------Never To Be Manually Changed-----------------
@@ -24,35 +24,25 @@ namespace BGE
 
     override function draw(additionalRotation = 0 as float)
       if m.enabled
-        if m.animationSpeed > 0 and not m.owner.game.isPaused()
-          m.animate()
+        if m.animationDurationMs > 0 and not m.owner.game.isPaused()
+          m.index = m.getCellDrawIndex()
         end if
         totalRotation = additionalRotation + m.rotation
-        m.index = m.getCellDrawIndex()
         if m.index >= 0 and m.index < m.regions.Count()
-          region = m.regions[m.index]
-          x = m.owner.x + m.offset_x
-          y = m.owner.y + m.offset_y
-          rgba = (m.color << 8) + int(m.alpha)
-          if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0
-            m.drawTo.DrawObject(x, y, region, rgba)
-          else if totalRotation = 0
-            m.drawTo.DrawScaledObject(x, y, m.scale_x, m.scale_y, region, rgba)
-          else
-            m.drawTo.DrawRotatedObject(x, y, - totalRotation, region, rgba)
-          end if
+          m.region = m.regions[m.index]
+          m.drawRegion(additionalRotation)
         end if
       end if
     end function
 
     function getCellDrawIndex() as integer
       frame_count = m.regions.Count()
-      current_time = m.animationTimer.TotalMilliseconds()
-      if current_time > m.animationSpeed
-        current_time -= m.animationSpeed
-        m.animationTimer.RemoveTime(m.animationSpeed)
+      currentTimeMs = m.animationTimer.TotalMilliseconds()
+      if currentTimeMs > m.animationDurationMs
+        currentTimeMs -= m.animationDurationMs
+        m.animationTimer.RemoveTime(m.animationDurationMs)
       end if
-      index = m.tweensReference[m.animationTween](0, frame_count, current_time, m.animation_speed)
+      index = m.tweensReference[m.animationTween](0, frame_count, currentTimeMs, m.animationDurationMs)
       if index > frame_count - 1
         index = frame_count - 1
       else if m.index < 0

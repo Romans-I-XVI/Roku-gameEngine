@@ -18,19 +18,36 @@ namespace BGE
 
     override function draw(additionalRotation = 0 as float) as void
       if m.enabled
-        x = m.owner.x + m.offset_x
-        y = m.owner.y + m.offset_y
-        rgba = (m.color << 8) + int(m.alpha)
-        totalRotation = additionalRotation + m.rotation
-        if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0
-          m.drawTo.DrawObject(x, y, m.region, rgba)
-        else if totalRotation = 0
-          m.drawTo.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
-        else if m.scale_x = 1 and m.scale_y = 1
-          m.drawTo.DrawRotatedObject(x, y, - totalRotation, m.region, rgba)
-        else
-          BGE.DrawScaledAndRotatedObject(m.drawTo, x, y, m.scale_x, m.scale_y, - totalRotation, m.region, rgba)
-        end if
+        m.drawRegion(additionalRotation)
+      end if
+    end function
+
+    ' Sets the scale of the drawable
+    '
+    ' @param {float} scale_x - horizontal scale
+    ' @param {dynamic} [scale_y=invalid] - vertical scale, or if invalid, use the horizontal scale as vertical scale
+    function setScale(scale_x as float, scale_y = invalid as dynamic) as void
+      if scale_y = invalid
+        scale_y = scale_x
+      end if
+      m.scale_x = scale_x
+      m.scale_y = scale_y
+    end function
+
+
+    protected function drawRegion(additionalRotation = 0 as float) as void
+      x = m.owner.x + m.offset_x
+      y = m.owner.y + m.offset_y
+      rgba = (m.color << 8) + int(m.alpha)
+      totalRotation = additionalRotation + m.rotation
+      if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0
+        m.drawTo.DrawObject(x, y, m.region, rgba)
+      else if totalRotation = 0
+        m.drawTo.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
+      else if m.scale_x = 1 and m.scale_y = 1
+        m.drawTo.DrawRotatedObject(x, y, - totalRotation, m.region, rgba)
+      else
+        BGE.DrawScaledAndRotatedObject(m.drawTo, x, y, m.scale_x, m.scale_y, - totalRotation, m.region, rgba)
       end if
     end function
   end class
