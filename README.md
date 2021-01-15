@@ -24,12 +24,23 @@ This project includes various example Roku apps in the `examples` directory. To 
 
 To run the examples:
 
-Open in VScode:
+Install dependencies:
 
 ```
 cd brighterscript-game-engine
 npm install
-code brighterscript-game-engine.workspace
+```
+
+You will need to "install" the brighterscript-game-engine in the examples directories. You can do this by running `ropm install` in each example (e.g. ./examples/snake) or by using the handy script:
+
+```
+npm run prepare-examples
+```
+
+Open the Workspace in VS Code:
+
+```
+code brighterscript-game-engine.code-workspace
 ```
 
 We recommend you install the great [Brightscript Language vscode extension](https://marketplace.visualstudio.com/items?itemName=RokuCommunity.brightscript).

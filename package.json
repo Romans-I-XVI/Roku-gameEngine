@@ -1,6 +1,6 @@
 {
   "name": "brighterscript-game-engine",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Game Engine for Roku written in Brighterscript. Forked from Romans-I-XVI/Roku-gameEngine",
   "author": "Mark Pearce",
   "keywords": [
@@ -13,7 +13,8 @@
   "scripts": {
     "preversion": "npm run validate",
     "validate": "bsc --create-package=false --copy-to-staging=false",
-    "docs": "rm -rf docs && ./node_modules/.bin/jsdoc -c jsdoc.json -d docs -t ./node_modules/braintree-jsdoc-template"
+    "docs": "rm -rf docs && ./node_modules/.bin/jsdoc -c jsdoc.json -d docs -t ./node_modules/braintree-jsdoc-template",
+    "prepare-examples": "./scripts/examples_ropm_install.sh"
   },
   "files": [
     "src/**/*"
