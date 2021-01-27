@@ -12,6 +12,7 @@ namespace BGE
     color = &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
     alpha = 255 ' Change the image alpha (transparency).
     enabled = true ' Whether or not the image will be drawn.
+    offsetPositionFromOwner = true
     drawTo as object ' m.game.getCanvas()
 
     ' -------------Never To Be Manually Changed-----------------
@@ -25,10 +26,29 @@ namespace BGE
       m.append(args)
     end function
 
+    ' Sets the scale of the drawable
+    '
+    ' @param {float} scale_x - horizontal scale
+    ' @param {dynamic} [scale_y=invalid] - vertical scale, or if invalid, use the horizontal scale as vertical scale
+    function setScale(scale_x as float, scale_y = invalid as dynamic) as void
+      if scale_y = invalid
+        scale_y = scale_x
+      end if
+      m.scale_x = scale_x
+      m.scale_y = scale_y
+    end function
+
+    protected function getDrawPosition() as object
+      x = m.offset_x
+      y = m.offset_y
+      if invalid <> m.owner
+        x += m.owner.x
+        y += m.owner.y
+      end if
+      return {x: x, y: y}
+    end function
 
     function draw(additionalRotation = 0 as float) as void
-      if m.enabled
-      end if
     end function
 
     function onResume(pausedTimeMs as integer)

@@ -115,8 +115,8 @@ namespace BGE
 
     ' Method to process input per frame
     '
-    ' @param {object} input - GameInput object for the last frame
-    function onInput(input as object) as void
+    ' @param {GameInput} input - GameInput object for the last frame
+    function onInput(input as GameInput) as void
     end function
 
 
@@ -150,7 +150,7 @@ namespace BGE
     end function
 
 
-    ' Called when teh game unpauses
+    ' Called when the game unpauses
     '
     ' @param {integer} pauseTimeMs - The number of milliseconds the game was paused
     function onResume(pauseTimeMs as integer) as void

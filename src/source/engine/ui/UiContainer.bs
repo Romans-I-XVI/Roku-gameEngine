@@ -1,0 +1,201 @@
+namespace BGE.UI
+
+  class UiContainer extends UiWidget
+
+    backgroundRGBA as integer = BGE.RGBAtoRGBA(128, 128, 128, 0.8) ' RGBA value for the background of the window/container
+    showBackground as boolean = true ' SHould teh background be drawn?
+
+    protected children as object = []
+
+    function new(game as BGE.Game) as void
+      super(game)
+    end function
+
+
+    ' Method for handling any actions needed when this is removed from view
+    ' Clears all children
+    override function onRemove() as void
+      m.clearChildren()
+    end function
+
+
+    function addChild(element as UiWidget) as void
+      m.children.push(element)
+    end function
+
+    function removeChild(element as UiWidget) as void
+      indexToRemove = -1
+      for i = 0 to m.children.count() - 1
+        if m.children[i] = element
+          indexToRemove = i
+          exit for
+        end if
+      end for
+      if indexToRemove >= 0 and invalid <> m.children[indexToRemove]
+        m.children[indexToRemove].onDestroy()
+        m.children.delete(indexToRemove)
+      end if
+    end function
+
+    function clearChildren() as void
+      for each element in m.children
+        element.onDestroy()
+      end for
+      m.children.clear()
+    end function
+
+
+    ' Method for handling any updates based on time since previous frame
+    ' Calls same method in all children
+    '
+    ' @param {float} deltaTime - milliseconds since last frame
+    override function onUpdate(deltaTime as float) as void
+      for each child in m.children
+        child.onUpdate(deltaTime)
+      end for
+    end function
+
+    ' Method called each frame to draw any images of this entity
+    '
+    ' @param {object} [parent=invalid] - the parent of this Ui Element - will be an object with {x, y, width, height}
+    override function draw(parent = invalid as object) as void
+      drawPosition = m.getDrawPosition(parent)
+      if m.showBackground
+        m.canvas.DrawRect(drawPosition.x, drawPosition.y, m.width, m.height, m.backgroundRGBA)
+      end if
+      m.children.sortBy("zIndex")
+      for each child in m.children
+        if child.enabled
+          child.draw(m)
+        end if
+      end for
+    end function
+
+
+    ' Function to get the value of the UIContainer, which will be an object of all the values of the children
+    '
+    ' @return {object} - the value of this element
+    override function getValue() as object
+      value = {}
+      for each child in m.children
+        value.addReplace(child.name, child.getValue())
+      end for
+      return value
+    end function
+
+
+
+    ' Method to process input per frame
+    ' Calls same method in all children
+    '
+    ' @param {BGE.GameInput} input - GameInput object for the last frame
+    override function onInput(input as BGE.GameInput) as void
+      for each child in m.children
+        child.onInput(input)
+      end for
+    end function
+
+
+    ' Method to process an ECP keyboard event
+    ' @see  https://developer.roku.com/en-ca/docs/developer-program/debugging/external-control-api.md
+    ' Calls same method in all children
+    '
+    ' @param {integer} char
+    override function onECPKeyboard(char as integer) as void
+      for each child in m.children
+        child.onECPKeyboard(char)
+      end for
+    end function
+
+
+    ' Method to process an External Control Protocol event
+    ' @see  https://developer.roku.com/en-ca/docs/references/brightscript/events/roinputevent.md
+    ' Calls same method in all children
+    '
+    ' @param {object} data
+    override function onECPInput(data as object) as void
+      for each child in m.children
+        child.onECPInput(char)
+      end for
+    end function
+
+
+    ' Method to handle audio events
+    ' @see  https://developer.roku.com/en-ca/docs/references/brightscript/events/roaudioplayerevent.md
+    ' Calls same method in all children
+    '
+    ' @param {object} msg - roAudioPlayerEvent
+    override function onAudioEvent(msg as object) as void
+      for each child in m.children
+        child.onAudioEvent(char)
+      end for
+    end function
+
+
+    ' Called when the game pauses
+    ' Calls same method in all children
+    '
+    override function onPause() as void
+      for each child in m.children
+        child.onPause(char)
+      end for
+    end function
+
+
+    ' Called when the game unpauses
+    ' Calls same method in all children
+    '
+    ' @param {integer} pauseTimeMs - The number of milliseconds the game was paused
+    override function onResume(pauseTimeMs as integer) as void
+      for each child in m.children
+        child.onResume(pauseTimeMs)
+      end for
+    end function
+
+
+    ' Called on url event
+    ' @see  https://developer.roku.com/en-ca/docs/references/brightscript/events/rourlevent.md
+    ' Calls same method in all children
+    '
+    ' @param {object} msg - roUrlEvent
+    override function onUrlEvent(msg as object) as void
+      for each child in m.children
+        child.onUrlEvent(msg)
+      end for
+    end function
+
+
+    ' General purpose event handler for in-game events.
+    ' Calls same method in all children
+    '
+    ' @param {string} eventName - Event name that describes the event type
+    ' @param {object} data - Any extra data to go along with the event
+    override function onGameEvent(eventName as string, data as object) as void
+      for each child in m.children
+        child.onGameEvent(eventName, data)
+      end for
+    end function
+
+
+
+    ' Method called when the current room changes.
+    ' This method is only called when the entity is marked as `persistant`,
+    ' otherwise entities are destroyed on room changes.
+    ' Calls same method in all children
+    '
+    ' @param {Room} newRoom - The next room
+    override function onChangeRoom(newRoom as BGE.Room) as void
+      for each child in m.children
+        child.onChangeRoom(newRoom)
+      end for
+    end function
+
+
+    ' Method called when this entity is destroyed
+    '
+    override function onDestroy() as void
+      m.clearChildren()
+    end function
+
+  end class
+end namespace

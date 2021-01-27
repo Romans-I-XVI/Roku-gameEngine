@@ -22,22 +22,13 @@ namespace BGE
       end if
     end function
 
-    ' Sets the scale of the drawable
-    '
-    ' @param {float} scale_x - horizontal scale
-    ' @param {dynamic} [scale_y=invalid] - vertical scale, or if invalid, use the horizontal scale as vertical scale
-    function setScale(scale_x as float, scale_y = invalid as dynamic) as void
-      if scale_y = invalid
-        scale_y = scale_x
-      end if
-      m.scale_x = scale_x
-      m.scale_y = scale_y
-    end function
+
 
 
     protected function drawRegion(additionalRotation = 0 as float) as void
-      x = m.owner.x + m.offset_x
-      y = m.owner.y + m.offset_y
+      position = m.getDrawPosition()
+      x = position.x
+      y = position.y
       rgba = (m.color << 8) + int(m.alpha)
       totalRotation = additionalRotation + m.rotation
       if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0

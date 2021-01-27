@@ -1,0 +1,94 @@
+namespace BGE.UI
+
+  ' Base Abstract class for all UI Elements
+  class UiWidget extends BGE.GameEntity
+
+    ' If position = "custom", then m.x is horizontal position of this element from the parent position
+    ' and m.y is the vertical position of this element from the parent position (positive is down)
+    customPosition as boolean = false
+
+    ' If customPosition is false, this dictates where horizontally in the container this element should go. Can be: "left", "center" or "right"
+    horizAlign as string = "left"
+    ' If customPosition is false, this dictates where vertically in the container this element should go. Can be: "top", "center" or "bottom"
+    vertAlign as string = "top"
+
+    ' Width of the element
+    width as integer = 0
+    ' Height of the element
+    height as integer = 0
+
+    protected canvas as object
+
+    protected padding as object = {top: 20, right: 20, bottom: 20, left: 20}
+
+
+    function new(game as BGE.Game) as void
+      super(game)
+      m.canvas = game.getCanvas()
+    end function
+
+
+    ' Function to get the value of the UI element
+    '
+    ' @return {dynamic} - the value of this element
+    function getValue() as dynamic
+      return invalid
+    end function
+
+
+    ' Method called each frame to draw any images of this entity
+    '
+    ' @param {object} [parent=invalid] - the parent of this Ui Element - will be an object with {x, y, width, height}
+    function draw(parent = invalid as object) as void
+    end function
+
+
+
+    function setPadding(paddingObjOrVal = 20 as integer) as void
+      ' TODO: allow different paddings for top/bottom/etc
+      paramType = lcase(type(paddingObjOrVal))
+      if(paramType = "integer" or paramType = "float")
+        m.padding.top = paddingObjOrVal
+        m.padding.left = paddingObjOrVal
+        m.padding.right = paddingObjOrVal
+        m.padding.bottom = paddingObjOrVal
+
+      end if
+    end function
+
+    '
+    protected function getDrawPosition(parent = invalid as object) as object
+
+      drawPosition = {x: 0, y: 0}
+      if invalid <> parent
+        drawPosition.x += parent.x
+        drawPosition.y += parent.y
+      end if
+      if m.customPosition or invalid = parent.width or invalid = parent.height
+        drawPosition.x += m.x
+        drawPosition.y += m.y
+      else
+
+        if "left" = m.horizAlign
+          drawPosition.x += m.padding.left
+        else if "center" = m.horizAlign
+          drawPosition.x += parent.width / 2 - m.width / 2
+        else if "right" = m.horizAlign
+          drawPosition.x += parent.width - m.width - m.padding.right
+        end if
+
+        if "top" = m.vertAlign
+          drawPosition.y += m.padding.top
+        else if "center" = m.vertAlign
+          drawPosition.y += parent.height / 2 - m.height / 2
+        else if "bottom" = m.vertAlign
+          drawPosition.y += parent.height - m.height - m.padding.bottom
+        end if
+      end if
+      return drawPosition
+    end function
+
+
+  end class
+
+end namespace

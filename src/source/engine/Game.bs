@@ -19,10 +19,17 @@ namespace BGE
   '
   ' 3. Draw - For each GameEntity, sorted by zIndex
   '   - Runs the Entity onDrawBegin() function
-  '   - For each image in the Entity, run the draw() function
+  '   - For each drawable in the Entity, run the draw() function
   '   - Run the Entity onDrawEnd() function
   '
-  ' 4. Debug - Draw all debug items (e.g. colliders, screen safe zones, etc.)
+  ' 4. Draw all debug items in game space (e.g. colliders, screen safe zones, etc).
+  '
+  ' 5. UI - For the tree of widgets in the UI Container
+  '    - Run onUpdate()
+  '    - Run draw()
+  '
+  ' 6. Debug UI - Draw all debug windows in the tree of the Debug UI
+  '
   class Game
 
     ' ****BEGIN - For Internal Use, Do Not Manually Alter****
@@ -30,9 +37,10 @@ namespace BGE
       draw_colliders: false
       draw_safe_zones: false
       colliders_color: BGE.RGBAtoRGBA(&hFF, 0, 0, 0.8)
-      safe_action_zone_color: BGE.RGBAtoRGBA(0, &hFF, 0, 0.3)
-      safe_title_zone_color: BGE.RGBAtoRGBA(0, 0, &hFF, 0.3)
+      safe_action_zone_color: BGE.RGBAtoRGBA(0, &hFF, 0, 0.2)
+      safe_title_zone_color: BGE.RGBAtoRGBA(0, 0, &hFF, 0.2)
       limit_frame_rate: 0
+      show_debug_ui: false
     }
 
     private canvas_is_screen = false
@@ -40,10 +48,11 @@ namespace BGE
     private running = true
     private paused = false
     private sortedEntities = []
+
     private buttonHeld = -1
     private buttonHeldTime = 0
     private input_entity = invalid
-    private currentInputEntity = invalid
+    private currentInputEntityId = invalid
     private dt = 0
     private FakeDT = invalid
     private dtTimer = CreateObject("roTimespan")
@@ -90,7 +99,11 @@ namespace BGE
     ' The loaded fonts by name
     Fonts as object = {}
 
+    ' Container for all UI
+    private gameUi as BGE.UI.UiContainer
 
+    ' Container for Debug UI
+    private debugUi as BGE.Debug.DebugWindow
 
 
     ' Constructor for GameEngine
@@ -161,6 +174,27 @@ namespace BGE
           m.canvas_is_screen = true
         end if
       end if
+
+      m.setupUi()
+
+    end function
+
+    ' Sets up the Ui layer
+    '
+    ' @param {object} canvas
+    private function setupUi() as void
+      canvas = m.getCanvas()
+      m.gameUi = new BGE.UI.UiContainer(m)
+      m.gameUi.showBackground = false
+      m.gameUi.width = canvas.getWidth()
+      m.gameUi.height = canvas.getHeight()
+      m.gameUi.setPadding(32)
+
+      m.debugUi = new BGE.UI.UiContainer(m)
+      m.debugUi.showBackground = false
+      m.debugUi.width = canvas.getWidth()
+      m.debugUi.height = canvas.getHeight()
+      m.debugUi.setPadding(32)
     end function
 
 
@@ -180,6 +214,7 @@ namespace BGE
 
       ' Create the default font
       m.Fonts["default"] = m.font_registry.GetDefaultFont(28, false, false)
+      m.Fonts["debugUi"] = m.font_registry.GetDefaultFont(20, false, false)
     end function
 
 
@@ -211,7 +246,7 @@ namespace BGE
         if m.input_entity <> invalid and m.getEntityByID(m.input_entity) = invalid
           m.input_entity = invalid
         end if
-        m.currentInputEntity = m.input_entity
+        m.currentInputEntityId = m.input_entity
         m.compositor.draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 
         m.dt = m.dtTimer.TotalMilliseconds() / 1000
@@ -260,7 +295,15 @@ namespace BGE
 
         ' ----------------------Then draw all of the entities and call onDrawBegin() and onDrawEnd()-------------------------
         m.drawEntities()
+
+        ' ---------------------- Draw debug items in game space -------------------------
         m.drawDebugItems()
+
+        ' ---------------------- Handle all UI updates and draws -------------------------
+        m.processAndDrawUI(universalControlEvents)
+
+        ' ---------------------- Handle all Debug UI updates and draws -------------------------
+        m.processAndDrawDebugUI(universalControlEvents)
 
         ' -------------------Draw everything to the screen----------------------------
         if not m.canvas_is_screen
@@ -410,7 +453,7 @@ namespace BGE
       end if
 
       for each msg in universalControlEvents
-        if entity.onInput <> invalid and (m.currentInputEntity = invalid or m.currentInputEntity = entity.id)
+        if entity.onInput <> invalid and (m.currentInputEntityId = invalid or m.currentInputEntityId = entity.id)
           entity.onInput(new GameInput(msg.GetInt(), 0))
           if not m.isValidEntity(entity)
             return false
@@ -427,7 +470,7 @@ namespace BGE
       if m.buttonHeld <> -1
         ' Button release codes are 100 plus the button press code
         ' This shows a button held code as 1000 plus the button press code
-        if entity.onInput <> invalid and (m.currentInputEntity = invalid or m.currentInputEntity = entity.id)
+        if entity.onInput <> invalid and (m.currentInputEntityId = invalid or m.currentInputEntityId = entity.id)
           entity.onInput(new GameInput(1000 + m.buttonHeld, m.buttonHeldTime))
           if not m.isValidEntity(entity)
             return false
@@ -577,112 +620,6 @@ namespace BGE
     end function
 
 
-    ' Draw Debug Related Items
-    '
-    ' @return {void}
-    private function drawDebugItems() as void
-      if m.debugging.draw_colliders
-        for i = m.sortedEntities.Count() - 1 to 0 step -1
-          entity = m.sortedEntities[i]
-          if m.isValidEntity(entity)
-            m.drawColliders(entity)
-          end if
-        end for
-      end if
-    end function
-
-
-
-
-    ' Set if colliders should be drawn
-    '
-    ' @param {boolean} enabled
-    function debugDrawColliders(enabled as boolean) as void
-      m.debugging.draw_colliders = enabled
-    end function
-
-
-    ' Set if Safe Zone should be drawn
-    '
-    ' @param {boolean} enabled
-    function debugDrawSafeZones(enabled as boolean) as void
-      m.debugging.draw_safe_zones = enabled
-    end function
-
-
-    ' Sets the colors for the debug items to be drawn
-    ' colors = {colliders: integer, safe_action_zone: integer, safe_title_zone: integer}
-    '
-    ' @param {object} colors
-    function debugSetColors(colors as object) as void
-      if invalid = colors
-        return
-      end if
-      allowedColorNames = ["colliders", "safe_action_zone", "safe_title_zone"]
-      colorsToAppend = {}
-      for each colorName in allowedColorNames
-        if invalid <> colors[colorName]
-          colorsToAppend[colorName + "_color"] = colors[colorName]
-        end if
-      end for
-
-      m.debugging.append(colorsToAppend)
-    end function
-
-
-    ' Limit the frame rate to the given number of frames per second
-    '
-    ' @param {integer} limit_frame_rate
-    ' @return {void}
-    function debugLimitFrameRate(limit_frame_rate as integer) as void
-      m.debugging.limit_frame_rate = limit_frame_rate
-    end function
-
-
-    ' Draw the colliders for the given entity
-    '
-    ' @param {GameEntity} entity
-    ' @param {integer} [color=0]
-    ' @return {void}
-    private function drawColliders(entity as GameEntity, color = 0 as integer) as void
-      if not m.isValidEntity(entity) or invalid = entity.colliders
-        return
-      end if
-      if 0 = color
-        color = m.debugging.colliders_color
-      end if
-      for each colliderKey in entity.colliders
-        collider = entity.colliders[colliderKey]
-        if collider.enabled
-          collider.debugDraw(m.canvas.bitmap, entity.x, entity.y, color)
-        end if
-      end for
-    end function
-
-
-    ' Draws the safe zones
-    '
-    ' @return {void}
-    private function drawSafeZones() as void
-      screen_width = m.screen.GetWidth()
-      screen_height = m.screen.GetHeight()
-      if m.device.GetDisplayAspectRatio() = "4x3"
-        action_offset = {w: 0.033 * screen_width, h: 0.035 * screen_height}
-        title_offset = {w: 0.067 * screen_width, h: 0.05 * screen_height}
-      else
-        action_offset = {w: 0.035 * screen_width, h: 0.035 * screen_height}
-        title_offset = {w: 0.1 * screen_width, h: 0.05 * screen_height}
-      end if
-      action_safe_zone = {x1: action_offset.w, y1: action_offset.h, x2: screen_width - action_offset.w, y2: screen_height - action_offset.h}
-      title_safe_zone = {x1: title_offset.w, y1: title_offset.h, x2: screen_width - title_offset.w, y2: screen_height - title_offset.h}
-
-      m.screen.DrawRect(action_safe_zone.x1, action_safe_zone.y1, action_safe_zone.x2 - action_safe_zone.x1, action_safe_zone.y2 - action_safe_zone.y1, m.debugging.safe_action_zone_color)
-      m.screen.DrawRect(title_safe_zone.x1, title_safe_zone.y1, title_safe_zone.x2 - title_safe_zone.x1, title_safe_zone.y2 - title_safe_zone.y1, m.debugging.safe_title_zone_color)
-      m.screen.DrawText("Action Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Action Safe Zone", 1000) / 2, action_safe_zone.y1 + 10, &hFF0000FF, m.getFont("default"))
-      m.screen.DrawText("Title Safe Zone", m.screen.GetWidth() / 2 - m.getFont("default").GetOneLineWidth("Title Safe Zone", 1000) / 2, action_safe_zone.y1 + 50, &hFF00FFFF, m.getFont("default"))
-    end function
-
-
     ' Ends the Game
     '
     ' @return {void}
@@ -829,6 +766,191 @@ namespace BGE
       return m.emptyBitmap
     end function
 
+    ' --------------------------------Begin Ui Functions----------------------------------------
+
+    ' Gets the UI Container to add new UI elements (which get drawn on top off Game Entities)
+    '
+    ' @return {BGE.Ui.UiContainer} - the container all other UI elements can be added to
+    function getUI() as BGE.Ui.UiContainer
+      return m.gameUi
+    end function
+
+    ' Function to handle all input and updates and draws for UI layer
+    '
+    ' @param {object} universalControlEvents - array of control events since last frame
+    private function processAndDrawUI(universalControlEvents as object) as void
+      m.processUiUpdate(m.gameUi, universalControlEvents)
+
+      if m.isValidEntity(m.gameUi) and invalid <> m.gameUi.draw
+        m.gameUi.draw(m.gameUi)
+      end if
+    end function
+
+    ' Function to handle all input and updates and draws for UI layer
+    '
+    ' @param {BGE.Ui.UiWidget} - widget to process
+    ' @param {object} universalControlEvents - array of control events since last frame
+    private function processUiUpdate(uiEntity as BGE.Ui.UiWidget, universalControlEvents as object) as void
+      ' --------------------First process the onInput() function--------------------
+      if m.isValidEntity(uiEntity)
+        m.processEntityOnInput(uiEntity, universalControlEvents)
+      end if
+
+      ' -------------------Then send the audioPlayer event msg if applicable-------------------
+      if m.isValidEntity(uiEntity) and invalid <> uiEntity.onAudioEvent and "roAudioPlayerEvent" = type(music_msg)
+        uiEntity.onAudioEvent(music_msg)
+      end if
+
+      ' -------------------Then send the ecp input events if applicable-------------------
+      if m.isValidEntity(uiEntity) and invalid <> uiEntity.onECPInput and "roInputEvent" = type(ecp_msg) and ecp_msg.isInput()
+        uiEntity.onECPInput(ecp_msg.GetInfo())
+      end if
+
+      ' -------------------Then send the urltransfer event msg if applicable-------------------
+      if m.isValidEntity(uiEntity) and invalid <> uiEntity.onUrlEvent and "roUrlEvent" = type(url_msg)
+        uiEntity.onUrlEvent(url_msg)
+      end if
+
+      ' -------------------Then process the onUpdate() function----------------------
+      if m.isValidEntity(uiEntity) and invalid <> uiEntity.onUpdate
+        uiEntity.onUpdate(m.dt)
+      end if
+    end function
+
+
+    ' --------------------------------Begin Debug Functions----------------------------------------
+
+    ' Gets the main debug window to add other debug widgets to
+    '
+    ' @return {BGE.Debug.DebugWindow} - the container all other Debug UI elements can be added to
+    function getDebugUI() as BGE.Debug.DebugWindow
+      return m.debugUi
+    end function
+
+
+    ' Function to handle all input and updates and draws for Debug UI layer
+    '
+    ' @param {object} universalControlEvents - array of control events since last frame
+    private function processAndDrawDebugUI(universalControlEvents as object) as void
+      m.processUiUpdate(m.debugUi, universalControlEvents)
+
+      if m.debugging.show_debug_ui and m.isValidEntity(m.debugUi) and invalid <> m.debugUi.draw
+        m.debugUi.draw(m.debugUi)
+      end if
+    end function
+
+
+    ' Draw Debug Related Items on the game Layer
+    '
+    ' @return {void}
+    private function drawDebugItems() as void
+      if m.debugging.draw_colliders
+        for i = m.sortedEntities.Count() - 1 to 0 step -1
+          entity = m.sortedEntities[i]
+          if m.isValidEntity(entity)
+            m.drawColliders(entity)
+          end if
+        end for
+      end if
+    end function
+
+
+
+
+    ' Set if colliders should be drawn
+    '
+    ' @param {boolean} enabled
+    function debugDrawColliders(enabled as boolean) as void
+      m.debugging.draw_colliders = enabled
+    end function
+
+
+    ' Set if Safe Zone should be drawn
+    '
+    ' @param {boolean} enabled
+    function debugDrawSafeZones(enabled as boolean) as void
+      m.debugging.draw_safe_zones = enabled
+    end function
+
+    ' Set if Debug UI/Windows should be drawn
+    '
+    ' @param {boolean} enabled
+    function debugShowUi(enabled as boolean) as void
+      m.debugging.show_debug_ui = enabled
+    end function
+
+
+    ' Sets the colors for the debug items to be drawn
+    ' colors = {colliders: integer, safe_action_zone: integer, safe_title_zone: integer}
+    '
+    ' @param {object} colors
+    function debugSetColors(colors as object) as void
+      if invalid = colors
+        return
+      end if
+      allowedColorNames = ["colliders", "safe_action_zone", "safe_title_zone"]
+      colorsToAppend = {}
+      for each colorName in allowedColorNames
+        if invalid <> colors[colorName]
+          colorsToAppend[colorName + "_color"] = colors[colorName]
+        end if
+      end for
+
+      m.debugging.append(colorsToAppend)
+    end function
+
+
+    ' Limit the frame rate to the given number of frames per second
+    '
+    ' @param {integer} limit_frame_rate
+    ' @return {void}
+    function debugLimitFrameRate(limit_frame_rate as integer) as void
+      m.debugging.limit_frame_rate = limit_frame_rate
+    end function
+
+
+    ' Draw the colliders for the given entity
+    '
+    ' @param {GameEntity} entity
+    ' @param {integer} [color=0]
+    ' @return {void}
+    private function drawColliders(entity as GameEntity, color = 0 as integer) as void
+      if not m.isValidEntity(entity) or invalid = entity.colliders
+        return
+      end if
+      if 0 = color
+        color = m.debugging.colliders_color
+      end if
+      for each colliderKey in entity.colliders
+        collider = entity.colliders[colliderKey]
+        if collider.enabled
+          collider.debugDraw(m.canvas.bitmap, entity.x, entity.y, color)
+        end if
+      end for
+    end function
+
+
+    ' Draws the safe zones
+    '
+    ' @return {void}
+    private function drawSafeZones() as void
+      screen_width = m.screen.GetWidth()
+      screen_height = m.screen.GetHeight()
+      if m.device.GetDisplayAspectRatio() = "4x3"
+        action_offset = {w: 0.033 * screen_width, h: 0.035 * screen_height}
+        title_offset = {w: 0.067 * screen_width, h: 0.05 * screen_height}
+      else
+        action_offset = {w: 0.035 * screen_width, h: 0.035 * screen_height}
+        title_offset = {w: 0.1 * screen_width, h: 0.05 * screen_height}
+      end if
+      action_safe_zone = {x1: action_offset.w, y1: action_offset.h, x2: screen_width - action_offset.w, y2: screen_height - action_offset.h}
+      title_safe_zone = {x1: title_offset.w, y1: title_offset.h, x2: screen_width - title_offset.w, y2: screen_height - title_offset.h}
+
+      m.screen.DrawRect(action_safe_zone.x1, action_safe_zone.y1, action_safe_zone.x2 - action_safe_zone.x1, action_safe_zone.y2 - action_safe_zone.y1, m.debugging.safe_action_zone_color)
+      m.screen.DrawRect(title_safe_zone.x1, title_safe_zone.y1, title_safe_zone.x2 - title_safe_zone.x1, title_safe_zone.y2 - title_safe_zone.y1, m.debugging.safe_title_zone_color)
+      m.screen.DrawText("Action Safe Zone", m.screen.GetWidth() / 2 - m.getFont("debugUI").GetOneLineWidth("Action Safe Zone", 1000) / 2, action_safe_zone.y1 + 10, &hFF0000FF, m.getFont("debugUI"))
+      m.screen.DrawText("Title Safe Zone", m.screen.GetWidth() / 2 - m.getFont("debugUI").GetOneLineWidth("Title Safe Zone", 1000) / 2, action_safe_zone.y1 + 50, &hFF00FFFF, m.getFont("debugUI"))
+    end function
 
 
     ' --------------------------------Begin Raycast Functions----------------------------------------
@@ -1337,6 +1459,8 @@ namespace BGE
       return UrlTransfer
     end function
 
+    ' --------------------------------Begin Input Entity Functions----------------------------------------
+
 
     ' Set only one entity to receive onInput() calls
     ' Useful for when a menu/pause screen should handle all input
@@ -1356,6 +1480,7 @@ namespace BGE
     end function
 
 
+    ' --------------------------------Begin Game Event Functions----------------------------------------
 
 
     ' General purpose event dispatch method
@@ -1377,6 +1502,9 @@ namespace BGE
       end for
       if invalid <> m.currentRoom
         m.currentRoom.onGameEvent(eventName, data)
+      end if
+
+      if invalid <> m.ui
       end if
     end function
 

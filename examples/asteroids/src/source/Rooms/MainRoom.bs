@@ -4,8 +4,8 @@ class MainRoom extends BGE.Room
 
   player = invalid
   rocks = []
-  timeSinceLastRoc = 0
-  timeBetweenRocks = 5
+  timeSinceLastRock = 0
+  timeBetweenRocks = 10
 
   function new(game) as void
     super(game)

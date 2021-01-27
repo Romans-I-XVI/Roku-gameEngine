@@ -1,0 +1,28 @@
+namespace BGE.UI
+
+  class Label extends UiWidget
+
+    drawableText as BGE.DrawableText
+
+
+    function new(game as BGE.Game) as void
+      super(game)
+      m.drawableText = new BGE.DrawableText(m, m.canvas)
+    end function
+
+    function setText(text = "" as string) as void
+      m.drawableText.text = text
+    end function
+
+    override function draw(parent = invalid as object) as void
+      drawPosition = m.getDrawPosition(parent)
+      if invalid <> m.drawableText
+        m.drawableText.offset_x = drawPosition.x
+        m.drawableText.offset_y = drawPosition.x
+
+        m.drawableText.draw()
+      end if
+    end function
+
+  end class
+end namespace

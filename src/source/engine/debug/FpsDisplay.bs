@@ -1,0 +1,37 @@
+' @module BGE
+namespace BGE.Debug
+
+  class FpsDisplay extends DebugWindow
+
+    fps = 0
+    private framesInLastSecond = 0
+    private frameTimeCounter = 0
+    private fpsLabel as BGE.UI.Label
+
+
+    function new(game as BGE.Game) as void
+      super(game)
+      m.width = 100
+      m.height = 40
+      m.fpsLabel = new BGE.UI.Label(game)
+      m.fpsLabel.drawableText.font = m.game.getFont("debugUI")
+      m.fpsLabel.x = 10
+      m.fpsLabel.y = 10
+      m.addChild(m.fpsLabel)
+    end function
+
+    override function onUpdate(dt)
+      m.frameTimeCounter += dt
+      if m.frameTimeCounter > 1.0
+        m.fps = m.framesInLastSecond
+        m.framesInLastSecond = 0
+        m.frameTimeCounter = 1 - m.frameTimeCounter
+      end if
+      m.framesInLastSecond++
+      m.fpsLabel.setText(`FPS: ${m.fps}`)
+    end function
+
+
+  end class
+
+end namespace

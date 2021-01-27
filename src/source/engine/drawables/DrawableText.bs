@@ -1,0 +1,31 @@
+' @module BGE
+namespace BGE
+
+  class DrawableText extends Drawable
+
+    text as string = ""
+    font as object
+    alignment as string = "left"
+
+    function new(owner as object, canvasBitmap as object, text = "" as string, font = invalid as object, args = {} as object) as void
+      super(owner, canvasBitmap, args)
+      m.text = text
+      m.font = font
+      if invalid <> m.owner and invalid <> m.owner.game and invalid = m.font
+        m.font = m.owner.game.getFont("default")
+      end if
+      m.append(args)
+    end function
+
+    override function draw(additionalRotation = 0 as float) as void
+      ' TODO: Actually handle scale, rotation, etc.
+      position = m.getDrawPosition()
+      rgba = (m.color << 8) + int(m.alpha)
+      if invalid <> m.font
+        BGE.DrawText(m.drawTo, m.text, position.x, position.y, m.font, m.alignment, rgba)
+      end if
+    end function
+
+  end class
+
+end namespace
