@@ -3,9 +3,12 @@ namespace BGE.UI
   ' Base Abstract class for all UI Elements
   class UiWidget extends BGE.GameEntity
 
-    ' If position = "custom", then m.x is horizontal position of this element from the parent position
-    ' and m.y is the vertical position of this element from the parent position (positive is down)
+    ' If position = "custom", then m.customX is horizontal position of this element from the parent position
+    ' and m.customY is the vertical position of this element from the parent position (positive is down)
     customPosition as boolean = false
+
+    customX as float = 0
+    customY as float = 0
 
     ' If customPosition is false, this dictates where horizontally in the container this element should go. Can be: "left", "center" or "right"
     horizAlign as string = "left"
@@ -19,7 +22,9 @@ namespace BGE.UI
 
     protected canvas as object
 
-    protected padding as object = {top: 20, right: 20, bottom: 20, left: 20}
+    padding as Offset = new Offset()
+    margin as Offset = new Offset()
+
 
 
     function new(game as BGE.Game) as void
@@ -42,47 +47,53 @@ namespace BGE.UI
     function draw(parent = invalid as object) as void
     end function
 
-
-
-    function setPadding(paddingObjOrVal = 20 as integer) as void
-      ' TODO: allow different paddings for top/bottom/etc
-      paramType = lcase(type(paddingObjOrVal))
-      if(paramType = "integer" or paramType = "float")
-        m.padding.top = paddingObjOrVal
-        m.padding.left = paddingObjOrVal
-        m.padding.right = paddingObjOrVal
-        m.padding.bottom = paddingObjOrVal
-
-      end if
+    ' Method called each frame to reposition
+    '
+    ' @param {object} [parent=invalid] - the parent of this Ui Element - will be an object with {x, y, width, height}
+    function repositionBasedOnParent(parent = invalid as object) as void
+      drawPosition = m.getDrawPosition(parent)
+      m.x = drawPosition.x
+      m.y = drawPosition.y
     end function
 
+    ' Method called each frame to draw any images of this entity
     '
+    ' @param {object} [parent=invalid] - the parent of this Ui Element - will be an object with {x, y, width, height}
+    ' @return {object} - x,y coordinates of where this widget should be positioned
     protected function getDrawPosition(parent = invalid as object) as object
 
       drawPosition = {x: 0, y: 0}
+      parentPadding = new Offset()
       if invalid <> parent
         drawPosition.x += parent.x
         drawPosition.y += parent.y
-      end if
-      if m.customPosition or invalid = parent.width or invalid = parent.height
-        drawPosition.x += m.x
-        drawPosition.y += m.y
+        if invalid <> parent.padding
+          parentPadding = parent.padding
+        end if
       else
+        parent = {x: 0, y: 0}
+      end if
 
-        if "left" = m.horizAlign
-          drawPosition.x += m.padding.left
-        else if "center" = m.horizAlign
+      if m.customPosition or invalid = parent.width or invalid = parent.height
+        drawPosition.x += m.customX
+        drawPosition.y += m.customY
+      else
+        hAlign = lcase(m.horizAlign).trim()
+        vAlign = lcase(m.vertAlign).trim()
+        if "left" = hAlign
+          drawPosition.x += m.margin.left + parentPadding.left
+        else if "center" = hAlign
           drawPosition.x += parent.width / 2 - m.width / 2
-        else if "right" = m.horizAlign
-          drawPosition.x += parent.width - m.width - m.padding.right
+        else if "right" = hAlign
+          drawPosition.x += parent.width - m.width - parentPadding.right - m.margin.right
         end if
 
-        if "top" = m.vertAlign
-          drawPosition.y += m.padding.top
-        else if "center" = m.vertAlign
+        if "top" = vAlign
+          drawPosition.y += m.margin.top + parentPadding.top
+        else if "center" = vAlign
           drawPosition.y += parent.height / 2 - m.height / 2
-        else if "bottom" = m.vertAlign
-          drawPosition.y += parent.height - m.height - m.padding.bottom
+        else if "bottom" = vAlign
+          drawPosition.y += parent.height - m.height - m.margin.bottom - parentPadding.bottom
         end if
       end if
       return drawPosition

@@ -53,9 +53,13 @@ class Player extends SpaceEntity
 
     m.xspeed += deltaTime * m.thrust * cos(m.getRocketRadRotation()) * m.acceleration
     m.yspeed += deltaTime * m.thrust * sin(m.getRocketRadRotation()) * m.acceleration
-    m.rocketImage.enabled = m.thrust = 0
-    m.rocketOnImage.enabled = m.thrust <> 0
-
+    m.rocketImage.enabled = (0 = m.thrust)
+    m.rocketOnImage.enabled = (0 <> m.thrust)
+    if m.dead
+      ' make it spin out in to space
+      scale = (10.0 - deltaTime) / 10.0
+      m.rocketImage.setScale(scale * m.rocketImage.scale_x)
+    end if
   end function
 
 

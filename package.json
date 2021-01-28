@@ -24,7 +24,7 @@
   "devDependencies": {
     "brighterscript-jsdocs-plugin": "^0.3.0",
     "braintree-jsdoc-template": "^3.3.0",
-    "brighterscript": "^0.25.0"
+    "brighterscript": "^0.30.0"
   },
   "repository": {
     "type": "git",

@@ -56,6 +56,23 @@ namespace BGE
     return (number MOD 2 <> 0)
   end function
 
+  function Math_Power(number as dynamic, pow as integer) as dynamic
+    n = 1
+    for i = 0 to pow
+      n *= number
+    end for
+    return n
+  end function
+
+  function Math_Round(number as float, decimals = 0 as integer) as float
+    if 0 = decimals
+      return cint(number)
+    else
+      magnitude = BGE.Math_Power(10, decimals)
+      return cint(number * magnitude) / magnitude
+    end if
+  end function
+
   function Math_DegreesToRadians(degrees as float) as float
     return (degrees / 180) * BGE.Math_PI()
   end function

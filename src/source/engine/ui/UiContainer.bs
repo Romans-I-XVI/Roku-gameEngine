@@ -3,7 +3,7 @@ namespace BGE.UI
   class UiContainer extends UiWidget
 
     backgroundRGBA as integer = BGE.RGBAtoRGBA(128, 128, 128, 0.8) ' RGBA value for the background of the window/container
-    showBackground as boolean = true ' SHould teh background be drawn?
+    showBackground as boolean = true ' Should the background be drawn?
 
     protected children as object = []
 
@@ -57,16 +57,15 @@ namespace BGE.UI
 
     ' Method called each frame to draw any images of this entity
     '
-    ' @param {object} [parent=invalid] - the parent of this Ui Element - will be an object with {x, y, width, height}
-    override function draw(parent = invalid as object) as void
-      drawPosition = m.getDrawPosition(parent)
+    override function draw() as void
       if m.showBackground
-        m.canvas.DrawRect(drawPosition.x, drawPosition.y, m.width, m.height, m.backgroundRGBA)
+        m.canvas.DrawRect(m.x, m.y, m.width, m.height, m.backgroundRGBA)
       end if
       m.children.sortBy("zIndex")
       for each child in m.children
         if child.enabled
-          child.draw(m)
+          child.repositionBasedOnParent(m)
+          child.draw()
         end if
       end for
     end function

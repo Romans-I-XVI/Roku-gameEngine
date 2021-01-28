@@ -15,8 +15,6 @@ namespace BGE.Debug
       m.height = 40
       m.fpsLabel = new BGE.UI.Label(game)
       m.fpsLabel.drawableText.font = m.game.getFont("debugUI")
-      m.fpsLabel.x = 10
-      m.fpsLabel.y = 10
       m.addChild(m.fpsLabel)
     end function
 

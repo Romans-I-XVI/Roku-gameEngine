@@ -188,13 +188,13 @@ namespace BGE
       m.gameUi.showBackground = false
       m.gameUi.width = canvas.getWidth()
       m.gameUi.height = canvas.getHeight()
-      m.gameUi.setPadding(32)
+      m.gameUi.padding.set(32)
 
       m.debugUi = new BGE.UI.UiContainer(m)
       m.debugUi.showBackground = false
       m.debugUi.width = canvas.getWidth()
       m.debugUi.height = canvas.getHeight()
-      m.debugUi.setPadding(32)
+      m.debugUi.padding.set(32)
     end function
 
 
@@ -277,12 +277,13 @@ namespace BGE
                   audio_guide_suppression_ticker = 0
                 end if
               end if
-              m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
+
+
             end if
           end if
           screen_msg = m.screen_port.GetMessage()
         end while
-
+        m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
         music_msg = m.music_port.GetMessage()
 
         ' ----------------------Handle entity interactions (collisions, etc)--------------------
@@ -472,6 +473,7 @@ namespace BGE
         ' This shows a button held code as 1000 plus the button press code
         if entity.onInput <> invalid and (m.currentInputEntityId = invalid or m.currentInputEntityId = entity.id)
           entity.onInput(new GameInput(1000 + m.buttonHeld, m.buttonHeldTime))
+
           if not m.isValidEntity(entity)
             return false
           end if
@@ -782,7 +784,7 @@ namespace BGE
       m.processUiUpdate(m.gameUi, universalControlEvents)
 
       if m.isValidEntity(m.gameUi) and invalid <> m.gameUi.draw
-        m.gameUi.draw(m.gameUi)
+        m.gameUi.draw()
       end if
     end function
 
@@ -835,7 +837,7 @@ namespace BGE
       m.processUiUpdate(m.debugUi, universalControlEvents)
 
       if m.debugging.show_debug_ui and m.isValidEntity(m.debugUi) and invalid <> m.debugUi.draw
-        m.debugUi.draw(m.debugUi)
+        m.debugUi.draw()
       end if
     end function
 
