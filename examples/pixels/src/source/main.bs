@@ -1,0 +1,12 @@
+sub Main()
+  game = new BGE.Game(1280, 720, true) ' This initializes the game engine
+  main_room = new MainRoom(game)
+  game.defineRoom(main_room)
+  game.changeRoom(main_room.name)
+  game.getDebugUI().addChild(new BGE.Debug.FpsDisplay(game))
+  game.getDebugUI().addChild(new BGE.Debug.InputDisplay(game))
+  game.debugShowUi(true)
+  game.Play()
+
+  ' vscode_rale_tracker_entry
+end sub

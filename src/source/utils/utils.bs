@@ -43,17 +43,17 @@ namespace BGE
   end function
 
   function RGBAtoRGBA(red as integer, green as integer, blue as integer, alpha = 1 as float) as integer
-    red = red and &hFF
-    green = green and &hFF
-    blue = blue and &hFF
-
+    red% = cint((BGE.Math_Clamp(red, 0, 255))) and &hFF
+    green% = cint((BGE.Math_Clamp(green, 0, 255))) and &hFF
+    blue% = cint((BGE.Math_Clamp(blue, 0, 255))) and &hFF
     if 0 > alpha
       alpha = 0
     else if 1 < alpha
       alpha = 1
     end if
-    alpha = cint(alpha * &hFF)
-    color% = (red << 24) + (green << 16) + (blue << 8) + alpha
+    alphaInt% = cint(BGE.Math_Clamp(cint(alpha * &hFF), 0, 255))and &hFF
+
+    color% = (red% << 24) + (green% << 16) + (blue% << 8) + alphaInt%
 
     return color%
   end function

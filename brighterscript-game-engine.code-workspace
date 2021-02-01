@@ -13,6 +13,9 @@
       "path": "examples/asteroids"
     },
     {
+      "path": "examples/pixels"
+    },
+    {
       "path": "."
     }
   ],
