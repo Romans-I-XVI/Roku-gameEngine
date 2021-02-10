@@ -11,10 +11,13 @@
     "game engine"
   ],
   "scripts": {
+    "build": "bsc --create-package=false && npm pack",
     "preversion": "npm run validate",
     "validate": "bsc --create-package=false --copy-to-staging=false",
-    "docs": "rm -rf docs && ./node_modules/.bin/jsdoc -c jsdoc.json -d docs -t ./node_modules/braintree-jsdoc-template",
-    "prepare-examples": "./scripts/examples_ropm_install.sh"
+    "clean": "rimraf dist",
+    "clean-all": "npm run clean && ./scripts/examples_clean.sh",
+    "docs": "rimraf docs && ./node_modules/.bin/jsdoc -c jsdoc.json -d docs -t ./node_modules/braintree-jsdoc-template",
+    "prepare-examples": "yarn build && ./scripts/examples_ropm_install.sh"
   },
   "files": [
     "src/**/*"
@@ -22,9 +25,10 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "brighterscript-jsdocs-plugin": "^0.3.0",
     "braintree-jsdoc-template": "^3.3.0",
-    "brighterscript": "^0.30.0"
+    "brighterscript": "^0.30.0",
+    "brighterscript-jsdocs-plugin": "^0.3.0",
+    "rimraf": "^3.0.2"
   },
   "repository": {
     "type": "git",

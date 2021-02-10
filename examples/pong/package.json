@@ -2,16 +2,18 @@
   "private": true,
   "scripts": {
     "build": "bsc",
+    "clean": "rimraf dist",
     "package": "bsc --create-package"
   },
   "ropm": {
     "rootDir": "src"
   },
   "dependencies": {
-    "bge": "file:../../"
+    "bge": "file:../../brighterscript-game-engine-0.1.0.tgz"
   },
   "devDependencies": {
     "brighterscript": "^0.30.0",
+    "rimraf": "^3.0.2",
     "ropm": "^0.7.7"
   }
 }
