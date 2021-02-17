@@ -11,10 +11,10 @@
     "game engine"
   ],
   "scripts": {
-    "build": "bsc --create-package=false && npm pack",
+    "build": "npm run clean && bsc --create-package=false && npm pack",
     "preversion": "npm run validate",
     "validate": "bsc --create-package=false --copy-to-staging=false",
-    "clean": "rimraf dist",
+    "clean": "rimraf brighterscript*.tgz && rimraf dist && rimraf out",
     "clean-all": "npm run clean && ./scripts/examples_clean.sh",
     "docs": "rimraf docs && ./node_modules/.bin/jsdoc -c jsdoc.json -d docs -t ./node_modules/braintree-jsdoc-template",
     "prepare-examples": "yarn build && ./scripts/examples_ropm_install.sh"

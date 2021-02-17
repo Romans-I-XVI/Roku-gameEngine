@@ -1,5 +1,6 @@
 #!/bin/sh
 
+DIR=$PWD
 cd examples
 for d in */; do
     echo "Running '$@' in $d .."
@@ -7,3 +8,4 @@ for d in */; do
     $@
     cd ..
 done
+cd $DIR

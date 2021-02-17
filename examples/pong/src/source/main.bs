@@ -7,8 +7,12 @@ sub Main()
   main_room = new MainRoom(game)
   game.defineRoom(main_room)
   game.changeRoom(main_room.name)
-  ' game.debugDrawColliders(true)
-  ' game.debugDrawSafeZones(true)
+  game.debugDrawColliders(true)
+  game.getDebugUI().addChild(new BGE.Debug.FpsDisplay(game))
+  game.getDebugUI().addChild(new BGE.Debug.InputDisplay(game))
+  'game.debugDrawSafeZones(true)
+
+  game.debugShowUi(true)
   game.Play()
 
   ' vscode_rale_tracker_entry

@@ -1,21 +1,21 @@
 ' @module BGE
 namespace BGE
 
-  function Math_Min(a, b)
+  function Math_Min(a as dynamic, b as dynamic) as dynamic
     if a <= b
       return a
     end if
     return b
   end function
 
-  function Math_Max(a, b)
+  function Math_Max(a as dynamic, b as dynamic) as dynamic
     if a >= b
       return a
     end if
     return b
   end function
 
-  function Math_Clamp(number, min, max)
+  function Math_Clamp(number as dynamic, min as dynamic, max as dynamic) as dynamic
     if number < min
       return min
     else if number > max
@@ -25,11 +25,11 @@ namespace BGE
     end if
   end function
 
-  function Math_PI()
+  function Math_PI() as float
     return 3.1415926535897932384626433832795
   end function
 
-  function Math_Atan2(y as float, x as float)
+  function Math_Atan2(y as float, x as float) as float
     pi = BGE.Math_PI()
     if x > 0
       angle = Atn(y / x)

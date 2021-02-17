@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "bsc",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist && rimraf out",
     "package": "bsc --create-package"
   },
   "ropm": {

@@ -1106,7 +1106,9 @@ namespace BGE
         if invalid <> entity.name and invalid <> entityId and m.Entities[entityName].DoesExist(entityId) ' This redundancy is here because if somebody would try to change rooms within the onDestroy() method the game would break.
           m.Entities[entityName].Delete(entityId)
         end if
-        entity.Clear()
+        if invalid <> entity.Clear
+          entity.Clear()
+        end if
         entity.id = invalid
       end if
     end function

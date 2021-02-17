@@ -1,17 +1,23 @@
 class MainRoom extends BGE.Room
 
-  pixDraw = createObject("roBitmap", {width: 1280, height: 720, AlphaEnable: true, name: "MyBitmapName"})
+  pixDraws = []
   pixDraw2 = createObject("roBitmap", {width: 1280, height: 720, AlphaEnable: true, name: "MyBitmapName"})
   pixDraw3 = createObject("roBitmap", {width: 1280, height: 720, AlphaEnable: true, name: "MyBitmapName"})
 
-  tri = []
-  tri2 = []
-  tri3 = []
+  drawLevels = []
+  triangles = []
+  triangleCount = 300
+  TriangleMaxSize = 100
 
   rot = 0
 
 
   drawn = false
+  maxDrawLevel = 10
+  drawLevel = 0
+  nextTriangle = 0
+  timecount = 0
+
   function new(game) as void
     super(game)
     m.name = "MainRoom"
@@ -20,31 +26,50 @@ class MainRoom extends BGE.Room
   override function onCreate(args)
 
 
-    m.tri1 = m.getRandomTriangle()
-    m.tri2 = m.getRandomTriangle()
-    m.tri3 = m.getRandomTriangle()
+    m.getRandomTriangles()
+    for i = 0 to m.triangleCount - 1
+      m.pixDraws.push(createObject("roBitmap", {width: m.TriangleMaxSize, height: m.TriangleMaxSize, AlphaEnable: true, name: "MyBitmapName"}))
+    end for
+
   end function
+
+  sub getRandomTriangles()
+    m.triangles = []
+    for i = 0 to m.triangleCount - 1
+      m.drawLevels.push(0)
+      m.triangles.push(m.getRandomTriangle())
+    end for
+  end sub
 
   function getRandomTriangle()
     tri = []
     for i = 0 to 2
-      tri.push({x: rnd(1280), y: rnd(720)})
-      ?tri[i]
+      tri.push({x: rnd(m.TriangleMaxSize), y: rnd(m.TriangleMaxSize)})
     end for
     return tri
   end function
 
   override function onUpdate(dt)
-    m.rot += (dt * 5)
+
+    ' m.getRandomTriangles()
+    'm.drawn = false
+    m.rot += (dt * 10)
+
+    m.timecount += dt
+    if m.timecount > 0.5
+      m.timecount = 0
+      m.drawLevels[m.nextTriangle] = 0
+      m.triangles[m.nextTriangle] = m.getRandomTriangle()
+      m.nextTriangle = rnd(m.triangleCount) - 1
+    end if
   end function
 
   override function onInput(input)
     if input.isButton("ok") and input.press
 
-      m.tri1 = m.getRandomTriangle()
-      m.tri2 = m.getRandomTriangle()
-      m.tri3 = m.getRandomTriangle()
-      m.drawn = false
+      m.getRandomTriangles()
+      ' m.drawn = false
+      m.drawLevel = 0
     end if
 
   end function
@@ -52,31 +77,35 @@ class MainRoom extends BGE.Room
   override function onDrawBegin(canvas)
 
     '
-    if not m.drawn
-      m.pixDraw.clear(0)
-      m.pixDraw2.clear(0)
-      m.pixDraw3.clear(0)
-      m.drawTriangle(m.tri1, m.pixDraw)
+    for i = 0 to m.triangleCount - 1
+      if m.drawLevels[i] < m.maxDrawLevel
+        if m.drawLevels[i] = 0
+          m.pixDraws[i].clear(0)
+        end if
+        m.drawTriangle(m.triangles[i], m.pixDraws[i], m.maxDrawLevel, m.drawLevels[i])
+        m.drawLevels[i]++
 
-      m.drawTriangle(m.tri2, m.pixDraw2)
 
-      m.drawTriangle(m.tri3, m.pixDraw3)
-    end if
-    'bs:disable-next-line
-    region1 = CreateObject("roRegion", m.pixDraw, 0, 0, 1280, 720)
-    region1.SetPreTranslation(-640, -360)
-    'bs:disable-next-line
-    region2 = CreateObject("roRegion", m.pixDraw2, 0, 0, 1280, 720)
-    region2.SetPreTranslation(-640, -360)
-    'bs:disable-next-line
-    region3 = CreateObject("roRegion", m.pixDraw3, 0, 0, 1280, 720)
-    region3.SetPreTranslation(-640, -360)
-    'region.DrawObject(0, 0, m.pixDraw)
-    '?m.rot
-    canvas.drawRotatedObject(640, 360, m.rot, region1)
-    canvas.drawRotatedObject(1000, 240, - m.rot, region2)
+      end if
+    end for
 
-    canvas.drawRotatedObject(360, 480, m.rot, region3)
+
+    rows = cint(sqr(m.triangleCount))
+    xdelta = (1280 / rows)
+    ydelta = (720 / rows)
+
+    for i = 0 to m.triangleCount - 1
+      'bs:disable-next-line
+      region1 = CreateObject("roRegion", m.pixDraws[i], 0, 0, m.TriangleMaxSize, m.TriangleMaxSize)
+      region1.SetPreTranslation(- m.TriangleMaxSize / 2, - m.TriangleMaxSize / 2)
+      rotation = m.rot
+      if i mod 2 = 1
+        rotation = - m.rot
+      end if
+      canvas.drawRotatedObject(xdelta * ((i mod rows)) + xdelta / 2, ydelta * ((i / rows)) + ydelta / 2, rotation, region1)
+      'BGE.DrawScaledAndRotatedObject(canvas, xdelta * ((i mod rows)) + xdelta / 2, ydelta * ((i / rows)) + ydelta / 2, 2, 2, m.rot, region1)
+    end for
+
   end function
 
 
@@ -173,11 +202,10 @@ class MainRoom extends BGE.Room
 
     end for
 
-    m.drawn = true
   end function
 
 
-  function drawTriangle(tri, pixDraw)
+  function drawTriangle(tri, pixDraw, levelOfDetail = 1, levelOffset = 0)
     len0 = BGE.Math_TotalDistance(tri[1], tri[2])
     len1 = BGE.Math_TotalDistance(tri[0], tri[2])
     len2 = BGE.Math_TotalDistance(tri[0], tri[1])
@@ -198,20 +226,31 @@ class MainRoom extends BGE.Room
     startP = tri[(apexIndex + 1) mod 3]
     endP = tri[(apexIndex + 2) mod 3]
 
-
-    for i = 0 to shortLength
-      x = BGE.LinearTween(startP.x, endP.x, i, shortLength)
-      y = BGE.LinearTween(startP.y, endP.y, i, shortLength)
-      r% = (x * 255) / shortLength
-      g% = (y * 255) / shortLength
-      b% = (((shortLength + shortLength) - (x + y)) * 255) / (shortLength + shortLength)
+    if shortLength > 0
+      r% = (startP.x * 255) / shortLength
+      g% = (endP.y * 255) / shortLength
+      b% = (((shortLength + shortLength) - (EndP.x + startP.y)) * 255) / (shortLength + shortLength)
 
       color% = BGE.RGBAtoRGBA(r%, g%, b%)
-      pixDraw.drawLine(apex.x, apex.y, x, y, color%)
-    end for
+      pixDraw.drawLine(startP.x, startP.y, endP.x, endP.y, color%)
+      for i = levelOffset to shortLength step levelOfDetail
+        x = BGE.LinearTween(startP.x, endP.x, i, shortLength)
+        y = BGE.LinearTween(startP.y, endP.y, i, shortLength)
+        r% = (x * 255) / shortLength
+        g% = (y * 255) / shortLength
+        b% = (((shortLength + shortLength) - (x + y)) * 255) / (shortLength + shortLength)
 
+        color% = BGE.RGBAtoRGBA(r%, g%, b%)
+        pixDraw.drawLine(apex.x, apex.y, x, y, color%)
+      end for
+      r% = (endP.x * 255) / shortLength
+      g% = (endP.y * 255) / shortLength
+      b% = (((shortLength + shortLength) - (EndP.x + endP.y)) * 255) / (shortLength + shortLength)
 
-    m.drawn = true
+      color% = BGE.RGBAtoRGBA(r%, g%, b%)
+      pixDraw.drawLine(apex.x, apex.y, endP.x, endP.y, color%)
+    end if
+
   end function
 
 end class

@@ -20,7 +20,7 @@ sub Main()
   game.getDebugUI().addChild(new BGE.Debug.InputDisplay(game))
   ' game.debugDrawColliders(true)
   ' game.debugDrawSafeZones(true)
-  game.debugShowUi(true)
+  'game.debugShowUi(true)
   game.Play()
 
   ' vscode_rale_tracker_entry
