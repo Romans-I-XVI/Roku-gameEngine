@@ -6,8 +6,8 @@ class MainRoom extends BGE.Room
 
   drawLevels = []
   triangles = []
-  triangleCount = 300
-  TriangleMaxSize = 100
+  triangleCount = 200
+  TriangleMaxSize = 300
 
   rot = 0
 
@@ -80,7 +80,9 @@ class MainRoom extends BGE.Room
     for i = 0 to m.triangleCount - 1
       if m.drawLevels[i] < m.maxDrawLevel
         if m.drawLevels[i] = 0
-          m.pixDraws[i].clear(0)
+          if invalid <> m.pixDraws[i]
+            m.pixDraws[i].clear(0)
+          end if
         end if
         m.drawTriangle(m.triangles[i], m.pixDraws[i], m.maxDrawLevel, m.drawLevels[i])
         m.drawLevels[i]++
@@ -205,7 +207,11 @@ class MainRoom extends BGE.Room
   end function
 
 
-  function drawTriangle(tri, pixDraw, levelOfDetail = 1, levelOffset = 0)
+  sub drawTriangle(tri, pixDraw, levelOfDetail = 1, levelOffset = 0)
+    if invalid = pixDraw
+      return
+    end if
+
     len0 = BGE.Math_TotalDistance(tri[1], tri[2])
     len1 = BGE.Math_TotalDistance(tri[0], tri[2])
     len2 = BGE.Math_TotalDistance(tri[0], tri[1])
@@ -251,6 +257,6 @@ class MainRoom extends BGE.Room
       pixDraw.drawLine(apex.x, apex.y, endP.x, endP.y, color%)
     end if
 
-  end function
+  end sub
 
 end class

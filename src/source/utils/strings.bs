@@ -1,0 +1,48 @@
+' @module BGE
+namespace BGE
+
+  function getNumberOfLinesInAString(text as string) as integer
+    lines = 1
+    newLine = Chr(10)
+    nextNewLineIndex = text.inStr(0, newLine)
+    while nextNewLineIndex > -1
+      if nextNewLineIndex < text.len()
+        lines++
+        nextNewLineIndex = text.inStr(nextNewLineIndex + 1, newLine)
+      else
+        exit while
+      end if
+    end while
+    return lines
+  end function
+
+
+
+  function lastInStr(text as string, substring as string) as integer
+    nextLastIndex = text.inStr(0, substring)
+    lastIndex = nextLastIndex
+    while nextLastIndex > -1
+      lastIndex = nextLastIndex
+      nextLastIndex = text.inStr(lastIndex + 1, substring)
+    end while
+    return lastIndex
+  end function
+
+
+
+  function NumberToFixed(num as float, precision as integer) as string
+    numStr = BGE.Math_Round(num, precision).toStr().trim()
+    decimalIndex = BGE.lastInStr(numStr, ".")
+    if - 1 = decimalIndex
+      numStr += "." + string(precision, "0")
+      return numStr
+    end if
+    afterDecimalCount = numStr.len() - 1 - decimalIndex
+    if precision > afterDecimalCount
+      numStr += string(precision - afterDecimalCount, "0")
+    end if
+    return numStr
+  end function
+
+
+end namespace

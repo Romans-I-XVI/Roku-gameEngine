@@ -17,8 +17,9 @@ namespace BGE
 
     ' -------------Never To Be Manually Changed-----------------
     ' These values should never need to be manually changed.
-    protected owner as object
+    protected owner as object ' owner GameEntity
 
+    protected shouldRedraw as boolean = false
 
     function new(owner as object, canvasBitmap as object, args = {} as object) as void
       m.owner = owner
@@ -52,6 +53,32 @@ namespace BGE
     end function
 
     function onResume(pausedTimeMs as integer)
+    end function
+
+    ' Forces a redraw of this drawable on next frame
+    ' By default, some drawables that need to do preprocessing (text, polygons, etc) will only redraw automatically
+    ' if their dimensions or underlying values change --
+    '
+    function forceRedraw() as void
+      m.shouldRedraw = true
+    end function
+
+
+    protected function drawRegionToCanvas(draw2d as object, additionalRotation = 0 as float, ignoreColor = false as boolean) as void
+      position = m.getDrawPosition()
+      x = position.x
+      y = position.y
+      rgba = ignoreColor ? BGE.Colors().White : (m.color << 8) + int(m.alpha)
+      totalRotation = additionalRotation + m.rotation
+      if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0
+        m.drawTo.DrawObject(x, y, draw2d, rgba)
+      else if totalRotation = 0
+        m.drawTo.DrawScaledObject(x, y, m.scale_x, m.scale_y, draw2d, rgba)
+      else if m.scale_x = 1 and m.scale_y = 1
+        m.drawTo.DrawRotatedObject(x, y, - totalRotation, draw2d, rgba)
+      else
+        BGE.DrawScaledAndRotatedObject(m.drawTo, x, y, m.scale_x, m.scale_y, - totalRotation, draw2d, rgba)
+      end if
     end function
   end class
 end namespace

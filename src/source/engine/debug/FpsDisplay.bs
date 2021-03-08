@@ -27,6 +27,7 @@ namespace BGE.Debug
       end if
       m.framesInLastSecond++
       m.fpsLabel.setText(`FPS: ${m.fps}`)
+      m.width = m.fpsLabel.width + 20
     end function
 
 

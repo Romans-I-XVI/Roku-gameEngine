@@ -5,6 +5,8 @@ sub Main()
   game.changeRoom(main_room.name)
   game.getDebugUI().addChild(new BGE.Debug.FpsDisplay(game))
   game.getDebugUI().addChild(new BGE.Debug.InputDisplay(game))
+
+  game.getDebugUI().addChild(new BGE.Debug.MemoryDisplay(game))
   game.debugShowUi(true)
   game.Play()
 

@@ -1,0 +1,29 @@
+' @module BGE
+namespace BGE.Debug
+
+  class MemoryDisplay extends DebugWindow
+
+    private memoryLabel as BGE.UI.Label
+    private device = CreateObject("roDeviceInfo")
+
+    function new(game as BGE.Game) as void
+      super(game)
+      m.width = 140
+      m.height = 40
+      m.vertAlign = "top"
+      m.horizAlign = "right"
+      m.memoryLabel = new BGE.UI.Label(game)
+      m.memoryLabel.drawableText.font = m.game.getFont("debugUI")
+      m.addChild(m.memoryLabel)
+    end function
+
+    override function onUpdate(dt)
+      level = m.device.GetGeneralMemoryLevel()
+
+      m.memoryLabel.setText(`Memory: ${level}`)
+      m.width = m.memoryLabel.width + 20
+    end function
+
+  end class
+
+end namespace

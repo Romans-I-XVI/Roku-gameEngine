@@ -59,67 +59,7 @@ namespace BGE
   end function
 
 
-  function Colors() as object
-    if invalid <> m and invalid <> m.BGEColorsConstant
-      return m.BGEColorsConstant
-    end if
 
-    colorsObj = {
-      Black: BGE.RGBAtoRGBA(0, 0, 0),
-      White: BGE.RGBAtoRGBA(255, 255, 255),
-      Red: BGE.RGBAtoRGBA(255, 0, 0),
-      Lime: BGE.RGBAtoRGBA(0, 255, 0),
-      Blue: BGE.RGBAtoRGBA(0, 0, 255),
-      Yellow: BGE.RGBAtoRGBA(255, 255, 0),
-      Cyan: BGE.RGBAtoRGBA(0, 255, 255),
-      Aqua: BGE.RGBAtoRGBA(0, 255, 255),
-      Magenta: BGE.RGBAtoRGBA(255, 0, 255),
-      Pink: BGE.RGBAtoRGBA(255, 0, 255),
-      Fuchsia: BGE.RGBAtoRGBA(255, 0, 255),
-      Silver: BGE.RGBAtoRGBA(192, 192, 192),
-      Gray: BGE.RGBAtoRGBA(128, 128, 128),
-      Grey: BGE.RGBAtoRGBA(128, 128, 128),
-      Maroon: BGE.RGBAtoRGBA(128, 0, 0),
-      Olive: BGE.RGBAtoRGBA(128, 128, 0),
-      Green: BGE.RGBAtoRGBA(0, 128, 0),
-      Purple: BGE.RGBAtoRGBA(128, 0, 128),
-      Teal: BGE.RGBAtoRGBA(0, 128, 128),
-      Navy: BGE.RGBAtoRGBA(0, 0, 128),
-    }
-
-    if invalid <> m
-      m.BGEColorsConstant = colorsObj
-    end if
-
-    return colorsObj
-  end function
-
-  function GetColor(name as string) as integer
-    colorsObj = BGE.Colors()
-    color = colorsObj.White
-    if invalid <> colorsObj[name]
-      return colorsObj[name]
-    end if
-  end function
-
-  function registryWrite(registry_section as string, key as string, value as dynamic) as void
-    section = CreateObject("roRegistrySection", registry_section)
-    section.Write(key, FormatJson(value))
-    section.Flush()
-  end function
-
-  function registryRead(registry_section as string, key as string, default_value = invalid as dynamic) as dynamic
-    section = CreateObject("roRegistrySection", registry_section)
-    if section.Exists(key)
-      return ParseJson(section.Read(key))
-    else
-      if default_value <> invalid
-        section.Write(key, FormatJson(default_value))
-        section.Flush()
-      end if
-      return default_value
-    end if
-  end function
 
   function DrawText(draw2d as object, text as string, x as integer, y as integer, font as object, alignment = "left" as string, color = -1 as integer) as void
     if alignment = "left"
@@ -264,3 +204,6 @@ namespace BGE
     return invalid
   end function
 end namespace
+
+
+

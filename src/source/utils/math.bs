@@ -58,7 +58,7 @@ namespace BGE
 
   function Math_Power(number as dynamic, pow as integer) as dynamic
     n = 1
-    for i = 0 to pow
+    for i = 0 to pow - 1
       n *= number
     end for
     return n

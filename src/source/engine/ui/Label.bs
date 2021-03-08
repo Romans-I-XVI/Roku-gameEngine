@@ -18,6 +18,9 @@ namespace BGE.UI
       drawPosition = m.getDrawPosition(parent)
       if invalid <> m.drawableText
         m.drawableText.draw()
+        size = m.drawableText.getDrawnSize()
+        m.width = size.width
+        m.height = size.height
       end if
     end function
 

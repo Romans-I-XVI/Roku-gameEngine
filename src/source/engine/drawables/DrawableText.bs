@@ -4,8 +4,14 @@ namespace BGE
   class DrawableText extends Drawable
 
     text as string = ""
+
     font as object
     alignment as string = "left"
+
+    protected lastTextValue as string = ""
+    protected tempCanvas as object = invalid
+    protected drawnTextWidth as float = 0
+    protected drawnTextHeight as float = 0
 
     function new(owner as object, canvasBitmap as object, text = "" as string, font = invalid as object, args = {} as object) as void
       super(owner, canvasBitmap, args)
@@ -18,12 +24,37 @@ namespace BGE
     end function
 
     override function draw(additionalRotation = 0 as float) as void
-      ' TODO: Actually handle scale, rotation, etc.
-      position = m.getDrawPosition()
-      rgba = (m.color << 8) + int(m.alpha)
-      if invalid <> m.font
-        BGE.DrawText(m.drawTo, m.text, position.x, position.y, m.font, m.alignment, rgba)
+      if m.text = m.lastTextValue and invalid <> m.tempCanvas and not m.shouldRedraw
+        m.drawRegionToCanvas(m.tempCanvas, additionalRotation, true)
+        return
       end if
+      m.lastTextValue = m.text
+      m.drawnTextWidth = m.font.GetOneLineWidth(m.text, 10000)
+      m.drawnTextHeight = m.font.GetOneLineHeight() * BGE.getNumberOfLinesInAString(m.text)
+
+      m.tempCanvas = CreateObject("roBitmap", {
+        width: m.drawnTextWidth,
+        height: m.drawnTextHeight,
+        AlphaEnable: true
+      })
+      BGE.DrawText(m.tempCanvas, m.text, 0, 0, m.font, "left", BGE.Colors().White)
+      m.drawRegionToCanvas(m.tempCanvas, additionalRotation, true)
+      m.shouldRedraw = false
+    end function
+
+
+    protected override function getDrawPosition() as object
+      position = super.getDrawPosition()
+      if m.alignment = "center"
+        position.x -= m.drawnTextWidth / 2
+      else if m.alignment = "right"
+        position.x -= m.drawnTextWidth
+      end if
+      return position
+    end function
+
+    protected override function getDrawnSize() as object
+      return {width: m.drawnTextWidth * m.scale_x, height: m.drawnTextHeight * m.scale_y}
     end function
 
   end class
