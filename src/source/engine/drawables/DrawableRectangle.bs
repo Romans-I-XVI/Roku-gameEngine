@@ -3,8 +3,6 @@ namespace BGE
 
   class DrawableRectangle extends Drawable
 
-    width as float ' width of the rectangle
-    height as float ' height of the rectangle
     drawOutline as boolean = false
 
     outlineRGBA as integer = BGE.Colors().White
@@ -21,6 +19,10 @@ namespace BGE
     end function
 
     override function draw(additionalRotation = 0 as float) as void
+      if not m.enabled
+        return
+      end if
+
       if m.width = m.lastWidth and m.height = m.lastHeight and not m.shouldRedraw
         m.drawRegionToCanvas(m.tempCanvas, additionalRotation)
         return
@@ -33,7 +35,7 @@ namespace BGE
         height: m.height,
         AlphaEnable: true
       })
-      rgba = (m.color << 8) + int(m.alpha)
+      rgba = m.getFillColorRGBA()
       m.tempCanvas.drawRect(0, 0, m.width, m.height, rgba)
       if m.drawOutline
         BGE.DrawRectangleOutline(m.tempCanvas, 0, 0, m.width, m.height, m.outlineRGBA)
@@ -41,6 +43,7 @@ namespace BGE
       m.drawRegionToCanvas(m.tempCanvas, additionalRotation)
       m.shouldRedraw = false
     end function
+
 
   end class
 

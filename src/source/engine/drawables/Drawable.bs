@@ -19,6 +19,10 @@ namespace BGE
     ' These values should never need to be manually changed.
     protected owner as object ' owner GameEntity
 
+    protected width as float = 0
+    protected height as float = 0
+
+
     protected shouldRedraw as boolean = false
 
     function new(owner as object, canvasBitmap as object, args = {} as object) as void
@@ -63,12 +67,27 @@ namespace BGE
       m.shouldRedraw = true
     end function
 
+    function getSize() as object
+      return {width: -1, height: -1}
+    end function
+
+    function getDrawnSize() as object
+      return {width: -1, height: -1}
+    end function
+
+
+
+    protected function getFillColorRGBA(ignoreColor = false as boolean) as integer
+      rgba = ignoreColor ? BGE.Colors().White : (m.color << 8) + int(m.alpha)
+      return rgba
+    end function
+
 
     protected function drawRegionToCanvas(draw2d as object, additionalRotation = 0 as float, ignoreColor = false as boolean) as void
       position = m.getDrawPosition()
       x = position.x
       y = position.y
-      rgba = ignoreColor ? BGE.Colors().White : (m.color << 8) + int(m.alpha)
+      rgba = m.getFillColorRGBA(ignoreColor)
       totalRotation = additionalRotation + m.rotation
       if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0
         m.drawTo.DrawObject(x, y, draw2d, rgba)

@@ -30,7 +30,9 @@ namespace BGE
         totalRotation = additionalRotation + m.rotation
         if m.index >= 0 and m.index < m.regions.Count()
           m.region = m.regions[m.index]
-          m.drawRegion(additionalRotation)
+          m.drawRegionToCanvas(m.region, additionalRotation)
+          m.width = m.region.getWidth()
+          m.height = m.region.getHeight()
         end if
       end if
     end function

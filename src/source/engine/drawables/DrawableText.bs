@@ -10,8 +10,6 @@ namespace BGE
 
     protected lastTextValue as string = ""
     protected tempCanvas as object = invalid
-    protected drawnTextWidth as float = 0
-    protected drawnTextHeight as float = 0
 
     function new(owner as object, canvasBitmap as object, text = "" as string, font = invalid as object, args = {} as object) as void
       super(owner, canvasBitmap, args)
@@ -24,17 +22,21 @@ namespace BGE
     end function
 
     override function draw(additionalRotation = 0 as float) as void
+      if not m.enabled
+        return
+      end if
+
       if m.text = m.lastTextValue and invalid <> m.tempCanvas and not m.shouldRedraw
         m.drawRegionToCanvas(m.tempCanvas, additionalRotation, true)
         return
       end if
       m.lastTextValue = m.text
-      m.drawnTextWidth = m.font.GetOneLineWidth(m.text, 10000)
-      m.drawnTextHeight = m.font.GetOneLineHeight() * BGE.getNumberOfLinesInAString(m.text)
+      m.width = m.font.GetOneLineWidth(m.text, 10000)
+      m.height = m.font.GetOneLineHeight() * BGE.getNumberOfLinesInAString(m.text)
 
       m.tempCanvas = CreateObject("roBitmap", {
-        width: m.drawnTextWidth,
-        height: m.drawnTextHeight,
+        width: m.width,
+        height: m.height,
         AlphaEnable: true
       })
       BGE.DrawText(m.tempCanvas, m.text, 0, 0, m.font, "left", BGE.Colors().White)
@@ -46,15 +48,11 @@ namespace BGE
     protected override function getDrawPosition() as object
       position = super.getDrawPosition()
       if m.alignment = "center"
-        position.x -= m.drawnTextWidth / 2
+        position.x -= m.width / 2
       else if m.alignment = "right"
-        position.x -= m.drawnTextWidth
+        position.x -= m.height
       end if
       return position
-    end function
-
-    protected override function getDrawnSize() as object
-      return {width: m.drawnTextWidth * m.scale_x, height: m.drawnTextHeight * m.scale_y}
     end function
 
   end class

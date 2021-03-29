@@ -44,6 +44,8 @@ namespace BGE
       m.spriteSheet = spriteSheet
       m.cellWidth = cellWidth
       m.cellHeight = cellHeight
+      m.width = cellWidth
+      m.height = cellHeight
       m.setCellRegions()
       m.append(args)
     end function

@@ -20,11 +20,9 @@ namespace BGE
       if m.enabled
         m.drawRegion(m.region, additionalRotation)
       end if
+      m.width = m.region.getWidth()
+      m.height = m.region.getHeight()
     end function
-
-
-
-
 
   end class
 end namespace
