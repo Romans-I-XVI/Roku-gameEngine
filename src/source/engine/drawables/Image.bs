@@ -18,7 +18,7 @@ namespace BGE
 
     override function draw(additionalRotation = 0 as float) as void
       if m.enabled
-        m.drawRegion(m.region, additionalRotation)
+        m.drawRegionToCanvas(m.region, additionalRotation)
       end if
       m.width = m.region.getWidth()
       m.height = m.region.getHeight()

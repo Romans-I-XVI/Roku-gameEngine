@@ -68,11 +68,11 @@ namespace BGE
     end function
 
     function getSize() as object
-      return {width: -1, height: -1}
+      return {width: m.width, height: m.height}
     end function
 
     function getDrawnSize() as object
-      return {width: -1, height: -1}
+      return {width: m.width * m.scale_x, height: m.height * m.scale_y}
     end function
 
 

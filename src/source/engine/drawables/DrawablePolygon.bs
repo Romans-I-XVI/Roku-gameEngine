@@ -80,7 +80,7 @@ namespace BGE
     private function getTrianglesFromPoints(pointsArray = []as object) as object
       triangles = []
       if points.count() < 3
-        return
+        return triangles
       end if
       apex = pointsArray[0]
       for i = 1 to pointsArray.count() - 2 step 2
