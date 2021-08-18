@@ -17,7 +17,7 @@
     "clean": "rimraf brighterscript*.tgz && rimraf dist && rimraf out",
     "clean-all": "npm run clean && ./scripts/examples_clean.sh",
     "docs": "rimraf docs && ./node_modules/.bin/jsdoc -c jsdoc.json -d docs -t ./node_modules/braintree-jsdoc-template",
-    "prepare-examples": "npm run build && ./scripts/examples_ropm_install.sh"
+    "prepare-examples": "npm run build && ./scripts/examples_npm_install.sh"
   },
   "files": [
     "dist/**/*"
@@ -25,7 +25,7 @@
   "license": "MIT",
   "devDependencies": {
     "braintree-jsdoc-template": "^3.3.0",
-    "brighterscript": "^0.40.0",
+    "brighterscript": "file:../brighterscript",
     "brighterscript-jsdocs-plugin": "^0.3.0",
     "rimraf": "^3.0.2"
   },

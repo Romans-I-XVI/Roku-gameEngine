@@ -30,7 +30,7 @@ namespace BGE
   end function
 
   function Math_Atan2(y as float, x as float) as float
-    pi = BGE.Math_PI()
+    pi = Math_PI()
     if x > 0
       angle = Atn(y / x)
     else if y >= 0 and x < 0
@@ -68,17 +68,17 @@ namespace BGE
     if 0 = decimals
       return cint(number)
     else
-      magnitude = BGE.Math_Power(10, decimals)
+      magnitude = Math_Power(10, decimals)
       return cint(number * magnitude) / magnitude
     end if
   end function
 
   function Math_DegreesToRadians(degrees as float) as float
-    return (degrees / 180) * BGE.Math_PI()
+    return (degrees / 180) * Math_PI()
   end function
 
   function Math_RadiansToDegrees(radians as float) as float
-    return (180 / BGE.Math_PI()) * radians
+    return (180 / Math_PI()) * radians
   end function
 
   function Math_RandomRange(lowest_int as integer, highest_int as integer) as integer
@@ -86,7 +86,7 @@ namespace BGE
   end function
 
   function Math_RotateVectorAroundVector(vector1 as object, vector2 as object, radians as float) as object
-    v = BGE.Math_NewVector(vector1.x, vector1.y)
+    v = Math_NewVector(vector1.x, vector1.y)
     s = sin(radians)
     c = cos(radians)
 
@@ -135,7 +135,7 @@ namespace BGE
     end function
 
     rect.Copy = function() as object
-      return BGE.Math_NewRectangle(m.x, m.y, m.width, m.height)
+      return Math_NewRectangle(m.x, m.y, m.width, m.height)
     end function
 
     return rect
@@ -145,7 +145,7 @@ namespace BGE
     return {x: x, y: y, radius: radius}
   end function
 
-  function Math_TotalDistance(vector1 as object, vector2 as object) as object
+  function Math_TotalDistance(vector1 as object, vector2 as object) as float
     x_distance = vector1.x - vector2.x
     y_distance = vector1.y - vector2.y
     total_distance = Sqr(x_distance * x_distance + y_distance * y_distance)
@@ -155,7 +155,7 @@ namespace BGE
   function Math_GetAngle(vector1 as object, vector2 as object) as float
     x_distance = vector1.x - vector2.x
     y_distance = vector1.y - vector2.y
-    return BGE.Math_Atan2(y_distance, x_distance) + BGE.Math_PI()
+    return Math_Atan2(y_distance, x_distance) + Math_PI()
   end function
 
 end namespace

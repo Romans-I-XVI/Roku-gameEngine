@@ -1,6 +1,7 @@
 class MainRoom extends BGE.Room
 
   pixDraws = []
+  pixDraw = createObject("roBitmap", {width: 1280, height: 720, AlphaEnable: true, name: "MyBitmapName"})
   pixDraw2 = createObject("roBitmap", {width: 1280, height: 720, AlphaEnable: true, name: "MyBitmapName"})
   pixDraw3 = createObject("roBitmap", {width: 1280, height: 720, AlphaEnable: true, name: "MyBitmapName"})
 

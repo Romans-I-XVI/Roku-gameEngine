@@ -31,8 +31,9 @@ namespace BGE
 
 
   function NumberToFixed(num as float, precision as integer) as string
-    numStr = BGE.Math_Round(num, precision).toStr().trim()
-    decimalIndex = BGE.lastInStr(numStr, ".")
+    rounded = Math_Round(num, precision)
+    numStr = rounded.toStr().trim()
+    decimalIndex = lastInStr(numStr, ".")
     if - 1 = decimalIndex
       numStr += "." + string(precision, "0")
       return numStr

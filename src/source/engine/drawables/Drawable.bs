@@ -3,17 +3,27 @@ namespace BGE
 
   class Drawable
     ' --------------Values That Can Be Changed------------
-    name = ""
-    offset_x = 0 ' The offset of the image.
-    offset_y = 0
-    scale_x = 1.0 ' The image scale.
-    scale_y = 1.0
-    rotation = 0
-    color = &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
-    alpha = 255 ' Change the image alpha (transparency).
-    enabled = true ' Whether or not the image will be drawn.
-    offsetPositionFromOwner = true
-    drawTo as object ' m.game.getCanvas()
+    name as string = ""
+
+    ' The offset of the image.
+    offset_x as float = 0.1
+    offset_y as float = 0.2
+
+    ' The image scale.
+    scale_x as float = 1.0
+    scale_y as float = 1.0
+
+    rotation as float = 0
+
+    color as integer = &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+
+    alpha as float = 255 ' Change the image alpha (transparency).
+
+    enabled as boolean = true ' Whether or not the image will be drawn.
+
+    offsetPositionFromOwner as boolean = true
+
+    drawTo as object = invalid ' m.game.getCanvas()
 
     ' -------------Never To Be Manually Changed-----------------
     ' These values should never need to be manually changed.
@@ -21,7 +31,6 @@ namespace BGE
 
     protected width as float = 0
     protected height as float = 0
-
 
     protected shouldRedraw as boolean = false
 
@@ -75,13 +84,10 @@ namespace BGE
       return {width: m.width * m.scale_x, height: m.height * m.scale_y}
     end function
 
-
-
     protected function getFillColorRGBA(ignoreColor = false as boolean) as integer
       rgba = ignoreColor ? BGE.Colors().White : (m.color << 8) + int(m.alpha)
       return rgba
     end function
-
 
     protected function drawRegionToCanvas(draw2d as object, additionalRotation = 0 as float, ignoreColor = false as boolean) as void
       position = m.getDrawPosition()

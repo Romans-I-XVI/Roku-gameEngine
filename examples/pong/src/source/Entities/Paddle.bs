@@ -1,7 +1,7 @@
 class Paddle extends BGE.GameEntity
 
-  width = invalid
-  height = invalid
+  width as float = invalid
+  height as float = 0
   bounds = {top: 50, bottom: 720 - 50}
 
   function new(game) as void

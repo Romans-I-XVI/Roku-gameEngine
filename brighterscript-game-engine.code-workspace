@@ -19,5 +19,7 @@
       "path": "."
     }
   ],
-  "settings": {}
+  "settings": {
+    "brightscript.bsdk": "node_modules/brighterscript"
+  }
 }

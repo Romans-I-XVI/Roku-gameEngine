@@ -7,26 +7,26 @@ namespace BGE
     end if
 
     colorsObj = {
-      Black: BGE.RGBAtoRGBA(0, 0, 0),
-      White: BGE.RGBAtoRGBA(255, 255, 255),
-      Red: BGE.RGBAtoRGBA(255, 0, 0),
-      Lime: BGE.RGBAtoRGBA(0, 255, 0),
-      Blue: BGE.RGBAtoRGBA(0, 0, 255),
-      Yellow: BGE.RGBAtoRGBA(255, 255, 0),
-      Cyan: BGE.RGBAtoRGBA(0, 255, 255),
-      Aqua: BGE.RGBAtoRGBA(0, 255, 255),
-      Magenta: BGE.RGBAtoRGBA(255, 0, 255),
-      Pink: BGE.RGBAtoRGBA(255, 0, 255),
-      Fuchsia: BGE.RGBAtoRGBA(255, 0, 255),
-      Silver: BGE.RGBAtoRGBA(192, 192, 192),
-      Gray: BGE.RGBAtoRGBA(128, 128, 128),
-      Grey: BGE.RGBAtoRGBA(128, 128, 128),
-      Maroon: BGE.RGBAtoRGBA(128, 0, 0),
-      Olive: BGE.RGBAtoRGBA(128, 128, 0),
-      Green: BGE.RGBAtoRGBA(0, 128, 0),
-      Purple: BGE.RGBAtoRGBA(128, 0, 128),
-      Teal: BGE.RGBAtoRGBA(0, 128, 128),
-      Navy: BGE.RGBAtoRGBA(0, 0, 128),
+      Black: RGBAtoRGBA(0, 0, 0),
+      White: RGBAtoRGBA(255, 255, 255),
+      Red: RGBAtoRGBA(255, 0, 0),
+      Lime: RGBAtoRGBA(0, 255, 0),
+      Blue: RGBAtoRGBA(0, 0, 255),
+      Yellow: RGBAtoRGBA(255, 255, 0),
+      Cyan: RGBAtoRGBA(0, 255, 255),
+      Aqua: RGBAtoRGBA(0, 255, 255),
+      Magenta: RGBAtoRGBA(255, 0, 255),
+      Pink: RGBAtoRGBA(255, 0, 255),
+      Fuchsia: RGBAtoRGBA(255, 0, 255),
+      Silver: RGBAtoRGBA(192, 192, 192),
+      Gray: RGBAtoRGBA(128, 128, 128),
+      Grey: RGBAtoRGBA(128, 128, 128),
+      Maroon: RGBAtoRGBA(128, 0, 0),
+      Olive: RGBAtoRGBA(128, 128, 0),
+      Green: RGBAtoRGBA(0, 128, 0),
+      Purple: RGBAtoRGBA(128, 0, 128),
+      Teal: RGBAtoRGBA(0, 128, 128),
+      Navy: RGBAtoRGBA(0, 0, 128),
     }
 
     if invalid <> m
@@ -43,7 +43,7 @@ namespace BGE
 
     colorsRGBObj = {}
 
-    for each color in BGE.Colors().Items()
+    for each color in Colors().Items()
       colorsRGBObj[color.key] = color.value >> 8
     end for
 
@@ -55,7 +55,7 @@ namespace BGE
   end function
 
   function GetColor(name as string) as integer
-    colorsObj = BGE.Colors()
+    colorsObj = Colors()
     color = colorsObj.White
     if invalid <> colorsObj[name]
       return colorsObj[name]
@@ -64,7 +64,7 @@ namespace BGE
 
 
   function GetColorRGB(name as string) as integer
-    colorsObj = BGE.ColorsGB()
+    colorsObj = ColorsRGB()
     color = colorsObj.White
     if invalid <> colorsObj[name]
       return colorsObj[name]

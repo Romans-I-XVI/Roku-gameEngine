@@ -51,7 +51,7 @@ namespace BGE
 
     private buttonHeld = -1
     private buttonHeldTime = 0
-    private input_entity = invalid
+    private inputEntityId as string = invalid
     private currentInputEntityId = invalid
     private dt = 0
     private totalRunTime = 0
@@ -248,10 +248,10 @@ namespace BGE
 
       while m.running
 
-        if m.input_entity <> invalid and m.getEntityByID(m.input_entity) = invalid
-          m.input_entity = invalid
+        if m.inputEntityId <> invalid and m.getEntityByID(m.inputEntityId) = invalid
+          m.inputEntityId = invalid
         end if
-        m.currentInputEntityId = m.input_entity
+        m.currentInputEntityId = m.inputEntityId
         m.compositor.draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 
         m.dt = m.dtTimer.TotalMilliseconds() / 1000
@@ -293,7 +293,7 @@ namespace BGE
         music_msg = m.music_port.GetMessage()
 
         ' ----------------------Handle entity interactions (collisions, etc)--------------------
-        m.processEntitiesPreDraw(universalControlEvents)
+        m.processEntitiesPreDraw(universalControlEvents, music_msg, ecp_msg, url_msg)
 
         ' ----------------------Clear the screen before drawing entities-------------------------
         if m.background_color <> invalid
@@ -307,10 +307,10 @@ namespace BGE
         m.drawDebugItems()
 
         ' ---------------------- Handle all UI updates and draws -------------------------
-        m.processAndDrawUI(universalControlEvents)
+        m.processAndDrawUI(universalControlEvents, music_msg, ecp_msg, url_msg)
 
         ' ---------------------- Handle all Debug UI updates and draws -------------------------
-        m.processAndDrawDebugUI(universalControlEvents)
+        m.processAndDrawDebugUI(universalControlEvents, music_msg, ecp_msg, url_msg)
 
         ' -------------------Draw everything to the screen----------------------------
         if not m.canvas_is_screen
@@ -349,8 +349,11 @@ namespace BGE
     ' Handles all the processing for the entities before drawing
     '
     ' @param {object} universalControlEvents - array of any control events that happened since last frame
+    ' @param {object} music_msg - audio player event in last frame
+    ' @param {object} ecp_msg  - input event in last frame
+    ' @param {object} url_msg - url event in last frame
     ' @return {void}
-    private function processEntitiesPreDraw(universalControlEvents as object) as void
+    private function processEntitiesPreDraw(universalControlEvents as object, music_msg as object, ecp_msg as object, url_msg as object) as void
       started_paused = m.paused
 
       ' Process all Entity Updates
@@ -472,7 +475,7 @@ namespace BGE
         end if
 
         if entity.onECPKeyboard <> invalid and msg.GetChar() <> 0 and msg.GetChar() = msg.GetInt()
-          entity.onECPKeyboard(Chr(msg.GetChar()))
+          entity.onECPKeyboard(Chr(msg.GetChar()).toStr())
           if not m.isValidEntity(entity)
             return false
           end if
@@ -796,8 +799,11 @@ namespace BGE
     ' Function to handle all input and updates and draws for UI layer
     '
     ' @param {object} universalControlEvents - array of control events since last frame
-    private function processAndDrawUI(universalControlEvents as object) as void
-      m.processUiUpdate(m.gameUi, universalControlEvents)
+    ' @param {object} music_msg - audio player event in last frame
+    ' @param {object} ecp_msg  - input event in last frame
+    ' @param {object} url_msg - url event in last frame
+    private function processAndDrawUI(universalControlEvents as object, music_msg as object, ecp_msg as object, url_msg as object) as void
+      m.processUiUpdate(m.gameUi, universalControlEvents, music_msg, ecp_msg, url_msg)
 
       if m.isValidEntity(m.gameUi) and invalid <> m.gameUi.draw
         m.gameUi.draw()
@@ -808,7 +814,11 @@ namespace BGE
     '
     ' @param {BGE.Ui.UiWidget} - widget to process
     ' @param {object} universalControlEvents - array of control events since last frame
-    private function processUiUpdate(uiEntity as BGE.Ui.UiWidget, universalControlEvents as object) as void
+    ' @param {object} music_msg - audio player event in last frame
+    ' @param {object} ecp_msg  - input event in last frame
+    ' @param {object} url_msg - url event in last frame
+
+    private function processUiUpdate(uiEntity as BGE.Ui.UiWidget, universalControlEvents as object, music_msg, ecp_msg, url_msg) as void
       ' --------------------First process the onInput() function--------------------
       if m.isValidEntity(uiEntity)
         m.processEntityOnInput(uiEntity, universalControlEvents)
@@ -849,8 +859,11 @@ namespace BGE
     ' Function to handle all input and updates and draws for Debug UI layer
     '
     ' @param {object} universalControlEvents - array of control events since last frame
-    private function processAndDrawDebugUI(universalControlEvents as object) as void
-      m.processUiUpdate(m.debugUi, universalControlEvents)
+    ' @param {object} music_msg - audio player event in last frame
+    ' @param {object} ecp_msg  - input event in last frame
+    ' @param {object} url_msg - url event in last frame
+    private function processAndDrawDebugUI(universalControlEvents as object, music_msg as object, ecp_msg as object, url_msg as object) as void
+      m.processUiUpdate(m.debugUi, universalControlEvents, music_msg, ecp_msg, url_msg)
 
       if m.debugging.show_debug_ui and m.isValidEntity(m.debugUi) and invalid <> m.debugUi.draw
         m.debugUi.draw()
@@ -1236,7 +1249,7 @@ namespace BGE
     '
     ' @return {void}
     function resetRoom() as void
-      m.changeRoom(m.currentRoom, m.currentRoomArgs)
+      m.changeRoom(m.currentRoom.name, m.currentRoomArgs)
     end function
 
 
@@ -1496,7 +1509,7 @@ namespace BGE
     ' @param {GameEntity} entity
     ' @return {void}
     function setInputEntity(entity as GameEntity) as void
-      m.input_entity = entity.id
+      m.inputEntityId = entity.id
     end function
 
 
@@ -1504,7 +1517,7 @@ namespace BGE
     '
     ' @return {void}
     function unsetInputEntity() as void
-      m.input_entity = invalid
+      m.inputEntityId = invalid
     end function
 
 
