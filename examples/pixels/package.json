@@ -8,11 +8,8 @@
   "ropm": {
     "rootDir": "src"
   },
-  "dependencies": {
-    "bge": "file:../.."
-  },
   "devDependencies": {
-    "brighterscript": "^0.37.0",
+    "brighterscript": "^0.40.0",
     "rimraf": "^3.0.2",
     "ropm": "^0.9.1"
   }

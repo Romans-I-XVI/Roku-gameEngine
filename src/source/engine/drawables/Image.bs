@@ -9,7 +9,7 @@ namespace BGE
     private region as object
 
 
-    function new(owner as object, canvasBitmap as object, region as object, args = {} as object) as void
+    function new(owner as GameEntity, canvasBitmap as object, region as object, args = {} as object) as void
       super(owner, canvasBitmap, args)
       m.region = region
       m.append(args)

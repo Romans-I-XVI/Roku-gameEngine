@@ -1,0 +1,31 @@
+' @module BGE
+namespace BGE.Debug
+
+  class GarbageCollectorDisplay extends DebugWindow
+
+    private garbageLabel as BGE.UI.Label
+
+    function new(game as BGE.Game) as void
+      super(game)
+      m.width = 140
+      m.height = 40
+      m.vertAlign = "bottom"
+      m.horizAlign = "right"
+      m.garbageLabel = new BGE.UI.Label(game)
+      m.garbageLabel.drawableText.font = m.game.getFont("debugUI")
+      m.addChild(m.garbageLabel)
+    end function
+
+    override function onUpdate(dt)
+      stats = m.game.getGarbageCollectionStats()
+      if invalid <> stats
+        m.garbageLabel.setText(`Objects: ${stats.count}, Orphans: ${stats.orphaned}, Root: ${stats.root}`)
+      else
+        m.garbageLabel.setText(`No Garbage Collection Data`)
+      end if
+      m.width = m.garbageLabel.width + 20
+    end function
+
+  end class
+
+end namespace

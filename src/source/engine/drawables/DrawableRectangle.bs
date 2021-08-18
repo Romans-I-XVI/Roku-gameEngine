@@ -11,7 +11,7 @@ namespace BGE
     protected lastWidth as float = 0
     protected lastHeight as float = 0
 
-    function new(owner as object, canvasBitmap as object, width as float, height as float, args = {} as object) as void
+    function new(owner as GameEntity, canvasBitmap as object, width as float, height as float, args = {} as object) as void
       super(owner, canvasBitmap, args)
       m.width = width
       m.height = height

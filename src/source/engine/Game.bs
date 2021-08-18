@@ -54,10 +54,12 @@ namespace BGE
     private input_entity = invalid
     private currentInputEntityId = invalid
     private dt = 0
+    private totalRunTime = 0
     private FakeDT = invalid
     private dtTimer = CreateObject("roTimespan")
     private pauseTimer = CreateObject("roTimespan")
     private buttonHeldTimer = CreateObject("roTimespan")
+    private garbageCollectionTimer = CreateObject("roTimespan")
     private currentID = 0
     private shouldUseIntegerMovement = false
     private enableAudioGuideSuppression = true
@@ -76,6 +78,8 @@ namespace BGE
     private screen as object = invalid
     private canvas as Canvas = invalid
     private nextGameEntityId as integer = 0
+    private secondsBetweenGarbageCollection = 1
+    private lastGarbageCollection as object = invalid
     ' ****END - For Internal Use, Do Not Manually Alter****
 
 
@@ -127,6 +131,7 @@ namespace BGE
 
       ' Register all fonts in package
       m.setUpFonts()
+      m.lastGarbageCollection = RunGarbageCollector()
 
       ' ############### Create Initial Object - End ###############
     end function
@@ -150,17 +155,17 @@ namespace BGE
       end for
 
       if UIResolution.name = "SD"
-        'bs:disable-next-line
+
         m.screen = CreateObject("roScreen", true, 854, 626)
       else
         if canvas_width <= 854
-          'bs:disable-next-line
+
           m.screen = CreateObject("roScreen", true, 854, 480)
         else if canvas_width <= 1280 or not FHD_Supported
-          'bs:disable-next-line
+
           m.screen = CreateObject("roScreen", true, 1280, 720)
         else
-          'bs:disable-next-line
+
           m.screen = CreateObject("roScreen", true, 1920, 1080)
         end if
       end if
@@ -250,6 +255,7 @@ namespace BGE
         m.compositor.draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 
         m.dt = m.dtTimer.TotalMilliseconds() / 1000
+        m.totalRunTime += m.dt
         if m.FakeDT <> invalid
           m.dt = m.FakeDT
         end if
@@ -329,6 +335,11 @@ namespace BGE
           if invalid <> url_transfer_id_string and m.urlTransfers.DoesExist(url_transfer_id_string)
             m.urlTransfers.Delete(url_transfer_id_string)
           end if
+        end if
+
+        if m.garbageCollectionTimer.totalMilliseconds() > (m.secondsBetweenGarbageCollection * 1000)
+          m.lastGarbageCollection = runGarbageCollector()
+          m.garbageCollectionTimer.mark()
         end if
 
       end while
@@ -416,7 +427,6 @@ namespace BGE
       end for
 
     end function
-
 
 
     ' Checks if an entity is still valid
@@ -700,13 +710,19 @@ namespace BGE
     end function
 
 
-    ' What's the time in milliseconds since last frame?
+    ' What's the time in seconds since last frame?
     '
     ' @return {float}
     function getDeltaTime() as float
       return m.dt
     end function
 
+    ' What's the total time in seconds since ths start
+    '
+    ' @return {float}
+    function getTotalTime() as float
+      return m.totalRunTime
+    end function
 
     ' Gets the current Room/Level the game is using
     '
@@ -908,6 +924,14 @@ namespace BGE
     ' @return {void}
     function debugLimitFrameRate(limit_frame_rate as integer) as void
       m.debugging.limit_frame_rate = limit_frame_rate
+    end function
+
+    ' Gets the latest stats from automatic garbage collection
+    ' https://developer.roku.com/en-ca/docs/references/brightscript/language/global-utility-functions.md#rungarbagecollector-as-object
+    '
+    ' @return {object} Stats of garbage collection. Properties: count, orphaned, root
+    function getGarbageCollectionStats() as object
+      return m.lastGarbageCollection
     end function
 
 

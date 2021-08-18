@@ -67,7 +67,6 @@ class Rock extends SpaceEntity
     m.height = rockHeight
     m.rockCollider = m.addCircleCollider("rock", size / 2)
 
-    'bs:disable-next-line
     region = CreateObject("roRegion", rockBitmap, 0, 0, rockWidth, rockHeight)
     region.SetPreTranslation(- rockWidth / 2, - rockHeight / 2)
     m.rockImage = m.addImage("rock", region, {})

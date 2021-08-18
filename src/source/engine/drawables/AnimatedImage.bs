@@ -15,7 +15,7 @@ namespace BGE
     private animationTimer = new GameTimer()
     private tweensReference = GetTweens()
 
-    function new(owner as object, canvasBitmap as object, regions as object, args = {} as object)
+    function new(owner as GameEntity, canvasBitmap as object, regions as object, args = {} as object)
       super(owner, canvasBitmap, invalid, args)
       m.regions = regions
       m.append(args)

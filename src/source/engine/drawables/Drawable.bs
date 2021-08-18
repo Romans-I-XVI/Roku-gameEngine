@@ -17,7 +17,7 @@ namespace BGE
 
     ' -------------Never To Be Manually Changed-----------------
     ' These values should never need to be manually changed.
-    protected owner as object ' owner GameEntity
+    protected owner as GameEntity ' owner GameEntity
 
     protected width as float = 0
     protected height as float = 0
@@ -25,7 +25,7 @@ namespace BGE
 
     protected shouldRedraw as boolean = false
 
-    function new(owner as object, canvasBitmap as object, args = {} as object) as void
+    function new(owner as GameEntity, canvasBitmap as object, args = {} as object) as void
       m.owner = owner
       m.drawTo = canvasBitmap
       m.append(args)

@@ -1,0 +1,64 @@
+class Polygon extends BGE.GameEntity
+
+  sizeConfig as object = invalid
+  polygonDrawable as BGE.Drawable = invalid
+  clockWise as integer = 1
+  rotSpeed as float = 1
+
+  function new(game) as void
+    super(game)
+    m.name = "Polygon"
+    m.clockWise = (rnd(2) = 1) ? 1 : -1
+    m.rotSpeed = rnd(10) + 1
+  end function
+
+  override function onUpdate(deltaTime as float)
+    m.rotation += m.clockWise * deltaTime * BGE.Math_PI() * m.rotSpeed
+    if invalid = m.sizeConfig or not m.sizeConfig.change
+      return invalid
+    end if
+    changedPoints = []
+    i = 0
+    for each point in m.polygonDrawable.points
+      factor = m.clockWise
+      if int(m.game.getTotalTime() / 5) mod 2 = 0
+        factor *= -1
+      end if
+      if i mod 2 = 0
+        factor *= -1
+      end if
+      changedPoints.push({x: point.x + deltaTime * 10 * factor, y: point.y + deltaTime * 10 * factor})
+      i++
+    end for
+    m.polygonDrawable.points = changedPoints
+  end function
+
+
+  override function onCreate(args)
+    m.y = args.y
+    m.x = args.x
+    m.sizeConfig = args.sizeConfig
+    m.polygonDrawable = new BGE.DrawablePolygon(m, m.game.getCanvas(), m.getRandomPolygon())
+    m.addImageObject("polygon", m.polygonDrawable)
+    m.polygonDrawable.color = m.getRandomColor()
+    m.polygonDrawable.outlineRGBA = m.getRandomColor()
+  end function
+
+  function getRandomPolygon() as object
+    tri = []
+    size = rnd(10) + 2
+    maxSize = m.sizeConfig.size
+    for i = 0 to size - 1
+      tri.push({x: rnd(maxSize) - maxSize * 0.5, y: rnd(maxSize) - maxSize * 0.5})
+    end for
+
+    return tri
+  end function
+
+
+  function getRandomColor() as integer
+    color% = rnd(256 * 256 * 256)
+    return color%
+  end function
+
+end class

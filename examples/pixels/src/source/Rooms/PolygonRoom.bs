@@ -1,0 +1,57 @@
+class PolygonRoom extends BGE.Room
+
+  polygonEntities = []
+  polygonCount = 10
+  totalEntities = 0
+
+  sizeConfig = {change: false, size: 200}
+
+  function new(game) as void
+    super(game)
+    m.name = "PolygonRoom"
+  end function
+
+  override function onCreate(args)
+    m.getRandomPolygons()
+  end function
+
+
+  function getRandomPolygons()
+    for each polygonEntity in m.polygonEntities
+      m.game.destroyEntity(polygonEntity)
+    end for
+    m.polygonEntities = []
+    for i = 0 to m.polygonCount - 1
+      x = rnd(m.game.screen.GetWidth())
+      y = rnd(m.game.screen.GetHeight())
+      poly = m.game.addEntity(new Polygon(m.game), {x: x, y: y, sizeConfig: m.sizeConfig})
+      m.polygonEntities.push(poly)
+      m.totalEntities++
+    end for
+    garbage = RunGarbageCollector()
+  end function
+
+  override sub onInput(input)
+    if not input.press
+      if input.isButton("play")
+        m.sizeConfig.change = not input.release
+      end if
+      return
+    end if
+    m.sizeConfig.change = false
+    if input.isButton("ok")
+      m.getRandomPolygons()
+    else if input.isButton("up")
+      m.polygonCount = int(m.polygonCount * 1.2)
+      m.getRandomPolygons()
+    else if input.isButton("down")
+      m.polygonCount = int(m.polygonCount / 1.2)
+      m.getRandomPolygons()
+    end if
+  end sub
+
+  override function onGameEvent(event as string, data as object)
+
+  end function
+
+end class

@@ -12,7 +12,7 @@
     "bge": "file:../../brighterscript-game-engine-0.1.0.tgz"
   },
   "devDependencies": {
-    "brighterscript": "^0.37.0",
+    "brighterscript": "^0.40.0",
     "rimraf": "^3.0.2",
     "ropm": "^0.9.1"
   }

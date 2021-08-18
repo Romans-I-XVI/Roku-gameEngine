@@ -78,7 +78,7 @@ namespace BGE
     if new_width <> 0 and new_height <> 0
 
       scaledBitmap = CreateObject("roBitmap", {width: new_width, height: new_height, AlphaEnable: true})
-      'bs:disable-next-line
+
       scaledRegion = CreateObject("roRegion", scaledBitmap, 0, 0, new_width, new_height)
       pretranslation_x = drawable.GetPretranslationX()
       pretranslation_y = drawable.GetPretranslationY()
@@ -106,11 +106,10 @@ namespace BGE
     if type(atlas) = "String" or type(atlas) = "roString"
       atlas = ParseJson(atlas)
     end if
-
     regions = {}
     for each key in atlas.frames
       item = atlas.frames[key]
-      'bs:disable-next-line
+
       region = CreateObject("roRegion", bitmap, item.frame.x, item.frame.y, item.frame.w, item.frame.h)
 
       if item.DoesExist("pivot")
@@ -202,6 +201,15 @@ namespace BGE
       return possibleButtonNames[buttonId]
     end if
     return invalid
+  end function
+
+
+  function cloneArray(original = [] as object) as object
+    retVal = []
+    for each item in original
+      retVal.push(item)
+    end for
+    return retVal
   end function
 end namespace
 

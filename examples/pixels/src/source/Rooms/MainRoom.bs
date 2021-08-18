@@ -97,7 +97,7 @@ class MainRoom extends BGE.Room
     ydelta = (720 / rows)
 
     for i = 0 to m.triangleCount - 1
-      'bs:disable-next-line
+
       region1 = CreateObject("roRegion", m.pixDraws[i], 0, 0, m.TriangleMaxSize, m.TriangleMaxSize)
       region1.SetPreTranslation(- m.TriangleMaxSize / 2, - m.TriangleMaxSize / 2)
       rotation = m.rot
