@@ -1,11 +1,15 @@
 ' @module BGE
 namespace BGE
 
+  ' Class to draw text
   class DrawableText extends Drawable
 
+    ' The text to write on the screen
     text as string = ""
-
+    ' The Font object to use ( get this from the font registry)
     font as object
+
+    ' The Horizontal alignment for the text: "left", "center", "right"
     alignment as string = "left"
 
     protected lastTextValue as string = ""
@@ -47,9 +51,10 @@ namespace BGE
 
     protected override function getDrawPosition() as object
       position = super.getDrawPosition()
-      if m.alignment = "center"
+      alignment = lcase(m.alignment)
+      if alignment = "center"
         position.x -= m.width / 2
-      else if m.alignment = "right"
+      else if alignment = "right"
         position.x -= m.height
       end if
       return position

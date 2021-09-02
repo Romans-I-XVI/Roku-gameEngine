@@ -1,29 +1,39 @@
 ' @module BGE
 namespace BGE
 
+
+  ' Abstract drawable class - all drawables extend from this
   class Drawable
     ' --------------Values That Can Be Changed------------
     name as string = ""
 
-    ' The offset of the image.
-    offset_x as float = 0.1
-    offset_y as float = 0.2
+    ' The horizontal offset of the image from the owner's x position
+    offset_x as float = 0
+    ' The vertical offset of the image from the owner's y position
+    offset_y as float = 0
 
-    ' The image scale.
+    ' The image scale - horizontal
     scale_x as float = 1.0
+    ' The image scale - vertical
     scale_y as float = 1.0
 
+    ' Rotation of the image
     rotation as float = 0
 
-    color as integer = &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+    ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+    color as integer = &hFFFFFF
 
-    alpha as float = 255 ' Change the image alpha (transparency).
+    ' Change the image alpha (transparency).
+    alpha as float = 255
 
-    enabled as boolean = true ' Whether or not the image will be drawn.
+    ' Whether or not the image will be drawn.
+    enabled as boolean = true
 
+    ' Should the image be offset from teh owner, or from the canvas's origin?
     offsetPositionFromOwner as boolean = true
 
-    drawTo as object = invalid ' m.game.getCanvas()
+    ' The canvas this will be drawn to (e.g. m.game.getCanvas())
+    drawTo as object = invalid
 
     ' -------------Never To Be Manually Changed-----------------
     ' These values should never need to be manually changed.
@@ -52,10 +62,17 @@ namespace BGE
       m.scale_y = scale_y
     end function
 
+    ' Sets the canvas this will draw to
+    '
+    ' @param {object} [canvas] The canvas (roBitmap) this should draw to
+    sub setCanvas(canvas as object)
+      m.drawTo = canvas
+    end sub
+
     protected function getDrawPosition() as object
       x = m.offset_x
       y = m.offset_y
-      if invalid <> m.owner
+      if invalid <> m.owner and m.offsetPositionFromOwner
         x += m.owner.x
         y += m.owner.y
       end if
@@ -106,4 +123,20 @@ namespace BGE
       end if
     end function
   end class
+
+
+  class DrawableWithOutline extends Drawable
+    ' Draw an outline stroke of outlineRGBA color
+    drawOutline as boolean = false
+
+    ' RGBA color for outline stroke
+    outlineRGBA as integer = BGE.Colors().White
+
+
+    function new(owner as GameEntity, canvasBitmap as object, args = {} as object) as void
+      super(owner, canvasBitmap, args)
+    end function
+  end class
+
+
 end namespace

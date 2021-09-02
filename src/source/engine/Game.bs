@@ -41,6 +41,8 @@ namespace BGE
       safe_title_zone_color: BGE.RGBAtoRGBA(0, 0, &hFF, 0.2)
       limit_frame_rate: 0
       show_debug_ui: false
+      draw_debugUi_to_screen: false
+
     }
 
     private canvas_is_screen = false
@@ -74,7 +76,7 @@ namespace BGE
     private screen_port = CreateObject("roMessagePort")
     private audioPlayer = CreateObject("roAudioPlayer")
     private music_port = CreateObject("roMessagePort")
-    private font_registry = CreateObject("roFontRegistry")
+    private fontRegistry = CreateObject("roFontRegistry")
     private screen as object = invalid
     private canvas as Canvas = invalid
     private nextGameEntityId as integer = 0
@@ -211,15 +213,15 @@ namespace BGE
       ttfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
       otfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".otf")
       for each font_path in ttfs_in_package
-        m.font_registry.Register("pkg:/fonts/" + font_path)
+        m.fontRegistry.Register("pkg:/fonts/" + font_path)
       end for
       for each font_path in otfs_in_package
-        m.font_registry.Register("pkg:/fonts/" + font_path)
+        m.fontRegistry.Register("pkg:/fonts/" + font_path)
       end for
 
       ' Create the default font
-      m.Fonts["default"] = m.font_registry.GetDefaultFont(28, false, false)
-      m.Fonts["debugUi"] = m.font_registry.GetDefaultFont(20, false, false)
+      m.fonts["default"] = m.fontRegistry.GetDefaultFont(28, false, false)
+      m.fonts["debugUi"] = m.fontRegistry.GetDefaultFont(20, false, false)
     end function
 
 
@@ -309,13 +311,13 @@ namespace BGE
         ' ---------------------- Handle all UI updates and draws -------------------------
         m.processAndDrawUI(universalControlEvents, music_msg, ecp_msg, url_msg)
 
-        ' ---------------------- Handle all Debug UI updates and draws -------------------------
-        m.processAndDrawDebugUI(universalControlEvents, music_msg, ecp_msg, url_msg)
-
         ' -------------------Draw everything to the screen----------------------------
         if not m.canvas_is_screen
           m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
         end if
+
+        ' ---------------------- Handle all Debug UI updates and draws -------------------------
+        m.processAndDrawDebugUI(universalControlEvents, music_msg, ecp_msg, url_msg)
 
         if m.debugging.draw_safe_zones
           m.drawSafeZones()
@@ -866,6 +868,11 @@ namespace BGE
       m.processUiUpdate(m.debugUi, universalControlEvents, music_msg, ecp_msg, url_msg)
 
       if m.debugging.show_debug_ui and m.isValidEntity(m.debugUi) and invalid <> m.debugUi.draw
+        if m.debugging.draw_debugUi_to_screen
+          m.debugUi.setCanvas(m.screen)
+        else
+          m.debugUi.setCanvas(m.getCanvas())
+        end if
         m.debugUi.draw()
       end if
     end function
@@ -906,9 +913,19 @@ namespace BGE
     ' Set if Debug UI/Windows should be drawn
     '
     ' @param {boolean} enabled
-    function debugShowUi(enabled as boolean) as void
+    ' @param {boolean} drawToScreen Draw the debug UI to the screen instead of the canvas
+    function debugShowUi(enabled as boolean, drawToScreen = false as boolean) as void
       m.debugging.show_debug_ui = enabled
+      m.debugging.draw_debugUi_to_screen = drawToScreen
+      debugCanvas = m.canvas
+      if drawToScreen
+        debugCanvas = m.screen
+      end if
+      m.debugUi.width = debugCanvas.getWidth()
+      m.debugUi.height = debugCanvas.getHeight()
     end function
+
+
 
 
     ' Sets the colors for the debug items to be drawn
@@ -1320,7 +1337,7 @@ namespace BGE
         path_object = CreateObject("roPath", path)
         parts = path_object.Split()
         if parts.extension = ".ttf" or parts.extension = ".otf"
-          m.font_registry.register(path)
+          m.fontRegistry.register(path)
           return true
         else
           print "Font must be of type .ttf or .otf"
@@ -1342,7 +1359,7 @@ namespace BGE
     ' @param {boolean} bold
     ' @return {void}
     function loadFont(fontName as string, font as string, size as integer, italic as boolean, bold as boolean) as void
-      m.Fonts[fontName] = m.font_registry.GetFont(font, size, italic, bold)
+      m.fonts[fontName] = m.fontRegistry.GetFont(font, size, italic, bold)
     end function
 
 
@@ -1351,7 +1368,7 @@ namespace BGE
     ' @param {string} fontName
     ' @return {void}
     function unloadFont(fontName as string) as void
-      m.Fonts[fontName] = invalid
+      m.fonts[fontName] = invalid
     end function
 
 
@@ -1361,7 +1378,7 @@ namespace BGE
     ' @param {string} fontName
     ' @return {object}
     function getFont(fontName as string) as object
-      return m.Fonts[fontName]
+      return m.fonts[fontName]
     end function
 
 

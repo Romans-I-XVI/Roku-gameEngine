@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>
-      Sprite - Documentation
+      engine/drawables/DrawablePolygon.bs - Documentation
   </title>
 
   <link href="https://www.braintreepayments.com/images/favicon-ccda0b14.png" rel="icon" type="image/png">
@@ -79,1294 +81,282 @@
   <div id="main">
     
       <h1 class="page-title">
-        Sprite
+        engine/drawables/DrawablePolygon.bs
       </h1>
     
 
     
+      
 
 <section>
-  <header>
-    
-      <h2>
-        
-          <span class="ancestors"><a href="module-BGE.html">BGE</a>.</span>
-        
-        Sprite
-        
-      </h2>
-
-      
-    
-  </header>
-
   <article>
-    <div class="container-overview">
-      
-        
-
-
-  
-
-  <span class='name-container'>
-    <a class="link-icon" href="#Sprite">
-      <svg height="20" width="20" style="fill: black;">
-        <use xlink:href="#linkIcon"></use>
-      </svg>
-    </a>
-    <h4 class="name" id="Sprite">
-      <span class="type-signature"></span>new Sprite<span class="signature">(owner, canvasBitmap, spriteSheet, cellWidth, cellHeight, args<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {dynamic}</span>
-    </h4>
-  </span>
-
-  
-
-
-
-
-
-
-
-
-
-  <h5>Parameters:</h5>
-  
-
-<table class="params">
-  <thead>
-    <tr>
-      
-        <th>Name</th>
-      
-
-      <th>Type</th>
-
-      
-        <th>Attributes</th>
-      
-
-      
-        <th>Default</th>
-      
-
-      <th class="last">Description</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    
-      <tr>
-        
-          <td class="name"><code>owner</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      GameEntity
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-      <tr>
-        
-          <td class="name"><code>canvasBitmap</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      object
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-      <tr>
-        
-          <td class="name"><code>spriteSheet</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      object
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-      <tr>
-        
-          <td class="name"><code>cellWidth</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      integer
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-      <tr>
-        
-          <td class="name"><code>cellHeight</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      integer
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-      <tr>
-        
-          <td class="name"><code>args</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      object
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-              &lt;optional><br>
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-              {}
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-  </tbody>
-</table>
-
-
-
-
-
-  <h5 class="subsection-title">Properties:</h5>
-
-  
-
-<table class="props">
-  <thead>
-    <tr>
-      
-        <th>Name</th>
-      
-
-      <th>Type</th>
-
-      
-
-      
-
-      <th class="last">Description</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    
-
-    <tr>
-      
-        <td class="name"><code>spriteSheet</code></td>
-      
-
-      <td class="type">
-        
-          
-    <span class="param-type">
-      object
-    </span>
-
-    
-
-
-        
-      </td>
-
-        
-
-        
-
-        <td class="description last">
-          
-          </td>
-    </tr>
-
-  
-
-    <tr>
-      
-        <td class="name"><code>cellWidth</code></td>
-      
-
-      <td class="type">
-        
-          
-    <span class="param-type">
-      integer
-    </span>
-
-    
-
-
-        
-      </td>
-
-        
-
-        
-
-        <td class="description last">
-          <p>roBitmap to pick cells from</p>
-          </td>
-    </tr>
-
-  
-
-    <tr>
-      
-        <td class="name"><code>cellHeight</code></td>
-      
-
-      <td class="type">
-        
-          
-    <span class="param-type">
-      integer
-    </span>
-
-    
-
-
-        
-      </td>
-
-        
-
-        
-
-        <td class="description last">
-          <p>Width of each animation cell in the sprite image in pixels</p>
-          </td>
-    </tr>
-
-  
-
-    <tr>
-      
-        <td class="name"><code>animations</code></td>
-      
-
-      <td class="type">
-        
-          
-    <span class="param-type">
-      object
-    </span>
-
-    
-
-
-        
-      </td>
-
-        
-
-        
-
-        <td class="description last">
-          
-          </td>
-    </tr>
-
-  
-
-    <tr>
-      
-        <td class="name"><code>activeAnimation</code></td>
-      
-
-      <td class="type">
-        
-          
-    <span class="param-type">
-      object
-    </span>
-
-    
-
-
-        
-      </td>
-
-        
-
-        
-
-        <td class="description last">
-          
-          </td>
-    </tr>
-
-  
-  </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source">
-      <ul class="dummy">
-        <li>
-          <a href="engine_drawables_Sprite.bs.html">engine/drawables/Sprite.bs</a>, <a href="engine_drawables_Sprite.bs.html#line42">line 42</a>
-        </li>
-      </ul>
-    </dd>
-  
-
-  
-
-  
-
-  
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-    </div>
-
-    
-      <h3 class="subsection-title">Extends</h3>
-
-      
-
-
-  <ul>
-    <li>AnimatedImage</li>
-  </ul>
-
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-      <h3 class="subsection-title">Methods</h3>
-
-      
-        
-
-
-  
-
-  <span class='name-container'>
-    <a class="link-icon" href="#addAnimation">
-      <svg height="20" width="20" style="fill: black;">
-        <use xlink:href="#linkIcon"></use>
-      </svg>
-    </a>
-    <h4 class="name" id="addAnimation">
-      <span class="type-signature"></span>addAnimation<span class="signature">(name, frameList, frameRate, playMode<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {object}</span>
-    </h4>
-  </span>
-
-  
-
-
-
-
-
-
-
-
-
-  <h5>Parameters:</h5>
-  
-
-<table class="params">
-  <thead>
-    <tr>
-      
-        <th>Name</th>
-      
-
-      <th>Type</th>
-
-      
-        <th>Attributes</th>
-      
-
-      
-        <th>Default</th>
-      
-
-      <th class="last">Description</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    
-      <tr>
-        
-          <td class="name"><code>name</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      string
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-      <tr>
-        
-          <td class="name"><code>frameList</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      object
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-      <tr>
-        
-          <td class="name"><code>frameRate</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      integer
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-      <tr>
-        
-          <td class="name"><code>playMode</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      string
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-          <td class="attributes">
-            
-              &lt;optional><br>
-            
-
-            
-
-            
-          </td>
-        
-
-        
-          <td class="default">
-            
-              "loop"
-            
-          </td>
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-  </tbody>
-</table>
-
-
-
-
-
-<dl class="details">
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source">
-      <ul class="dummy">
-        <li>
-          <a href="engine_drawables_Sprite.bs.html">engine/drawables/Sprite.bs</a>, <a href="engine_drawables_Sprite.bs.html#line80">line 80</a>
-        </li>
-      </ul>
-    </dd>
-  
-
-  
-
-  
-
-  
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-        
-
-
-  
-
-  <span class='name-container'>
-    <a class="link-icon" href="#applyPreTranslation">
-      <svg height="20" width="20" style="fill: black;">
-        <use xlink:href="#linkIcon"></use>
-      </svg>
-    </a>
-    <h4 class="name" id="applyPreTranslation">
-      <span class="type-signature"></span>applyPreTranslation<span class="signature">(x, y)</span><span class="type-signature"> &rarr; {void}</span>
-    </h4>
-  </span>
-
-  
-
-
-
-
-
-
-
-
-
-  <h5>Parameters:</h5>
-  
-
-<table class="params">
-  <thead>
-    <tr>
-      
-        <th>Name</th>
-      
-
-      <th>Type</th>
-
-      
-
-      
-
-      <th class="last">Description</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    
-      <tr>
-        
-          <td class="name"><code>x</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      integer
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-      <tr>
-        
-          <td class="name"><code>y</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      integer
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-  </tbody>
-</table>
-
-
-
-
-
-<dl class="details">
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source">
-      <ul class="dummy">
-        <li>
-          <a href="engine_drawables_Sprite.bs.html">engine/drawables/Sprite.bs</a>, <a href="engine_drawables_Sprite.bs.html#line70">line 70</a>
-        </li>
-      </ul>
-    </dd>
-  
-
-  
-
-  
-
-  
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-        
-
-
-  
-
-  <span class='name-container'>
-    <a class="link-icon" href="#getCellDrawIndex">
-      <svg height="20" width="20" style="fill: black;">
-        <use xlink:href="#linkIcon"></use>
-      </svg>
-    </a>
-    <h4 class="name" id="getCellDrawIndex">
-      <span class="type-signature"></span>getCellDrawIndex<span class="signature">()</span><span class="type-signature"> &rarr; {integer}</span>
-    </h4>
-  </span>
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source">
-      <ul class="dummy">
-        <li>
-          <a href="engine_drawables_Sprite.bs.html">engine/drawables/Sprite.bs</a>, <a href="engine_drawables_Sprite.bs.html#line93">line 93</a>
-        </li>
-      </ul>
-    </dd>
-  
-
-  
-
-  
-
-  
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-        
-
-
-  
-
-  <span class='name-container'>
-    <a class="link-icon" href="#playAnimation">
-      <svg height="20" width="20" style="fill: black;">
-        <use xlink:href="#linkIcon"></use>
-      </svg>
-    </a>
-    <h4 class="name" id="playAnimation">
-      <span class="type-signature"></span>playAnimation<span class="signature">(animationName)</span><span class="type-signature"> &rarr; {void}</span>
-    </h4>
-  </span>
-
-  
-
-
-
-
-
-
-
-
-
-  <h5>Parameters:</h5>
-  
-
-<table class="params">
-  <thead>
-    <tr>
-      
-        <th>Name</th>
-      
-
-      <th>Type</th>
-
-      
-
-      
-
-      <th class="last">Description</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    
-      <tr>
-        
-          <td class="name"><code>animationName</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      string
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-  </tbody>
-</table>
-
-
-
-
-
-<dl class="details">
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source">
-      <ul class="dummy">
-        <li>
-          <a href="engine_drawables_Sprite.bs.html">engine/drawables/Sprite.bs</a>, <a href="engine_drawables_Sprite.bs.html#line87">line 87</a>
-        </li>
-      </ul>
-    </dd>
-  
-
-  
-
-  
-
-  
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-    
-
-    
-
-    
+    <pre class="prettyprint source linenums"><code>' @module BGE
+namespace BGE
+
+  class DrawablePolygon extends Drawable
+
+    points as object = []
+    drawOutline as boolean = false
+
+    outlineRGBA as integer = BGE.Colors().White
+
+    ' The number of frames before the polygon is completely finished
+    drawLevels as integer = 2
+
+    ' Draw mode for the polygon, bitmask of:
+    '  1 wireframe (just edges of triangles)
+    '  2 fill (render with rectangles)
+    '  4 rays (render with rays)
+    drawModeMask as integer = 3
+
+    protected tempCanvas as object = invalid
+    protected lastPoints as object = []
+    protected triangles as object = []
+    protected lastDrawMode as integer = 3
+
+    protected currentDrawLevel = 0
+
+    protected minimumFrameRateTarget as integer = 12
+
+    protected maxDrawLevels as integer = 16
+
+    function new(owner as GameEntity, canvasBitmap as object, points = [] as object, args = {} as object) as void
+      super(owner, canvasBitmap, args)
+      m.points = m.cloneArray(points)
+      m.append(args)
+    end function
+
+    override function draw(additionalRotation = 0 as float) as void
+      if m.drawLevels &lt; 1
+        m.drawLevels = 1
+      end if
+      if not m.enabled
+        return
+      end if
+
+      m.automaticallyAdjustDrawLevels()
+
+      if m.pointArraysEqual(m.points, m.lastPoints) and not m.shouldRedraw and m.lastDrawMode = m.drawModeMask
+        if m.currentDrawLevel &lt; m.drawLevels
+          m.drawNextLevelOfPolygons()
+        end if
+        m.drawRegionToCanvas(m.tempCanvas, additionalRotation)
+        return
+      end if
+      m.lastDrawMode = m.drawModeMask
+      m.lastPoints = BGE.cloneArray(m.points)
+      m.hulledPoints = BGE.QuickHull.QuickHull(m.points)
+      m.triangles = BGE.QuickHull.getTrianglesFromPoints(m.hulledPoints, false)
+      widthAndOffset = m.getMaxWidthAndHorizontalOffset(m.hulledPoints)
+      heightAndOffset = m.getMaxHeightAndVerticalOffset(m.hulledPoints)
+      m.width = widthAndOffset.width
+      m.height = heightAndOffset.height
+      m.offset_x = widthAndOffset.offset
+      m.offset_y = heightAndOffset.offset
+
+      m.lastWidth = m.width
+      m.lastHeight = m.height
+      m.currentDrawLevel = 0
+
+      m.tempCanvas = CreateObject("roBitmap", {
+        width: m.width,
+        height: m.height,
+        AlphaEnable: true
+      })
+      m.drawNextLevelOfPolygons()
+      m.drawRegionToCanvas(m.tempCanvas, additionalRotation)
+      m.shouldRedraw = false
+    end function
+
+    private function cloneArray(original = [] as object) as object
+      retVal = []
+      for each item in original
+        retVal.push(item)
+      end for
+      return retVal
+    end function
+
+    private sub automaticallyAdjustDrawLevels()
+      frameExpectedPerTime = (m.owner.game.getDeltaTime() * m.minimumFrameRateTarget)
+      if m.drawLevels &lt; m.maxDrawLevels and frameExpectedPerTime > 1
+        m.drawLevels *= 2
+        if m.drawLevels &lt; m.maxDrawLevels and frameExpectedPerTime > 2
+          m.drawLevels *= 2
+        end if
+      else if frameExpectedPerTime &lt; 1 and m.drawLevels > 4
+        m.drawLevels /= 2
+        if m.currentDrawLevel > m.drawLevels
+          m.currentDrawLevel = 0
+        end if
+      end if
+    end sub
+
+    private function pointArraysEqual(a = [] as object, b = [] as object) as boolean
+      if a.count() &lt;> b.count()
+        return false
+      end if
+
+      same = true
+
+      for i = 0 to a.count() - 1
+        same = a[i].x = b[i].x and a[i].y = b[i].y
+        if not same
+          exit for
+        end if
+      end for
+
+      return same
+    end function
+
+    private sub drawNextLevelOfPolygons()
+      if m.drawModeMask and 2
+        m.drawPolygonRects(m.hulledPoints, m.drawLevels, m.currentDrawLevel)
+      end if
+      for each tri in m.triangles
+        if m.drawModeMask and 4
+          m.drawTriangleRays(tri, m.drawLevels, m.currentDrawLevel)
+        end if
+
+        if m.drawModeMask and 1
+          m.drawTriangleEdges(tri)
+          if m.drawModeMask = 1
+            m.currentDrawLevel = m.drawLevels
+          end if
+        end if
+      end for
+      m.currentDrawLevel++
+    end sub
+
+
+    private sub drawTriangleRays(tri, levelOfDetail = 1, levelOffset = 0)
+      if invalid = m.tempCanvas
+        return
+      end if
+
+      len0 = BGE.Math_TotalDistance(tri[1], tri[2])
+      len1 = BGE.Math_TotalDistance(tri[0], tri[2])
+      len2 = BGE.Math_TotalDistance(tri[0], tri[1])
+      apexIndex = 0
+      shortLength = 0
+
+      if len0 &lt;= len1 and len0 &lt;= len2
+        apexIndex = 0
+        shortLength = len0
+      else if len1 &lt;= len0 and len1 &lt; len0
+        apexIndex = 1
+        shortLength = len1
+      else ' if len2 &lt; len0 and len2 &lt; len1
+        apexIndex = 2
+        shortLength = len2
+      end if
+      apex = tri[apexIndex]
+      startP = tri[(apexIndex + 1) mod 3]
+      endP = tri[(apexIndex + 2) mod 3]
+
+      if shortLength > 0
+        rgba = m.getFillColorRGBA()
+        for i = levelOffset to shortLength step levelOfDetail
+          x = BGE.LinearTween(startP.x, endP.x, i, shortLength)
+          y = BGE.LinearTween(startP.y, endP.y, i, shortLength)
+          m.tempCanvas.drawLine(apex.x - m.offset_x, apex.y - m.offset_y, x - m.offset_x, y - m.offset_y, rgba)
+        end for
+      end if
+    end sub
+
+    private sub drawTriangleEdges(tri, levelOfDetail = 1, levelOffset = 0)
+      if invalid = m.tempCanvas or tri.count() &lt;> 3
+        return
+      end if
+      rgba = m.getFillColorRGBA()
+      outlineColor = rgba
+      if m.drawOutline
+        outlineColor = m.outlineRGBA
+      end if
+      p1 = tri[0]
+      p2 = tri[1]
+      p3 = tri[2]
+      m.tempCanvas.drawLine(p1.x - m.offset_x, p1.y - m.offset_y, p2.x - m.offset_x, p2.y - m.offset_y, outlineColor)
+      m.tempCanvas.drawLine(p1.x - m.offset_x, p1.y - m.offset_y, p3.x - m.offset_x, p3.y - m.offset_y, outlineColor)
+      m.tempCanvas.drawLine(p2.x - m.offset_x, p2.y - m.offset_y, p3.x - m.offset_x, p3.y - m.offset_y, outlineColor)
+    end sub
+
+    private sub drawPolygonRects(points, levelOfDetail = 1, levelOffset = 0)
+      if invalid = m.tempCanvas or points.count() &lt; 3
+        return
+      end if
+      nodeX = []
+      nPoints = points.count()
+      x1 = m.offset_x
+      y1 = m.offset_y
+      maxX = m.width + m.offset_x
+      maxY = m.height + m.offset_y
+      rgba = m.getFillColorRGBA()
+      precision = (levelOfDetail - levelOffset) * 1.0
+      if precision &lt;= 1
+        return
+      end if
+
+      for pixelY = y1 to maxY step precision
+        nodes = 0
+        j = nPoints - 1
+        for i = 0 to (nPoints - 1)
+          if ((points[i].y &lt; pixelY and points[j].y >= pixelY) or (points[j].y &lt; pixelY and points[i].y >= pixelY))
+            if (points[j].y - points[i].y) = 0
+              nodeX[nodes] = points[i].x
+            else
+              nodeX[nodes] = points[i].x + (pixelY - points[i].y) / (points[j].y - points[i].y) * (points[j].x - points[i].x)
+            end if
+            nodes++
+          end if
+          j = i
+        end for
+
+        nodeX.sort()
+        '? "nodeX: "; FormatJson(nodeX)
+
+        for i = 0 to (nodes - 1) step precision
+          if (nodeX[i] > maxX)
+            exit for
+          end if
+          pixelX = nodeX[i]
+          if precision > 1 and i &lt; nodes - precision
+            if nodeX[i + precision] &lt; pixelX
+              pixelX = nodeX[i + precision]
+            end if
+          end if
+          rectX = BGE.Math_Max(0, x1 + pixelX - 2 * m.offset_x)
+          rectY = BGE.Math_Max(0, y1 + pixelY - 2 * m.offset_y - precision / 2)
+          endX = BGE.Math_Min(cint(i + precision / 2 + 1), nodes - 1)
+          width = nodeX[endX] - pixelX
+
+          m.tempCanvas.DrawRect(rectX, rectY, width, precision, rgba)
+        end for
+      end for
+    end sub
+
+    private function getMaxWidthAndHorizontalOffset(points) as object
+      if points.count() &lt; 2
+        return 0
+      end if
+      minMax = BGE.QuickHull.getMinMaxPoints(points)
+      return {width: minMax[1].x - minMax[0].x, offset: minMax[0].x}
+    end function
+
+    private function getMaxHeightAndVerticalOffset(points) as object
+      if points.count() &lt; 2
+        return 0
+      end if
+      minMax = BGE.QuickHull.getMinMaxPoints(points, true)
+      return {height: minMax[1].y - minMax[0].y, offset: minMax[0].y}
+    end function
+
+  end class
+
+end namespace</code></pre>
   </article>
 </section>
 
-
+    
 
 
   </div>

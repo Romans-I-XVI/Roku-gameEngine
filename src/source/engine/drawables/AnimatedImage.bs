@@ -5,9 +5,13 @@ namespace BGE
     ' -------------Only To Be Changed For Animation---------------
     ' The following values should only be changed if the image is a spritesheet that needs to be animated.
     ' The spritesheet can have any assortment of multiple columns and rows.
-    index = 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
-    animationSpeedMs = 0 ' The time in milliseconds for a single cycle through the animation to play.
-    animationTween = "LinearTween"
+
+    ' The current index of image - this would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
+    index as integer = 0
+    ' The time in milliseconds for a single cycle through the animation to play.
+    animationSpeedMs as float = 0
+    ' The name of the tween to use for choosing the next image
+    animationTween as string = "LinearTween"
 
     ' -------------Never To Be Manually Changed-----------------
     ' These values should never need to be manually changed.
@@ -37,7 +41,7 @@ namespace BGE
       end if
     end function
 
-    function getCellDrawIndex() as integer
+    protected function getCellDrawIndex() as integer
       frame_count = m.regions.Count()
       currentTimeMs = m.animationTimer.TotalMilliseconds()
       if currentTimeMs > m.animationDurationMs

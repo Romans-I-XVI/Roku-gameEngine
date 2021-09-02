@@ -1,11 +1,7 @@
 ' @module BGE
 namespace BGE
 
-  class DrawableRectangle extends Drawable
-
-    drawOutline as boolean = false
-
-    outlineRGBA as integer = BGE.Colors().White
+  class DrawableRectangle extends DrawableWithOutline
 
     protected tempCanvas as object = invalid
     protected lastWidth as float = 0

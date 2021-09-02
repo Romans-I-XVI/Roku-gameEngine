@@ -55,6 +55,17 @@ namespace BGE.UI
       end for
     end function
 
+    ' Set the canvas this UIWidget Draws to
+    ' Sets the canvas on all children
+    '
+    ' @param {object} [canvas=invalid] The canvas this should draw to - if invalid, then will draw to the game canvas
+    override sub setCanvas(canvas = invalid as object)
+      super.setCanvas(canvas)
+      for each child in m.children
+        child.setCanvas(m.canvas)
+      end for
+    end sub
+
     ' Method called each frame to draw any images of this entity
     '
     override function draw() as void

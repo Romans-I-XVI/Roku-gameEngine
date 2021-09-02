@@ -183,7 +183,7 @@ namespace BGE
     buttonId = buttonCode mod 100
     possibleButtonNames = [
       "back",
-      invalid,
+      "unknown",
       "up",
       "down"
       "left",
@@ -193,8 +193,8 @@ namespace BGE
       "rewind",
       "fastforward",
       "options",
-      invalid,
-      invalid,
+      "audioguide",
+      "unknown",
       "play"
     ]
     if buttonId < possibleButtonNames.count()
@@ -203,7 +203,10 @@ namespace BGE
     return invalid
   end function
 
-
+  ' Clone an array (shallow)
+  '
+  ' @param {object} [original=[]] the original array to be clones
+  ' @return {object} A shallow copy of the original array
   function cloneArray(original = [] as object) as object
     retVal = []
     for each item in original
@@ -215,3 +218,24 @@ end namespace
 
 
 
+' Check if two arrays of points are teh same - that is, if each point, in order has same x and y values
+'
+' @param {object} [a=[]] the first array
+' @param {object} [b=[]] the second array
+' @return {boolean} true if both arrays have same number of points and x and y values are the same for each point
+function pointArraysEqual(a = [] as object, b = [] as object) as boolean
+  if a.count() <> b.count()
+    return false
+  end if
+
+  same = true
+
+  for i = 0 to a.count() - 1
+    same = a[i].x = b[i].x and a[i].y = b[i].y
+    if not same
+      exit for
+    end if
+  end for
+
+  return same
+end function

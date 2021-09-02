@@ -1,6 +1,7 @@
 ' @module BGE
 namespace BGE
 
+  ' Used to draw a bitmap image to the screen
   class Image extends Drawable
 
 
@@ -17,11 +18,11 @@ namespace BGE
 
 
     override function draw(additionalRotation = 0 as float) as void
+      m.width = m.region.getWidth()
+      m.height = m.region.getHeight()
       if m.enabled
         m.drawRegionToCanvas(m.region, additionalRotation)
       end if
-      m.width = m.region.getWidth()
-      m.height = m.region.getHeight()
     end function
 
   end class

@@ -29,7 +29,7 @@ namespace BGE.UI
 
     function new(game as BGE.Game) as void
       super(game)
-      m.canvas = game.getCanvas()
+      m.setCanvas(game.getCanvas())
     end function
 
 
@@ -46,6 +46,18 @@ namespace BGE.UI
     ' @param {object} [parent=invalid] - the parent of this Ui Element - will be an object with {x, y, width, height}
     function draw(parent = invalid as object) as void
     end function
+
+
+    ' Set the canvas this UIWidgetDraws to
+    '
+    ' @param {object} [canvas=invalid] The canvas this should draw to - if invalid, then will draw to the game canvas
+    sub setCanvas(canvas = invalid as object)
+      if canvas <> invalid
+        m.canvas = canvas
+      else
+        m.canvas = m.game.getCanvas()
+      end if
+    end sub
 
     ' Method called each frame to reposition
     '
