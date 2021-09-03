@@ -33,14 +33,14 @@ class PolygonRoom extends BGE.Room
 
 
   sub getRandomPolygons()
-    for each polygonEntity in m.polygonEntities
-      m.game.destroyEntity(polygonEntity)
+    for each polygon in m.polygonEntities
+      m.game.destroyEntity(polygon)
     end for
     m.polygonEntities = []
     for i = 0 to m.polygonCount - 1
       x = rnd(m.game.screen.GetWidth())
       y = rnd(m.game.screen.GetHeight())
-      poly = m.game.addEntity(new Polygon(m.game), {x: x, y: y, sizeConfig: m.sizeConfig})
+      poly = m.game.addEntity(new PolygonEntity(m.game), {x: x, y: y, sizeConfig: m.sizeConfig})
       m.polygonEntities.push(poly)
       m.totalEntities++
       poly.setDrawMode(m.drawMode)
@@ -52,8 +52,8 @@ class PolygonRoom extends BGE.Room
     if m.drawMode > 7
       m.drawMode = 1
     end if
-    for each polygonEntity in m.polygonEntities
-      polygonEntity.setDrawMode(m.drawMode)
+    for each polygon in m.polygonEntities
+      polygon.setDrawMode(m.drawMode)
     end for
   end sub
 
@@ -75,6 +75,8 @@ class PolygonRoom extends BGE.Room
     else if input.isButton("down")
       m.polygonCount = int(m.polygonCount / 1.2)
       m.getRandomPolygons()
+    else if input.isButton("fastforward")
+      m.game.changeRoom("RectangleRoom")
     end if
   end sub
 
@@ -83,8 +85,8 @@ class PolygonRoom extends BGE.Room
   end function
 
   override function onDrawEnd(canvas)
-    m.polygonsLabel.setText(`Polygons: ${m.polygonEntities.count()}`)
-    m.drawModeLabel.setText(`DrawMode: ${m.drawMode}`)
+    ' m.polygonsLabel.setText(`Polygons: ${m.polygonEntities.count()}`)
+    'm.drawModeLabel.setText(`DrawMode: ${m.drawMode}`)
   end function
 
 

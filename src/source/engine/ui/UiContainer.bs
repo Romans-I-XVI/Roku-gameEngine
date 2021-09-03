@@ -20,7 +20,9 @@ namespace BGE.UI
 
 
     function addChild(element as UiWidget) as void
-      m.children.push(element)
+      if element <> invalid
+        m.children.push(element)
+      end if
     end function
 
     function removeChild(element as UiWidget) as void
@@ -51,7 +53,9 @@ namespace BGE.UI
     ' @param {float} deltaTime - milliseconds since last frame
     override function onUpdate(deltaTime as float) as void
       for each child in m.children
-        child.onUpdate(deltaTime)
+        if child <> invalid
+          child.onUpdate(deltaTime)
+        end if
       end for
     end function
 
@@ -62,7 +66,9 @@ namespace BGE.UI
     override sub setCanvas(canvas = invalid as object)
       super.setCanvas(canvas)
       for each child in m.children
-        child.setCanvas(m.canvas)
+        if child <> invalid
+          child.setCanvas(m.canvas)
+        end if
       end for
     end sub
 
@@ -74,7 +80,7 @@ namespace BGE.UI
       end if
       m.children.sortBy("zIndex")
       for each child in m.children
-        if child.enabled
+        if invalid <> child and child.enabled
           child.repositionBasedOnParent(m)
           child.draw()
         end if

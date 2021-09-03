@@ -1,7 +1,7 @@
-class Polygon extends BGE.GameEntity
+class PolygonEntity extends BGE.GameEntity
 
   sizeConfig as object = invalid
-  polygonDrawable as BGE.Drawable = invalid
+  polygonDrawable as BGE.DrawablePolygon = invalid
   clockWise as integer = 1
   rotSpeed as float = 1
 

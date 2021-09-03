@@ -1,0 +1,40 @@
+class RectangleEntity extends BGE.GameEntity
+
+
+  rectangleDrawable as BGE.DrawableRectangle = invalid
+  color as object = {r: rnd(256), g: rnd(256), b: rnd(256)}
+
+  function new(game) as void
+    super(game)
+    m.name = "Rectangle"
+  end function
+
+  override function onUpdate(deltaTime as float)
+
+  end function
+
+
+  override function onCreate(args)
+    m.y = args.y
+    m.x = args.x
+    m.rectangleDrawable = new BGE.DrawableRectangle(m, m.game.getCanvas(), args.width, args.height)
+    m.addImageObject("rectangle", m.rectangleDrawable)
+    m.rectangleDrawable.color = BGE.RGBAtoRGBA(m.color.r, m.color.g, m.color.b, 1) / 256
+    'm.rectangleDrawable.drawOutline = true
+    m.rectangleDrawable.outlineRGBA = m.getRandomColor()
+  end function
+
+  function getRandomColor() as integer
+    color% = rnd(256 * 256 * 256)
+    return color%
+  end function
+
+  sub modifyColor(delta as float)
+    delta = delta * 100
+    m.color.r = (m.color.r + delta) mod &hFF
+    m.color.g = (m.color.g + delta) mod &hFF
+    m.color.b = (m.color.b + delta) mod &hFF
+    m.rectangleDrawable.color = BGE.RGBAtoRGBA(m.color.r, m.color.g, m.color.b, 1)
+  end sub
+
+end class
