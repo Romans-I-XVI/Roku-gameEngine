@@ -45,7 +45,7 @@ class Bullet extends BGE.GameEntity
     h = m.game.getCanvas().GetHeight()
 
     if m.x < 0 or m.x > w or m.y < 0 or m.y > h
-      m.invalidate()
+      m.game.destroyEntity(m)
     end if
   end function
 

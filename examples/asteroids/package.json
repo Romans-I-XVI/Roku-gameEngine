@@ -2,16 +2,15 @@
   "private": true,
   "scripts": {
     "build": "bsc",
+    "clean": "rimraf dist && rimraf out",
     "package": "bsc --create-package"
   },
   "ropm": {
     "rootDir": "src"
   },
-  "dependencies": {
-    "bge": "file:../../"
-  },
   "devDependencies": {
-    "brighterscript": "^0.30.0",
-    "ropm": "^0.7.7"
+    "brighterscript": "^0.40.0",
+    "rimraf": "^3.0.2",
+    "ropm": "^0.9.1"
   }
 }

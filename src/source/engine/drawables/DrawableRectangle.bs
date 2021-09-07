@@ -1,0 +1,46 @@
+' @module BGE
+namespace BGE
+
+  class DrawableRectangle extends DrawableWithOutline
+
+    protected tempCanvas as object = invalid
+    protected lastWidth as float = 0
+    protected lastHeight as float = 0
+
+    function new(owner as GameEntity, canvasBitmap as object, width as float, height as float, args = {} as object) as void
+      super(owner, canvasBitmap, args)
+      m.width = width
+      m.height = height
+      m.append(args)
+    end function
+
+    override function draw(additionalRotation = 0 as float) as void
+      if not m.enabled
+        return
+      end if
+
+      if m.width = m.lastWidth and m.height = m.lastHeight and not m.shouldRedraw
+        m.drawRegionToCanvas(m.tempCanvas, additionalRotation)
+        return
+      end if
+      m.lastWidth = m.width
+      m.lastHeight = m.height
+
+      m.tempCanvas = CreateObject("roBitmap", {
+        width: m.width,
+        height: m.height,
+        AlphaEnable: true
+      })
+      rgba = m.getFillColorRGBA()
+      m.tempCanvas.drawRect(0, 0, m.width, m.height, rgba)
+      if m.drawOutline
+        BGE.DrawRectangleOutline(m.tempCanvas, 0, 0, m.width, m.height, m.outlineRGBA)
+      end if
+      m.drawRegionToCanvas(m.tempCanvas, additionalRotation)
+      m.shouldRedraw = false
+    end function
+
+
+  end class
+
+end namespace

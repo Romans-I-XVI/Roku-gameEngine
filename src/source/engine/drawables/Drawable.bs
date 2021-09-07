@@ -1,26 +1,50 @@
 ' @module BGE
 namespace BGE
 
+
+  ' Abstract drawable class - all drawables extend from this
   class Drawable
     ' --------------Values That Can Be Changed------------
-    name = ""
-    offset_x = 0 ' The offset of the image.
-    offset_y = 0
-    scale_x = 1.0 ' The image scale.
-    scale_y = 1.0
-    rotation = 0
-    color = &hFFFFFF ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
-    alpha = 255 ' Change the image alpha (transparency).
-    enabled = true ' Whether or not the image will be drawn.
-    offsetPositionFromOwner = true
-    drawTo as object ' m.game.getCanvas()
+    name as string = ""
+
+    ' The horizontal offset of the image from the owner's x position
+    offset_x as float = 0
+    ' The vertical offset of the image from the owner's y position
+    offset_y as float = 0
+
+    ' The image scale - horizontal
+    scale_x as float = 1.0
+    ' The image scale - vertical
+    scale_y as float = 1.0
+
+    ' Rotation of the image
+    rotation as float = 0
+
+    ' This can be used to tint the image with the provided color if desired. White makes no change to the original image.
+    color as integer = &hFFFFFF
+
+    ' Change the image alpha (transparency).
+    alpha as float = 255
+
+    ' Whether or not the image will be drawn.
+    enabled as boolean = true
+
+    ' Should the image be offset from teh owner, or from the canvas's origin?
+    offsetPositionFromOwner as boolean = true
+
+    ' The canvas this will be drawn to (e.g. m.game.getCanvas())
+    drawTo as object = invalid
 
     ' -------------Never To Be Manually Changed-----------------
     ' These values should never need to be manually changed.
-    protected owner as object
+    protected owner as GameEntity ' owner GameEntity
 
+    protected width as float = 0
+    protected height as float = 0
 
-    function new(owner as object, canvasBitmap as object, args = {} as object) as void
+    protected shouldRedraw as boolean = false
+
+    function new(owner as GameEntity, canvasBitmap as object, args = {} as object) as void
       m.owner = owner
       m.drawTo = canvasBitmap
       m.append(args)
@@ -38,10 +62,17 @@ namespace BGE
       m.scale_y = scale_y
     end function
 
+    ' Sets the canvas this will draw to
+    '
+    ' @param {object} [canvas] The canvas (roBitmap) this should draw to
+    sub setCanvas(canvas as object)
+      m.drawTo = canvas
+    end sub
+
     protected function getDrawPosition() as object
       x = m.offset_x
       y = m.offset_y
-      if invalid <> m.owner
+      if invalid <> m.owner and m.offsetPositionFromOwner
         x += m.owner.x
         y += m.owner.y
       end if
@@ -53,5 +84,59 @@ namespace BGE
 
     function onResume(pausedTimeMs as integer)
     end function
+
+    ' Forces a redraw of this drawable on next frame
+    ' By default, some drawables that need to do preprocessing (text, polygons, etc) will only redraw automatically
+    ' if their dimensions or underlying values change --
+    '
+    function forceRedraw() as void
+      m.shouldRedraw = true
+    end function
+
+    function getSize() as object
+      return {width: m.width, height: m.height}
+    end function
+
+    function getDrawnSize() as object
+      return {width: m.width * m.scale_x, height: m.height * m.scale_y}
+    end function
+
+    protected function getFillColorRGBA(ignoreColor = false as boolean) as integer
+      rgba = ignoreColor ? BGE.Colors().White : (m.color << 8) + int(m.alpha)
+      return rgba
+    end function
+
+    protected function drawRegionToCanvas(draw2d as object, additionalRotation = 0 as float, ignoreColor = false as boolean) as void
+      position = m.getDrawPosition()
+      x = position.x
+      y = position.y
+      rgba = m.getFillColorRGBA(ignoreColor)
+      totalRotation = additionalRotation + m.rotation
+      if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0
+        m.drawTo.DrawObject(x, y, draw2d, rgba)
+      else if totalRotation = 0
+        m.drawTo.DrawScaledObject(x, y, m.scale_x, m.scale_y, draw2d, rgba)
+      else if m.scale_x = 1 and m.scale_y = 1
+        m.drawTo.DrawRotatedObject(x, y, - totalRotation, draw2d, rgba)
+      else
+        BGE.DrawScaledAndRotatedObject(m.drawTo, x, y, m.scale_x, m.scale_y, - totalRotation, draw2d, rgba)
+      end if
+    end function
   end class
+
+
+  class DrawableWithOutline extends Drawable
+    ' Draw an outline stroke of outlineRGBA color
+    drawOutline as boolean = false
+
+    ' RGBA color for outline stroke
+    outlineRGBA as integer = BGE.Colors().White
+
+
+    function new(owner as GameEntity, canvasBitmap as object, args = {} as object) as void
+      super(owner, canvasBitmap, args)
+    end function
+  end class
+
+
 end namespace

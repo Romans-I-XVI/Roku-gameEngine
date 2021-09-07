@@ -3,16 +3,27 @@ namespace BGE
 
 
   class SpriteAnimation
+    ' Name of the animation
     name as string
+    ' Frames per second the animation should play at
     frameRate as integer
+    ' Array of the regions of the each cell of this animation
     frameList as object
-    playMode as string = "loop" ' TODO: Options: loop, forward, reverse, pingpong
+    ' Play mode for the sprite: loop, forward, reverse, pingpong
+    playMode as string = "loop"
 
 
+    '
+    ' CReate a new SpriteAnimation
+    '
+    ' @param {string} name Name of the animation
+    ' @param {object} frameList Wither an array of cell indexes, or an object {startFrame, frameCount}
+    ' @param {integer} frameRate Frames per second the animation should play at
+    ' @param {string} [playMode="loop"] Play mode for the sprite: loop, forward, reverse, pingpong
     function new(name as string, frameList as object, frameRate as integer, playMode = "loop" as string) as void
       m.name = name
       m.frameRate = frameRate
-      m.playMode = playMode
+      m.playMode = lcase(playMode)
       m.setFrameList(frameList)
     end function
 
@@ -31,19 +42,26 @@ namespace BGE
 
   class Sprite extends AnimatedImage
 
-    spriteSheet as object ' roBitmap to pick cells from
-    cellWidth as integer ' Width of each animation cell in the sprite image in pixels
-    cellHeight as integer ' Height of each animation cell in the sprite image in pixels
+    ' roBitmap to pick cells from
+    spriteSheet as object
+    ' Width of each animation cell in the sprite image in pixels
+    cellWidth as integer
+    ' Height of each animation cell in the sprite image in pixels
+    cellHeight as integer
 
-    animations as object = {} ' Lookup map of animation name -> SpriteAnimation object
+    ' Lookup map of animation name -> SpriteAnimation object
+    animations as object = {}
 
-    activeAnimation as object
+    ' The current animation being played
+    activeAnimation as SpriteAnimation = invalid
 
-    function new(owner as object, canvasBitmap as object, spriteSheet as object, cellWidth as integer, cellHeight as integer, args = {} as object)
+    function new(owner as GameEntity, canvasBitmap as object, spriteSheet as object, cellWidth as integer, cellHeight as integer, args = {} as object)
       super(owner, canvasBitmap, invalid, args)
       m.spriteSheet = spriteSheet
       m.cellWidth = cellWidth
       m.cellHeight = cellHeight
+      m.width = cellWidth
+      m.height = cellHeight
       m.setCellRegions()
       m.append(args)
     end function
@@ -54,7 +72,7 @@ namespace BGE
       m.regions = []
       for row = 0 to rows - 1
         for col = 0 to cols - 1
-          'bs:disable-next-line
+
           cellRegion = CreateObject("roRegion", m.spriteSheet, col * m.cellWidth, row * m.cellHeight, m.cellWidth, m.cellHeight)
           m.regions.push(cellRegion)
         end for
@@ -62,7 +80,11 @@ namespace BGE
     end function
 
 
-    function applyPreTranslation(x as integer, y as integer) as void
+    ' Apply a pre-translation to set the pivot point for the sprite cell
+    '
+    ' @param {float} x
+    ' @param {float} y
+    function applyPreTranslation(x as float, y as float) as void
       for each region in m.regions
         region.SetPreTranslation(x, y)
       end for
@@ -78,7 +100,9 @@ namespace BGE
       return invalid
     end function
 
-
+    ' Play an animation from the set of animations in this SpriteSheet
+    '
+    ' @param {string} animationName
     function playAnimation(animationName as string) as void
       spriteAnim = m.animations[animationName]
       if invalid <> spriteAnim
@@ -90,7 +114,7 @@ namespace BGE
     end function
 
 
-    override function getCellDrawIndex() as integer
+    protected override function getCellDrawIndex() as integer
       if invalid = m.activeAnimation
         return -1
       end if
@@ -112,12 +136,13 @@ namespace BGE
           end if
         end if
       end if
-
+      tweenFunc = m.tweensReference[m.animationTween]
       if "reverse" = m.activeAnimation.playMode
-        index = cint(m.tweensReference[m.animationTween](frameCount - 1, 0, currentTimeMs, m.animationDurationMs))
+        index = cint(tweenFunc(frameCount - 1, 0, currentTimeMs, m.animationDurationMs))
       else
-        index = cint(m.tweensReference[m.animationTween](0, frameCount - 1, currentTimeMs, m.animationDurationMs))
+        index = cint(tweenFunc(0, frameCount - 1, currentTimeMs, m.animationDurationMs))
       end if
+
       if index > frameCount - 1
         index = frameCount - 1
       else if index < 0

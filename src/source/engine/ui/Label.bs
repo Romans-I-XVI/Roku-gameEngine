@@ -14,10 +14,23 @@ namespace BGE.UI
       m.drawableText.text = text
     end function
 
+    ' Set the canvas this UIWidget Draws to
+    '
+    ' @param {object} [canvas=invalid] The canvas this should draw to - if invalid, then will draw to the game canvas
+    override sub setCanvas(canvas = invalid as object)
+      super.setCanvas(canvas)
+      if invalid <> m.drawableText
+        m.drawableText.setCanvas(m.canvas)
+      end if
+    end sub
+
     override function draw(parent = invalid as object) as void
       drawPosition = m.getDrawPosition(parent)
       if invalid <> m.drawableText
         m.drawableText.draw()
+        size = m.drawableText.getDrawnSize()
+        m.width = size.width
+        m.height = size.height
       end if
     end function
 

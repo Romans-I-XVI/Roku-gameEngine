@@ -131,8 +131,19 @@ class MainRoom extends BGE.Room
         m.addNewRock(rockToDie.x, rockToDie.y, nextLevel, -1, rockToDie.rotation)
       end if
       m.addExplosion(rockToDie, 3 / rockToDie.level)
+      i = 0
+      indexOfRockToDie = -1
+      for each rockEntity in m.rocks
+        if rockEntity.id = rockToDie.id
+          indexOfRockToDie = i
+          exit for
+        end if
+        i++
+      end for
+      if indexOfRockToDie <> -1
+        m.rocks.delete(indexOfRockToDie)
+      end if
       m.game.destroyEntity(rockToDie)
-
       m.game.destroyEntity(data.bullet)
     end if
   end function

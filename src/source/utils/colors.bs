@@ -1,0 +1,75 @@
+' @module BGE
+namespace BGE
+
+  function Colors() as object
+    if invalid <> m and invalid <> m.BGEColorsConstant
+      return m.BGEColorsConstant
+    end if
+
+    colorsObj = {
+      Black: RGBAtoRGBA(0, 0, 0),
+      White: RGBAtoRGBA(255, 255, 255),
+      Red: RGBAtoRGBA(255, 0, 0),
+      Lime: RGBAtoRGBA(0, 255, 0),
+      Blue: RGBAtoRGBA(0, 0, 255),
+      Yellow: RGBAtoRGBA(255, 255, 0),
+      Cyan: RGBAtoRGBA(0, 255, 255),
+      Aqua: RGBAtoRGBA(0, 255, 255),
+      Magenta: RGBAtoRGBA(255, 0, 255),
+      Pink: RGBAtoRGBA(255, 0, 255),
+      Fuchsia: RGBAtoRGBA(255, 0, 255),
+      Silver: RGBAtoRGBA(192, 192, 192),
+      Gray: RGBAtoRGBA(128, 128, 128),
+      Grey: RGBAtoRGBA(128, 128, 128),
+      Maroon: RGBAtoRGBA(128, 0, 0),
+      Olive: RGBAtoRGBA(128, 128, 0),
+      Green: RGBAtoRGBA(0, 128, 0),
+      Purple: RGBAtoRGBA(128, 0, 128),
+      Teal: RGBAtoRGBA(0, 128, 128),
+      Navy: RGBAtoRGBA(0, 0, 128),
+    }
+
+    if invalid <> m
+      m.BGEColorsConstant = colorsObj
+    end if
+
+    return colorsObj
+  end function
+
+  function ColorsRGB() as object
+    if invalid <> m and invalid <> m.BGEColorsRGBConstant
+      return m.BGEColorsRGBConstant
+    end if
+
+    colorsRGBObj = {}
+
+    for each color in Colors().Items()
+      colorsRGBObj[color.key] = color.value >> 8
+    end for
+
+    if invalid <> m
+      m.BGEColorsRGBConstant = colorsRGBObj
+    end if
+
+    return colorsRGBObj
+  end function
+
+  function GetColor(name as string) as integer
+    colorsObj = Colors()
+    color = colorsObj.White
+    if invalid <> colorsObj[name]
+      return colorsObj[name]
+    end if
+  end function
+
+
+  function GetColorRGB(name as string) as integer
+    colorsObj = ColorsRGB()
+    color = colorsObj.White
+    if invalid <> colorsObj[name]
+      return colorsObj[name]
+    end if
+  end function
+
+
+end namespace

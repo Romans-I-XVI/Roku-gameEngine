@@ -13,8 +13,13 @@
       "path": "examples/asteroids"
     },
     {
+      "path": "examples/pixels"
+    },
+    {
       "path": "."
     }
   ],
-  "settings": {}
+  "settings": {
+    "brightscript.bsdk": "node_modules/brighterscript"
+  }
 }

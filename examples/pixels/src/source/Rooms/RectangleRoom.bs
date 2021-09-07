@@ -1,0 +1,84 @@
+class RectangleRoom extends BGE.Room
+
+  rectangles = []
+  rows = 2
+  cols = 2
+
+  rectanglesLabel as BGE.UI.Label = invalid
+
+
+  function new(game) as void
+    super(game)
+    m.name = "RectangleRoom"
+    m.rectanglesLabel = new BGE.UI.Label(m.game)
+  end function
+
+  override function onCreate(args)
+    m.getRectangles()
+    m.rectanglesLabel.customPosition = true
+    m.rectanglesLabel.customX = m.game.canvas.getWidth() / 2
+    m.rectanglesLabel.customY = 100
+    m.rectanglesLabel.drawableText.alignment = "center"
+    m.game.gameUi.addChild(m.rectanglesLabel)
+  end function
+
+
+  sub getRectangles()
+    for each rectangle in m.rectangles
+      m.game.destroyEntity(rectangle)
+    end for
+    m.rectangles = []
+    rectWidth = m.game.getCanvas().getWidth() / m.cols
+    rectHeight = m.game.getCanvas().getHeight() / m.rows
+    for i = 0 to m.rows - 1
+      for j = 0 to m.cols - 1
+        x = j * rectWidth
+        y = i * rectHeight
+        rect = m.game.addEntity(new RectangleEntity(m.game), {x: x, y: y, width: rectWidth, height: rectHeight})
+        m.rectangles.push(rect)
+      end for
+    end for
+    m.rectanglesLabel.setText(`Rectangles: ${m.rectangles.count()}`)
+  end sub
+
+  sub changeColors()
+    for each rect in m.rectangles
+      rect.modifyColor(m.game.getDeltaTime())
+    end for
+  end sub
+
+  override sub onInput(input)
+    if not input.press
+      if input.isButton("play")
+        m.changeColors()
+      end if
+      return
+    end if
+    if input.isButton("ok")
+      m.getRectangles()
+    else if input.isButton("options")
+      m.changeColors()
+    else if input.isButton("up")
+      m.rows++
+      m.cols++
+      m.getRectangles()
+    else if input.isButton("down")
+      m.cols--
+      m.rows--
+      m.getRectangles()
+    else if input.isButton("fastforward")
+      m.game.changeRoom("PolygonRoom")
+    end if
+  end sub
+
+  override function onGameEvent(event as string, data as object)
+
+  end function
+
+  override function onChangeRoom(newRoom as BGE.Room) as void
+    m.game.gameUi.removeChild(m.rectanglesLabel)
+  end function
+
+
+
+end class

@@ -1,9 +1,4 @@
 #!/bin/sh
 
-cd examples
-for d in */; do
-    echo "Running 'ropm install' in $d .."
-    cd "$d"
-    ropm install
-    cd ..
-done
+. ./scripts/examples_command.sh rm -rf node_modules/bge
+. ./scripts/examples_command.sh ropm install

@@ -41,6 +41,8 @@ namespace BGE
       safe_title_zone_color: BGE.RGBAtoRGBA(0, 0, &hFF, 0.2)
       limit_frame_rate: 0
       show_debug_ui: false
+      draw_debugUi_to_screen: false
+
     }
 
     private canvas_is_screen = false
@@ -51,13 +53,15 @@ namespace BGE
 
     private buttonHeld = -1
     private buttonHeldTime = 0
-    private input_entity = invalid
+    private inputEntityId as string = invalid
     private currentInputEntityId = invalid
     private dt = 0
+    private totalRunTime = 0
     private FakeDT = invalid
     private dtTimer = CreateObject("roTimespan")
     private pauseTimer = CreateObject("roTimespan")
     private buttonHeldTimer = CreateObject("roTimespan")
+    private garbageCollectionTimer = CreateObject("roTimespan")
     private currentID = 0
     private shouldUseIntegerMovement = false
     private enableAudioGuideSuppression = true
@@ -72,10 +76,15 @@ namespace BGE
     private screen_port = CreateObject("roMessagePort")
     private audioPlayer = CreateObject("roAudioPlayer")
     private music_port = CreateObject("roMessagePort")
-    private font_registry = CreateObject("roFontRegistry")
+    private fontRegistry = CreateObject("roFontRegistry")
     private screen as object = invalid
     private canvas as Canvas = invalid
     private nextGameEntityId as integer = 0
+    private secondsBetweenGarbageCollection = 1
+    private lastGarbageCollection as object = invalid
+    private roomChangedThisFrame as boolean = false
+    private roomChangeDetails as object = {}
+
     ' ****END - For Internal Use, Do Not Manually Alter****
 
 
@@ -127,6 +136,7 @@ namespace BGE
 
       ' Register all fonts in package
       m.setUpFonts()
+      m.lastGarbageCollection = RunGarbageCollector()
 
       ' ############### Create Initial Object - End ###############
     end function
@@ -150,17 +160,17 @@ namespace BGE
       end for
 
       if UIResolution.name = "SD"
-        'bs:disable-next-line
+
         m.screen = CreateObject("roScreen", true, 854, 626)
       else
         if canvas_width <= 854
-          'bs:disable-next-line
+
           m.screen = CreateObject("roScreen", true, 854, 480)
         else if canvas_width <= 1280 or not FHD_Supported
-          'bs:disable-next-line
+
           m.screen = CreateObject("roScreen", true, 1280, 720)
         else
-          'bs:disable-next-line
+
           m.screen = CreateObject("roScreen", true, 1920, 1080)
         end if
       end if
@@ -206,15 +216,15 @@ namespace BGE
       ttfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".ttf")
       otfs_in_package = m.filesystem.FindRecurse("pkg:/fonts/", ".otf")
       for each font_path in ttfs_in_package
-        m.font_registry.Register("pkg:/fonts/" + font_path)
+        m.fontRegistry.Register("pkg:/fonts/" + font_path)
       end for
       for each font_path in otfs_in_package
-        m.font_registry.Register("pkg:/fonts/" + font_path)
+        m.fontRegistry.Register("pkg:/fonts/" + font_path)
       end for
 
       ' Create the default font
-      m.Fonts["default"] = m.font_registry.GetDefaultFont(28, false, false)
-      m.Fonts["debugUi"] = m.font_registry.GetDefaultFont(20, false, false)
+      m.fonts["default"] = m.fontRegistry.GetDefaultFont(28, false, false)
+      m.fonts["debugUi"] = m.fontRegistry.GetDefaultFont(20, false, false)
     end function
 
 
@@ -242,14 +252,16 @@ namespace BGE
       m.running = true
 
       while m.running
+        m.roomChangedThisFrame = false
 
-        if m.input_entity <> invalid and m.getEntityByID(m.input_entity) = invalid
-          m.input_entity = invalid
+        if m.inputEntityId <> invalid and m.getEntityByID(m.inputEntityId) = invalid
+          m.inputEntityId = invalid
         end if
-        m.currentInputEntityId = m.input_entity
+        m.currentInputEntityId = m.inputEntityId
         m.compositor.draw() ' For some reason this has to be called or the colliders don't remove themselves from the compositor ¯\(°_°)/¯
 
         m.dt = m.dtTimer.TotalMilliseconds() / 1000
+        m.totalRunTime += m.dt
         if m.FakeDT <> invalid
           m.dt = m.FakeDT
         end if
@@ -287,7 +299,7 @@ namespace BGE
         music_msg = m.music_port.GetMessage()
 
         ' ----------------------Handle entity interactions (collisions, etc)--------------------
-        m.processEntitiesPreDraw(universalControlEvents)
+        m.processEntitiesPreDraw(universalControlEvents, music_msg, ecp_msg, url_msg)
 
         ' ----------------------Clear the screen before drawing entities-------------------------
         if m.background_color <> invalid
@@ -301,15 +313,15 @@ namespace BGE
         m.drawDebugItems()
 
         ' ---------------------- Handle all UI updates and draws -------------------------
-        m.processAndDrawUI(universalControlEvents)
-
-        ' ---------------------- Handle all Debug UI updates and draws -------------------------
-        m.processAndDrawDebugUI(universalControlEvents)
+        m.processAndDrawUI(universalControlEvents, music_msg, ecp_msg, url_msg)
 
         ' -------------------Draw everything to the screen----------------------------
         if not m.canvas_is_screen
           m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
         end if
+
+        ' ---------------------- Handle all Debug UI updates and draws -------------------------
+        m.processAndDrawDebugUI(universalControlEvents, music_msg, ecp_msg, url_msg)
 
         if m.debugging.draw_safe_zones
           m.drawSafeZones()
@@ -331,6 +343,15 @@ namespace BGE
           end if
         end if
 
+        if m.garbageCollectionTimer.totalMilliseconds() > (m.secondsBetweenGarbageCollection * 1000)
+          m.lastGarbageCollection = runGarbageCollector()
+          m.garbageCollectionTimer.mark()
+        end if
+
+        if m.roomChangedThisFrame
+          m.handleRoomChange()
+        end if
+
       end while
 
     end function
@@ -338,13 +359,22 @@ namespace BGE
     ' Handles all the processing for the entities before drawing
     '
     ' @param {object} universalControlEvents - array of any control events that happened since last frame
+    ' @param {object} music_msg - audio player event in last frame
+    ' @param {object} ecp_msg  - input event in last frame
+    ' @param {object} url_msg - url event in last frame
     ' @return {void}
-    private function processEntitiesPreDraw(universalControlEvents as object) as void
+    private function processEntitiesPreDraw(universalControlEvents as object, music_msg as object, ecp_msg as object, url_msg as object) as void
       started_paused = m.paused
 
       ' Process all Entity Updates
-      for i = m.sortedEntities.Count() - 1 to 0 step -1
-        entity = m.sortedEntities[i]
+      for i = m.sortedEntities.Count() to 0 step -1
+        entity = invalid
+        if i = m.sortedEntities.Count()
+          ' magic to process current room first
+          entity = m.currentRoom
+        else
+          entity = m.sortedEntities[i]
+        end if
         if not m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
           processEntity = false
         else
@@ -418,7 +448,6 @@ namespace BGE
     end function
 
 
-
     ' Checks if an entity is still valid
     '
     ' @param {GameEntity} entity
@@ -462,7 +491,7 @@ namespace BGE
         end if
 
         if entity.onECPKeyboard <> invalid and msg.GetChar() <> 0 and msg.GetChar() = msg.GetInt()
-          entity.onECPKeyboard(Chr(msg.GetChar()))
+          entity.onECPKeyboard(Chr(msg.GetChar()).toStr())
           if not m.isValidEntity(entity)
             return false
           end if
@@ -589,6 +618,9 @@ namespace BGE
     '
     ' @return {void}
     private function drawEntities() as void
+      if invalid <> m.currentRoom
+        m.processEntityDraw(m.currentRoom)
+      end if
       m.sortedEntities.sortBy("zIndex")
       for each entity in m.sortedEntities
         m.processEntityDraw(entity)
@@ -639,9 +671,9 @@ namespace BGE
       if not m.paused
         m.paused = true
 
-        for each object_key in m.Entities
-          for each entity_key in m.Entities[object_key]
-            entity = m.Entities[object_key][entity_key]
+        for each objectKey in m.Entities
+          for each entityKey in m.Entities[objectKey]
+            entity = m.Entities[objectKey][entityKey]
             if entity <> invalid and entity.id <> invalid and entity.onPause <> invalid
               entity.onPause()
             end if
@@ -661,9 +693,9 @@ namespace BGE
         m.paused = false
         paused_time = m.pauseTimer.TotalMilliseconds()
 
-        for each object_key in m.Entities
-          for each entity_key in m.Entities[object_key]
-            entity = m.Entities[object_key][entity_key]
+        for each objectKey in m.Entities
+          for each entityKey in m.Entities[objectKey]
+            entity = m.Entities[objectKey][entityKey]
             for each image in entity.images
               if image.DoesExist("onResume") and image.onResume <> invalid
                 image.onResume(paused_time)
@@ -700,13 +732,19 @@ namespace BGE
     end function
 
 
-    ' What's the time in milliseconds since last frame?
+    ' What's the time in seconds since last frame?
     '
     ' @return {float}
     function getDeltaTime() as float
       return m.dt
     end function
 
+    ' What's the total time in seconds since ths start
+    '
+    ' @return {float}
+    function getTotalTime() as float
+      return m.totalRunTime
+    end function
 
     ' Gets the current Room/Level the game is using
     '
@@ -745,9 +783,9 @@ namespace BGE
         m.canvas.bitmap = m.screen
 
         ' This is so all entities that have images that draw to the screen get updated with the new screen.
-        for each object_key in m.Entities
-          for each entity_key in m.Entities[object_key]
-            entity = m.Entities[object_key][entity_key]
+        for each objectKey in m.Entities
+          for each entityKey in m.Entities[objectKey]
+            entity = m.Entities[objectKey][entityKey]
             if entity <> invalid and entity.id <> invalid and entity.DoesExist("images")
               for each image in entity.images
                 if type(image.drawTo) = "roScreen"
@@ -780,8 +818,11 @@ namespace BGE
     ' Function to handle all input and updates and draws for UI layer
     '
     ' @param {object} universalControlEvents - array of control events since last frame
-    private function processAndDrawUI(universalControlEvents as object) as void
-      m.processUiUpdate(m.gameUi, universalControlEvents)
+    ' @param {object} music_msg - audio player event in last frame
+    ' @param {object} ecp_msg  - input event in last frame
+    ' @param {object} url_msg - url event in last frame
+    private function processAndDrawUI(universalControlEvents as object, music_msg as object, ecp_msg as object, url_msg as object) as void
+      m.processUiUpdate(m.gameUi, universalControlEvents, music_msg, ecp_msg, url_msg)
 
       if m.isValidEntity(m.gameUi) and invalid <> m.gameUi.draw
         m.gameUi.draw()
@@ -792,7 +833,11 @@ namespace BGE
     '
     ' @param {BGE.Ui.UiWidget} - widget to process
     ' @param {object} universalControlEvents - array of control events since last frame
-    private function processUiUpdate(uiEntity as BGE.Ui.UiWidget, universalControlEvents as object) as void
+    ' @param {object} music_msg - audio player event in last frame
+    ' @param {object} ecp_msg  - input event in last frame
+    ' @param {object} url_msg - url event in last frame
+
+    private function processUiUpdate(uiEntity as BGE.Ui.UiWidget, universalControlEvents as object, music_msg, ecp_msg, url_msg) as void
       ' --------------------First process the onInput() function--------------------
       if m.isValidEntity(uiEntity)
         m.processEntityOnInput(uiEntity, universalControlEvents)
@@ -833,10 +878,18 @@ namespace BGE
     ' Function to handle all input and updates and draws for Debug UI layer
     '
     ' @param {object} universalControlEvents - array of control events since last frame
-    private function processAndDrawDebugUI(universalControlEvents as object) as void
-      m.processUiUpdate(m.debugUi, universalControlEvents)
+    ' @param {object} music_msg - audio player event in last frame
+    ' @param {object} ecp_msg  - input event in last frame
+    ' @param {object} url_msg - url event in last frame
+    private function processAndDrawDebugUI(universalControlEvents as object, music_msg as object, ecp_msg as object, url_msg as object) as void
+      m.processUiUpdate(m.debugUi, universalControlEvents, music_msg, ecp_msg, url_msg)
 
       if m.debugging.show_debug_ui and m.isValidEntity(m.debugUi) and invalid <> m.debugUi.draw
+        if m.debugging.draw_debugUi_to_screen and m.debugUi.drawTo <> m.screen
+          m.debugUi.setCanvas(m.screen)
+        else if not m.debugging.draw_debugUi_to_screen and m.debugUi.drawTo <> m.getCanvas()
+          m.debugUi.setCanvas(m.getCanvas())
+        end if
         m.debugUi.draw()
       end if
     end function
@@ -877,9 +930,19 @@ namespace BGE
     ' Set if Debug UI/Windows should be drawn
     '
     ' @param {boolean} enabled
-    function debugShowUi(enabled as boolean) as void
+    ' @param {boolean} drawToScreen Draw the debug UI to the screen instead of the canvas
+    function debugShowUi(enabled as boolean, drawToScreen = false as boolean) as void
       m.debugging.show_debug_ui = enabled
+      m.debugging.draw_debugUi_to_screen = drawToScreen
+      debugCanvas = m.canvas
+      if drawToScreen
+        debugCanvas = m.screen
+      end if
+      m.debugUi.width = debugCanvas.getWidth()
+      m.debugUi.height = debugCanvas.getHeight()
     end function
+
+
 
 
     ' Sets the colors for the debug items to be drawn
@@ -908,6 +971,14 @@ namespace BGE
     ' @return {void}
     function debugLimitFrameRate(limit_frame_rate as integer) as void
       m.debugging.limit_frame_rate = limit_frame_rate
+    end function
+
+    ' Gets the latest stats from automatic garbage collection
+    ' https://developer.roku.com/en-ca/docs/references/brightscript/language/global-utility-functions.md#rungarbagecollector-as-object
+    '
+    ' @return {object} Stats of garbage collection. Properties: count, orphaned, root
+    function getGarbageCollectionStats() as object
+      return m.lastGarbageCollection
     end function
 
 
@@ -1060,8 +1131,8 @@ namespace BGE
     function getAllEntities(objectName as string) as object
       array = []
       if invalid <> objectName and m.Entities.DoesExist(objectName)
-        for each entity_key in m.Entities[objectName]
-          array.Push(m.Entities[objectName][entity_key])
+        for each entityKey in m.Entities[objectName]
+          array.Push(m.Entities[objectName][entityKey])
         end for
       end if
       return []
@@ -1106,7 +1177,9 @@ namespace BGE
         if invalid <> entity.name and invalid <> entityId and m.Entities[entityName].DoesExist(entityId) ' This redundancy is here because if somebody would try to change rooms within the onDestroy() method the game would break.
           m.Entities[entityName].Delete(entityId)
         end if
-        entity.Clear()
+        if invalid <> entity.Clear
+          entity.Clear()
+        end if
         entity.id = invalid
       end if
     end function
@@ -1155,11 +1228,12 @@ namespace BGE
       m.Rooms[roomName] = room
       m.Entities[roomName] = {}
       m.Statics[roomName] = {}
-
-      'TODO - this is wrong ! need to find way to set active room better
-      m.sortedEntities.Push(room)
     end function
 
+
+    function isRoomChanging() as boolean
+      return m.roomChangedThisFrame
+    end function
 
 
     ' Changes the active room to the one with the given name
@@ -1171,13 +1245,31 @@ namespace BGE
     ' @return {boolean} true if room change was successful
     function changeRoom(roomName as string, args = {} as object) as boolean
       if m.Rooms[roomName] <> invalid
-        room = m.Rooms[roomName]
 
+        m.roomChangedThisFrame = true
+        m.roomChangeDetails = {room: m.Rooms[roomName], args: args}
+        if invalid = m.currentRoom or not m.running
+          m.handleRoomChange()
+        end if
+        return true
+      else
+        print "changeRoom() - A room named " + room_name + " hasn't been defined"
+        return false
+      end if
+    end function
+
+    private sub handleRoomChange()
+      if m.roomChangedThisFrame and m.roomChangeDetails <> invalid and m.roomChangeDetails.room <> invalid
+        room = m.roomChangeDetails.room
+        args = {}
+        if m.roomChangeDetails.args <> invalid
+          args = m.roomChangeDetails.args
+        end if
 
         ' TODO: may be more efficient way of doing this
         for each objectKey in m.Entities
           for each entityKey in m.Entities[objectKey]
-            entity = m.Entities[object_key][entityKey]
+            entity = m.Entities[objectKey][entityKey]
             if m.isValidEntity(entity) and entity.onChangeRoom <> invalid
               entity.onChangeRoom(room)
             end if
@@ -1191,18 +1283,17 @@ namespace BGE
             end if
           end for
         end for
-        if m.currentRoom <> invalid and m.currentRoom.id <> invalid
-          m.destroyEntity(m.currentRoom, false)
+
+        if m.isValidEntity(m.currentRoom) and m.currentRoom.onChangeRoom <> invalid
+          m.currentRoom.onChangeRoom(room)
         end if
+
         m.currentRoom = room
         m.currentRoomArgs = args
         m.currentRoom.onCreate(args)
-        return true
-      else
-        print "changeRoom() - A room named " + room_name + " hasn't been defined"
-        return false
+        m.roomChangedThisFrame = false
       end if
-    end function
+    end sub
 
 
 
@@ -1210,7 +1301,7 @@ namespace BGE
     '
     ' @return {void}
     function resetRoom() as void
-      m.changeRoom(m.currentRoom, m.currentRoomArgs)
+      m.changeRoom(m.currentRoom.name, m.currentRoomArgs)
     end function
 
 
@@ -1281,7 +1372,7 @@ namespace BGE
         path_object = CreateObject("roPath", path)
         parts = path_object.Split()
         if parts.extension = ".ttf" or parts.extension = ".otf"
-          m.font_registry.register(path)
+          m.fontRegistry.register(path)
           return true
         else
           print "Font must be of type .ttf or .otf"
@@ -1303,7 +1394,7 @@ namespace BGE
     ' @param {boolean} bold
     ' @return {void}
     function loadFont(fontName as string, font as string, size as integer, italic as boolean, bold as boolean) as void
-      m.Fonts[fontName] = m.font_registry.GetFont(font, size, italic, bold)
+      m.fonts[fontName] = m.fontRegistry.GetFont(font, size, italic, bold)
     end function
 
 
@@ -1312,7 +1403,7 @@ namespace BGE
     ' @param {string} fontName
     ' @return {void}
     function unloadFont(fontName as string) as void
-      m.Fonts[fontName] = invalid
+      m.fonts[fontName] = invalid
     end function
 
 
@@ -1322,7 +1413,7 @@ namespace BGE
     ' @param {string} fontName
     ' @return {object}
     function getFont(fontName as string) as object
-      return m.Fonts[fontName]
+      return m.fonts[fontName]
     end function
 
 
@@ -1470,7 +1561,7 @@ namespace BGE
     ' @param {GameEntity} entity
     ' @return {void}
     function setInputEntity(entity as GameEntity) as void
-      m.input_entity = entity.id
+      m.inputEntityId = entity.id
     end function
 
 
@@ -1478,7 +1569,7 @@ namespace BGE
     '
     ' @return {void}
     function unsetInputEntity() as void
-      m.input_entity = invalid
+      m.inputEntityId = invalid
     end function
 
 
@@ -1492,11 +1583,11 @@ namespace BGE
     ' @param {object} [data={}] - any data that needs to be be passed with the event
     ' @return {void}
     function postGameEvent(eventName as string, data = {} as object) as void
-      object_keys = m.Entities.Keys()
-      for each object_key in object_keys
-        entity_keys = m.Entities[object_key].Keys()
-        for each entity_key in entity_keys
-          entity = m.Entities[object_key][entity_key]
+      objectKeys = m.Entities.Keys()
+      for each objectKey in objectKeys
+        entityKeys = m.Entities[objectKey].Keys()
+        for each entityKey in entityKeys
+          entity = m.Entities[objectKey][entityKey]
           if m.isValidEntity(entity) and entity.onGameEvent <> invalid
             entity.onGameEvent(eventName, data)
           end if

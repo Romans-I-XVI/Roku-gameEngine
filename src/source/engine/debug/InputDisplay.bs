@@ -19,18 +19,21 @@ namespace BGE.Debug
 
     override function onInput(input as BGE.GameInput)
       m.lastInputButton = input.button
-      m.heldTimeSeconds = BGE.Math_Round(input.heldTimeMs / 1000, 1)
+      m.heldTimeSeconds = input.heldTimeMs / 1000
     end function
 
     override function onUpdate(dt)
       buttonName = "none"
+      heldTimeStr = "0"
       if invalid <> m.lastInputButton
         buttonName = m.lastInputButton
+        heldTimeStr = BGE.NumberToFixed(m.heldTimeSeconds, 2)
       end if
 
-      m.inputLabel.setText(`Input: ${buttonName} (${m.heldTimeSeconds}s)`)
+      m.inputLabel.setText(`Input: ${buttonName} (${heldTimeStr}s)`)
       m.lastInputButton = invalid
-      m.heldTimeMs = 0
+
+      m.width = m.inputLabel.width + 20
     end function
 
 

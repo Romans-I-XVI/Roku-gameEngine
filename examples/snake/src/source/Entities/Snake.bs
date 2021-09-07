@@ -33,7 +33,7 @@ class Snake extends GridEntity
 
 
 
-  override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as BGE.GameEntity)
     if other_entity.name = "apple"
       m.maxCells++
       m.game.postGameEvent("score")

@@ -5,9 +5,14 @@ namespace BGE
     ' -------------Only To Be Changed For Animation---------------
     ' The following values should only be changed if the image is a spritesheet that needs to be animated.
     ' The spritesheet can have any assortment of multiple columns and rows.
-    index = 0 ' This would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
-    animationSpeedMs = 0 ' The time in milliseconds for a single cycle through the animation to play.
-    animationTween = "LinearTween"
+
+    ' The current index of image - this would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
+    index as integer = 0
+    ' The time in milliseconds for a single cycle through the animation to play.
+    animationDurationMs as float = 0
+    ' The name of the tween to use for choosing the next image
+    animationTween as string = "LinearTween"
+
 
     ' -------------Never To Be Manually Changed-----------------
     ' These values should never need to be manually changed.
@@ -15,7 +20,7 @@ namespace BGE
     private animationTimer = new GameTimer()
     private tweensReference = GetTweens()
 
-    function new(owner as object, canvasBitmap as object, regions as object, args = {} as object)
+    function new(owner as GameEntity, canvasBitmap as object, regions as object, args = {} as object)
       super(owner, canvasBitmap, invalid, args)
       m.regions = regions
       m.append(args)
@@ -30,12 +35,14 @@ namespace BGE
         totalRotation = additionalRotation + m.rotation
         if m.index >= 0 and m.index < m.regions.Count()
           m.region = m.regions[m.index]
-          m.drawRegion(additionalRotation)
+          m.drawRegionToCanvas(m.region, additionalRotation)
+          m.width = m.region.getWidth()
+          m.height = m.region.getHeight()
         end if
       end if
     end function
 
-    function getCellDrawIndex() as integer
+    protected function getCellDrawIndex() as integer
       frame_count = m.regions.Count()
       currentTimeMs = m.animationTimer.TotalMilliseconds()
       if currentTimeMs > m.animationDurationMs

@@ -158,7 +158,7 @@ namespace BGE
   ' Quadratic
   ' ****************
   function QuadraticTween(start, finish, currentTime, duration)
-    return BGE.QuadraticEaseInOut(start, finish, currentTime, duration)
+    return QuadraticEaseInOut(start, finish, currentTime, duration)
   end function
 
   function QuadraticEaseIn(start, finish, currentTime, duration)
@@ -195,9 +195,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.QuadraticEaseOut(0, change, currentTime * 2, duration) * .5 + start
+      return QuadraticEaseOut(0, change, currentTime * 2, duration) * .5 + start
     else
-      return BGE.QuadraticEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
+      return QuadraticEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
     end if
   end function
 
@@ -205,7 +205,7 @@ namespace BGE
   ' Square
   ' ****************
   function SquareTween(start, finish, currentTime, duration)
-    return BGE.SquareEaseInOut(start, finish, currentTime, duration)
+    return SquareEaseInOut(start, finish, currentTime, duration)
   end function
 
   function SquareEaseIn(start, finish, currentTime, duration)
@@ -242,9 +242,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.SquareEaseOut(0, change, currentTime * 2, duration) * .5 + start
+      return SquareEaseOut(0, change, currentTime * 2, duration) * .5 + start
     else
-      return BGE.SquareEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
+      return SquareEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
     end if
   end function
 
@@ -252,7 +252,7 @@ namespace BGE
   ' Cubic
   ' ****************
   function CubicTween(start, finish, currentTime, duration)
-    return BGE.CubicEaseInOut(start, finish, currentTime, duration)
+    return CubicEaseInOut(start, finish, currentTime, duration)
   end function
 
   function CubicEaseIn(start, finish, currentTime, duration)
@@ -289,9 +289,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.CubicEaseOut(0, change, currentTime * 2, duration) * .5 + start
+      return CubicEaseOut(0, change, currentTime * 2, duration) * .5 + start
     else
-      return BGE.CubicEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
+      return CubicEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
     end if
   end function
 
@@ -299,7 +299,7 @@ namespace BGE
   ' Quartic
   ' ****************
   function QuarticTween(start, finish, currentTime, duration)
-    return BGE.QuarticEaseInOut(start, finish, currentTime, duration)
+    return QuarticEaseInOut(start, finish, currentTime, duration)
   end function
 
   function QuarticEaseIn(start, finish, currentTime, duration)
@@ -336,9 +336,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.QuarticEaseOut(0, change, currentTime * 2, duration) * .5 + start
+      return QuarticEaseOut(0, change, currentTime * 2, duration) * .5 + start
     else
-      return BGE.QuarticEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
+      return QuarticEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
     end if
   end function
 
@@ -346,7 +346,7 @@ namespace BGE
   ' Quintic
   ' ****************
   function QuinticTween(start, finish, currentTime, duration)
-    return BGE.QuinticEaseInOut(start, finish, currentTime, duration)
+    return QuinticEaseInOut(start, finish, currentTime, duration)
   end function
 
   function QuinticEaseIn(start, finish, currentTime, duration)
@@ -383,9 +383,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.QuinticEaseOut(0, change, currentTime * 2, duration) * .5 + start
+      return QuinticEaseOut(0, change, currentTime * 2, duration) * .5 + start
     else
-      return BGE.QuinticEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
+      return QuinticEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
     end if
   end function
 
@@ -393,7 +393,7 @@ namespace BGE
   ' Sinusoidal
   ' ****************
   function SinusoidalTween(start, finish, currentTime, duration)
-    return BGE.SinusoidalEaseInOut(start, finish, currentTime, duration)
+    return SinusoidalEaseInOut(start, finish, currentTime, duration)
   end function
 
   function SinusoidalEaseIn(start, finish, currentTime, duration)
@@ -427,9 +427,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.SinusoidalEaseOut(0, change, currentTime * 2, duration) * .5 + start
+      return SinusoidalEaseOut(0, change, currentTime * 2, duration) * .5 + start
     else
-      return BGE.SinusoidalEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
+      return SinusoidalEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
     end if
   end function
 
@@ -437,7 +437,7 @@ namespace BGE
   ' Exponential
   ' ****************
   function ExponentialTween(start, finish, currentTime, duration)
-    return BGE.ExponentialEaseInOut(start, finish, currentTime, duration)
+    return ExponentialEaseInOut(start, finish, currentTime, duration)
   end function
 
   function ExponentialEaseIn(start, finish, currentTime, duration)
@@ -505,7 +505,7 @@ namespace BGE
   ' Circular
   ' ****************
   function CircularTween(start, finish, currentTime, duration)
-    return BGE.CircularEaseInOut(start, finish, currentTime, duration)
+    return CircularEaseInOut(start, finish, currentTime, duration)
   end function
 
   function CircularEaseIn(start, finish, currentTime, duration)
@@ -542,9 +542,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.CircularEaseOut(0, change, currentTime * 2, duration) * .5 + start
+      return CircularEaseOut(0, change, currentTime * 2, duration) * .5 + start
     else
-      return BGE.CircularEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
+      return CircularEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
     end if
   end function
 
@@ -552,7 +552,7 @@ namespace BGE
   ' Elastic
   ' ****************
   function ElasticTween(start, finish, currentTime, duration)
-    return BGE.ElasticEaseInOut(start, finish, currentTime, duration)
+    return ElasticEaseInOut(start, finish, currentTime, duration)
   end function
 
   function ElasticEaseIn(start, finish, currentTime, duration, amplitude = invalid as dynamic, period = invalid as dynamic)
@@ -650,9 +650,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.ElasticEaseOut(0, change, currentTime * 2, duration, amplitude, period) * .5 + start
+      return ElasticEaseOut(0, change, currentTime * 2, duration, amplitude, period) * .5 + start
     else
-      return BGE.ElasticEaseIn(0, change, currentTime * 2 - duration, duration, amplitude, period) * .5 + (change * .5) + start
+      return ElasticEaseIn(0, change, currentTime * 2 - duration, duration, amplitude, period) * .5 + (change * .5) + start
     end if
   end function
 
@@ -660,7 +660,7 @@ namespace BGE
   ' Overshoot
   ' ****************
   function OvershootTween(start, finish, currentTime, duration)
-    return BGE.OvershootEaseInOut(start, finish, currentTime, duration)
+    return OvershootEaseInOut(start, finish, currentTime, duration)
   end function
 
   function OvershootEaseIn(start, finish, currentTime, duration, overshoot = 1.70158 as float)
@@ -701,9 +701,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.OvershootEaseOut(0, change, currentTime * 2, duration, overshoot) * .5 + start
+      return OvershootEaseOut(0, change, currentTime * 2, duration, overshoot) * .5 + start
     else
-      return BGE.OvershootEaseIn(0, change, currentTime * 2 - duration, duration, overshoot) * .5 + (change * .5) + start
+      return OvershootEaseIn(0, change, currentTime * 2 - duration, duration, overshoot) * .5 + (change * .5) + start
     end if
   end function
 
@@ -711,13 +711,13 @@ namespace BGE
   ' Bounce
   ' ****************
   function BounceTween(start, finish, currentTime, duration)
-    return BGE.BounceEaseInOut(start, finish, currentTime, duration)
+    return BounceEaseInOut(start, finish, currentTime, duration)
   end function
 
   function BounceEaseIn(start, finish, currentTime, duration)
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
-    return change - BGE.BounceEaseOut(0, change, duration - currentTime, duration) + start
+    return change - BounceEaseOut(0, change, duration - currentTime, duration) + start
   end function
 
   function BounceEaseOut(start, finish, currentTime, duration)
@@ -742,9 +742,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.BounceEaseIn(0, change, currentTime * 2, duration) * .5 + start
+      return BounceEaseIn(0, change, currentTime * 2, duration) * .5 + start
     else
-      return BGE.BounceEaseOut(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
+      return BounceEaseOut(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
     end if
   end function
 
@@ -752,9 +752,9 @@ namespace BGE
     if currentTime > duration or duration = 0 then return finish
     change = finish - start
     if currentTime < duration / 2 then
-      return BGE.BounceEaseOut(0, change, currentTime * 2, duration) * .5 + start
+      return BounceEaseOut(0, change, currentTime * 2, duration) * .5 + start
     else
-      return BGE.BounceEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
+      return BounceEaseIn(0, change, currentTime * 2 - duration, duration) * .5 + (change * .5) + start
     end if
   end function
 

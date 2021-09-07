@@ -1,0 +1,55 @@
+class SpriteRoom extends BGE.Room
+
+  walkers as object = []
+
+  spritesLabel as BGE.UI.Label = invalid
+
+  function new(game) as void
+    super(game)
+    m.name = "SpriteRoom"
+    m.spritesLabel = new BGE.UI.Label(m.game)
+  end function
+
+  override function onCreate(args)
+    m.spritesLabel.customPosition = true
+    m.spritesLabel.customX = m.game.canvas.getWidth() / 2
+    m.spritesLabel.customY = 100
+    m.spritesLabel.drawableText.alignment = "center"
+    m.game.gameUi.addChild(m.spritesLabel)
+    m.addWalkers(10)
+  end function
+
+  sub addWalkers(num)
+    for i = 0 to num - 1
+      x = rnd(m.game.screen.getWidth())
+      y = rnd(m.game.screen.getHeight())
+      m.walkers.push(m.game.addEntity(new WalkerEntity(m.game), {
+        x: x, y: y, scale: 1
+      }))
+    end for
+    m.spritesLabel.setText(`Sprites: ${m.walkers.count()}`)
+  end sub
+
+
+  override sub onInput(input)
+    if input.press
+      if input.isButton("ok")
+        m.addWalkers(10)
+      else if input.isButton("fastforward")
+        m.game.changeRoom("RectangleRoom")
+      end if
+    end if
+  end sub
+
+  override function onGameEvent(event as string, data as object)
+
+  end function
+
+
+  override function onChangeRoom(newRoom as BGE.Room) as void
+    m.game.gameUi.removeChild(m.spritesLabel)
+    m.walkers = []
+  end function
+
+
+end class

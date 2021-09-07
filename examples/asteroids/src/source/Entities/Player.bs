@@ -27,11 +27,9 @@ class Player extends SpaceEntity
     rocketOnHeight = rocketOnBitmap.getHeight()
     m.rocketCollider = m.addCircleCollider("rocket", m.width / 3)
 
-    'bs:disable-next-line
     region = CreateObject("roRegion", rocketBitmap, 0, 0, m.width, m.height)
     region.SetPreTranslation(- m.width / 2, - m.height / 2)
     m.rocketImage = m.addImage("rocket", region, {})
-    'bs:disable-next-line
     region2 = CreateObject("roRegion", rocketOnBitmap, 0, 0, m.width, rocketOnHeight)
     region2.SetPreTranslation(- m.width / 2, - m.height / 2)
     m.rocketOnImage = m.addImage("rocket_on", region2, {})

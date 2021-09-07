@@ -1,0 +1,82 @@
+class PolygonEntity extends BGE.GameEntity
+
+  sizeConfig as object = invalid
+  polygonDrawable as BGE.DrawablePolygon = invalid
+  clockWise as integer = 1
+  rotSpeed as float = 1
+
+  function new(game) as void
+    super(game)
+    m.name = "Polygon"
+    m.clockWise = (rnd(2) = 1) ? 1 : -1
+    m.rotSpeed = rnd(10) + 1
+  end function
+
+  override function onUpdate(deltaTime as float)
+    m.rotation += m.clockWise * deltaTime * BGE.Math_PI() * m.rotSpeed
+    if invalid = m.sizeConfig or not m.sizeConfig.change
+      return invalid
+    end if
+    changedPoints = []
+    i = 0
+    for each point in m.polygonDrawable.points
+      factor = m.clockWise
+      if int(m.game.getTotalTime() / 5) mod 2 = 0
+        factor *= -1
+      end if
+      if i mod 2 = 0
+        factor *= -1
+      end if
+      changedPoints.push({x: point.x + deltaTime * 10 * factor, y: point.y + deltaTime * 10 * factor})
+      i++
+    end for
+    m.polygonDrawable.points = changedPoints
+  end function
+
+
+  override function onCreate(args)
+    m.y = args.y
+    m.x = args.x
+    m.sizeConfig = args.sizeConfig
+    m.polygonDrawable = new BGE.DrawablePolygon(m, m.game.getCanvas(), m.getRandomPolygon(7))
+    m.addImageObject("polygon", m.polygonDrawable)
+    m.polygonDrawable.color = m.getRandomColor()
+    m.polygonDrawable.drawModeMask = 3
+    m.polygonDrawable.outlineRGBA = m.getRandomColor()
+  end function
+
+  function getRandomPolygon(points as integer) as object
+    poly = []
+    points = rnd(points * 2) + 2
+    maxSize = m.sizeConfig.size
+    for i = 0 to points - 1
+      poly.push({x: rnd(maxSize)
+      y: rnd(maxSize)})
+    end for
+
+    return poly
+  end function
+
+  sub setDrawMode(drawMode as integer)
+    m.polygonDrawable.drawModeMask = drawMode
+  end sub
+
+  function getRegularPolygon(points as integer) as object
+    poly = []
+    maxSize = m.sizeConfig.size
+    radius = maxSize / 2
+    for i = 0 to points - 1
+      poly.push({x: radius * sin(BGE.Math_PI() * 2 * i / points),
+      y: radius * cos(BGE.Math_PI() * 2 * i / points)})
+    end for
+
+    return poly
+  end function
+
+
+  function getRandomColor() as integer
+    color% = rnd(256 * 256 * 256)
+    return color%
+  end function
+
+end class

@@ -1,6 +1,7 @@
 ' @module BGE
 namespace BGE
 
+  ' Used to draw a bitmap image to the screen
   class Image extends Drawable
 
 
@@ -9,7 +10,7 @@ namespace BGE
     private region as object
 
 
-    function new(owner as object, canvasBitmap as object, region as object, args = {} as object) as void
+    function new(owner as GameEntity, canvasBitmap as object, region as object, args = {} as object) as void
       super(owner, canvasBitmap, args)
       m.region = region
       m.append(args)
@@ -17,29 +18,12 @@ namespace BGE
 
 
     override function draw(additionalRotation = 0 as float) as void
+      m.width = m.region.getWidth()
+      m.height = m.region.getHeight()
       if m.enabled
-        m.drawRegion(additionalRotation)
+        m.drawRegionToCanvas(m.region, additionalRotation)
       end if
     end function
 
-
-
-
-    protected function drawRegion(additionalRotation = 0 as float) as void
-      position = m.getDrawPosition()
-      x = position.x
-      y = position.y
-      rgba = (m.color << 8) + int(m.alpha)
-      totalRotation = additionalRotation + m.rotation
-      if m.scale_x = 1 and m.scale_y = 1 and totalRotation = 0
-        m.drawTo.DrawObject(x, y, m.region, rgba)
-      else if totalRotation = 0
-        m.drawTo.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
-      else if m.scale_x = 1 and m.scale_y = 1
-        m.drawTo.DrawRotatedObject(x, y, - totalRotation, m.region, rgba)
-      else
-        BGE.DrawScaledAndRotatedObject(m.drawTo, x, y, m.scale_x, m.scale_y, - totalRotation, m.region, rgba)
-      end if
-    end function
   end class
 end namespace

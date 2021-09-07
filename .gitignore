@@ -1,4 +1,5 @@
 node_modules
+roku_modules
 dist
 out
 .roku-deploy-staging

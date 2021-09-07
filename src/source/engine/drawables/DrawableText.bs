@@ -1,13 +1,21 @@
 ' @module BGE
 namespace BGE
 
+  ' Class to draw text
   class DrawableText extends Drawable
 
+    ' The text to write on the screen
     text as string = ""
+    ' The Font object to use ( get this from the font registry)
     font as object
+
+    ' The Horizontal alignment for the text: "left", "center", "right"
     alignment as string = "left"
 
-    function new(owner as object, canvasBitmap as object, text = "" as string, font = invalid as object, args = {} as object) as void
+    protected lastTextValue as string = ""
+    protected tempCanvas as object = invalid
+
+    function new(owner as GameEntity, canvasBitmap as object, text = "" as string, font = invalid as object, args = {} as object) as void
       super(owner, canvasBitmap, args)
       m.text = text
       m.font = font
@@ -18,12 +26,38 @@ namespace BGE
     end function
 
     override function draw(additionalRotation = 0 as float) as void
-      ' TODO: Actually handle scale, rotation, etc.
-      position = m.getDrawPosition()
-      rgba = (m.color << 8) + int(m.alpha)
-      if invalid <> m.font
-        BGE.DrawText(m.drawTo, m.text, position.x, position.y, m.font, m.alignment, rgba)
+      if not m.enabled
+        return
       end if
+
+      if m.text = m.lastTextValue and invalid <> m.tempCanvas and not m.shouldRedraw
+        m.drawRegionToCanvas(m.tempCanvas, additionalRotation, true)
+        return
+      end if
+      m.lastTextValue = m.text
+      m.width = m.font.GetOneLineWidth(m.text, 10000)
+      m.height = m.font.GetOneLineHeight() * BGE.getNumberOfLinesInAString(m.text)
+
+      m.tempCanvas = CreateObject("roBitmap", {
+        width: m.width,
+        height: m.height,
+        AlphaEnable: true
+      })
+      BGE.DrawText(m.tempCanvas, m.text, 0, 0, m.font, "left", BGE.Colors().White)
+      m.drawRegionToCanvas(m.tempCanvas, additionalRotation, true)
+      m.shouldRedraw = false
+    end function
+
+
+    protected override function getDrawPosition() as object
+      position = super.getDrawPosition()
+      alignment = lcase(m.alignment)
+      if alignment = "center"
+        position.x -= m.width / 2
+      else if alignment = "right"
+        position.x -= m.height
+      end if
+      return position
     end function
 
   end class

@@ -46,7 +46,7 @@ namespace BGE
     ' @param {float} entityX - entity's x position
     ' @param {float} entityY - entity's y position
     function setupCompositor(game as object, entityName as string, entityId as string, entityX as float, entityY as float) as void
-      'bs:disable-next-line
+
       region = CreateObject("roRegion", game.getEmptyBitmap(), 0, 0, 1, 1)
       m.compositorObject = game.compositor.NewSprite(entityX, entityY, region)
       m.compositorObject.SetDrawableFlag(false)
