@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>
-      GarbageCollectorDisplay - Documentation
+      DrawableWithOutline - Documentation
   </title>
 
   <link href="https://www.braintreepayments.com/images/favicon-ccda0b14.png" rel="icon" type="image/png">
@@ -79,7 +79,7 @@
   <div id="main">
     
       <h1 class="page-title">
-        GarbageCollectorDisplay
+        DrawableWithOutline
       </h1>
     
 
@@ -90,7 +90,9 @@
     
       <h2>
         
-        GarbageCollectorDisplay
+          <span class="ancestors"><a href="module-BGE.html">BGE</a>.</span>
+        
+        DrawableWithOutline
         
       </h2>
 
@@ -107,13 +109,13 @@
   
 
   <span class='name-container'>
-    <a class="link-icon" href="#GarbageCollectorDisplay">
+    <a class="link-icon" href="#DrawableWithOutline">
       <svg height="20" width="20" style="fill: black;">
         <use xlink:href="#linkIcon"></use>
       </svg>
     </a>
-    <h4 class="name" id="GarbageCollectorDisplay">
-      <span class="type-signature"></span>new GarbageCollectorDisplay<span class="signature">(game)</span><span class="type-signature"> &rarr; {void}</span>
+    <h4 class="name" id="DrawableWithOutline">
+      <span class="type-signature"></span>new DrawableWithOutline<span class="signature">(owner, canvasBitmap, args<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span>
     </h4>
   </span>
 
@@ -140,7 +142,11 @@
       <th>Type</th>
 
       
+        <th>Attributes</th>
+      
 
+      
+        <th>Default</th>
       
 
       <th class="last">Description</th>
@@ -151,14 +157,14 @@
     
       <tr>
         
-          <td class="name"><code>game</code></td>
+          <td class="name"><code>owner</code></td>
         
 
         <td class="type">
           
             
     <span class="param-type">
-      BGE.Game
+      GameEntity
     </span>
 
     
@@ -168,7 +174,105 @@
         </td>
 
         
+          <td class="attributes">
+            
 
+            
+
+            
+          </td>
+        
+
+        
+          <td class="default">
+            
+          </td>
+        
+
+        <td class="description last">
+          
+          
+        </td>
+      </tr>
+
+    
+      <tr>
+        
+          <td class="name"><code>canvasBitmap</code></td>
+        
+
+        <td class="type">
+          
+            
+    <span class="param-type">
+      object
+    </span>
+
+    
+
+
+          
+        </td>
+
+        
+          <td class="attributes">
+            
+
+            
+
+            
+          </td>
+        
+
+        
+          <td class="default">
+            
+          </td>
+        
+
+        <td class="description last">
+          
+          
+        </td>
+      </tr>
+
+    
+      <tr>
+        
+          <td class="name"><code>args</code></td>
+        
+
+        <td class="type">
+          
+            
+    <span class="param-type">
+      object
+    </span>
+
+    
+
+
+          
+        </td>
+
+        
+          <td class="attributes">
+            
+              &lt;optional><br>
+            
+
+            
+
+            
+          </td>
+        
+
+        
+          <td class="default">
+            
+              {}
+            
+          </td>
         
 
         <td class="description last">
@@ -181,6 +285,93 @@
   </tbody>
 </table>
 
+
+
+
+
+  <h5 class="subsection-title">Properties:</h5>
+
+  
+
+<table class="props">
+  <thead>
+    <tr>
+      
+        <th>Name</th>
+      
+
+      <th>Type</th>
+
+      
+
+      
+
+      <th class="last">Description</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    
+
+    <tr>
+      
+        <td class="name"><code>drawOutline</code></td>
+      
+
+      <td class="type">
+        
+          
+    <span class="param-type">
+      boolean
+    </span>
+
+    
+
+
+        
+      </td>
+
+        
+
+        
+
+        <td class="description last">
+          <p>Draw an outline stroke of outlineRGBA color</p>
+          </td>
+    </tr>
+
+  
+
+    <tr>
+      
+        <td class="name"><code>outlineRGBA</code></td>
+      
+
+      <td class="type">
+        
+          
+    <span class="param-type">
+      integer
+    </span>
+
+    
+
+
+        
+      </td>
+
+        
+
+        
+
+        <td class="description last">
+          <p>RGBA color for outline stroke</p>
+          </td>
+    </tr>
+
+  
+  </tbody>
+</table>
 
 
 
@@ -216,7 +407,7 @@
     <dd class="tag-source">
       <ul class="dummy">
         <li>
-          <a href="engine_debug_GarbageCollectorDisplay.bs.html">engine/debug/GarbageCollectorDisplay.bs</a>, <a href="engine_debug_GarbageCollectorDisplay.bs.html#line7">line 7</a>
+          <a href="engine_drawables_Drawable.bs.html">engine/drawables/Drawable.bs</a>, <a href="engine_drawables_Drawable.bs.html#line120">line 120</a>
         </li>
       </ul>
     </dd>
@@ -252,7 +443,7 @@
 
 
   <ul>
-    <li>DebugWindow</li>
+    <li>Drawable</li>
   </ul>
 
 
@@ -268,152 +459,6 @@
 
     
 
-    
-      <h3 class="subsection-title">Methods</h3>
-
-      
-        
-
-
-  
-
-  <span class='name-container'>
-    <a class="link-icon" href="#onUpdate">
-      <svg height="20" width="20" style="fill: black;">
-        <use xlink:href="#linkIcon"></use>
-      </svg>
-    </a>
-    <h4 class="name" id="onUpdate">
-      <span class="type-signature"></span>onUpdate<span class="signature">(dt)</span><span class="type-signature"> &rarr; {dynamic}</span>
-    </h4>
-  </span>
-
-  
-
-
-
-
-
-
-
-
-
-  <h5>Parameters:</h5>
-  
-
-<table class="params">
-  <thead>
-    <tr>
-      
-        <th>Name</th>
-      
-
-      <th>Type</th>
-
-      
-
-      
-
-      <th class="last">Description</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    
-      <tr>
-        
-          <td class="name"><code>dt</code></td>
-        
-
-        <td class="type">
-          
-            
-    <span class="param-type">
-      dynamic
-    </span>
-
-    
-
-
-          
-        </td>
-
-        
-
-        
-
-        <td class="description last">
-          
-          
-        </td>
-      </tr>
-
-    
-  </tbody>
-</table>
-
-
-
-
-
-<dl class="details">
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source">
-      <ul class="dummy">
-        <li>
-          <a href="engine_debug_GarbageCollectorDisplay.bs.html">engine/debug/GarbageCollectorDisplay.bs</a>, <a href="engine_debug_GarbageCollectorDisplay.bs.html#line22">line 22</a>
-        </li>
-      </ul>
-    </dd>
-  
-
-  
-
-  
-
-  
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
     
 
     
