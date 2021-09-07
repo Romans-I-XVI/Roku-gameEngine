@@ -10,11 +10,11 @@ class RectangleRoom extends BGE.Room
   function new(game) as void
     super(game)
     m.name = "RectangleRoom"
+    m.rectanglesLabel = new BGE.UI.Label(m.game)
   end function
 
   override function onCreate(args)
     m.getRectangles()
-    m.rectanglesLabel = new BGE.UI.Label(m.game)
     m.rectanglesLabel.customPosition = true
     m.rectanglesLabel.customX = m.game.canvas.getWidth() / 2
     m.rectanglesLabel.customY = 100
@@ -24,8 +24,8 @@ class RectangleRoom extends BGE.Room
 
 
   sub getRectangles()
-    for each rectangles in m.rectangles
-      m.game.destroyEntity(rectangles)
+    for each rectangle in m.rectangles
+      m.game.destroyEntity(rectangle)
     end for
     m.rectangles = []
     rectWidth = m.game.getCanvas().getWidth() / m.cols
@@ -38,6 +38,7 @@ class RectangleRoom extends BGE.Room
         m.rectangles.push(rect)
       end for
     end for
+    m.rectanglesLabel.setText(`Rectangles: ${m.rectangles.count()}`)
   end sub
 
   sub changeColors()
@@ -74,9 +75,10 @@ class RectangleRoom extends BGE.Room
 
   end function
 
-  override function onDrawEnd(canvas)
-    m.rectanglesLabel.setText(`Rectangles: ${m.rectangles.count()}`)
+  override function onChangeRoom(newRoom as BGE.Room) as void
+    m.game.gameUi.removeChild(m.rectanglesLabel)
   end function
+
 
 
 end class

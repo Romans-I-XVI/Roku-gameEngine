@@ -9,9 +9,10 @@ namespace BGE
     ' The current index of image - this would not normally be changed manually, but if you wanted to stop on a specific image in the spritesheet this could be set.
     index as integer = 0
     ' The time in milliseconds for a single cycle through the animation to play.
-    animationSpeedMs as float = 0
+    animationDurationMs as float = 0
     ' The name of the tween to use for choosing the next image
     animationTween as string = "LinearTween"
+
 
     ' -------------Never To Be Manually Changed-----------------
     ' These values should never need to be manually changed.

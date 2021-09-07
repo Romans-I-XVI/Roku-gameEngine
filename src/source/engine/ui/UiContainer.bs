@@ -9,6 +9,7 @@ namespace BGE.UI
 
     function new(game as BGE.Game) as void
       super(game)
+
     end function
 
 
@@ -27,8 +28,12 @@ namespace BGE.UI
 
     function removeChild(element as UiWidget) as void
       indexToRemove = -1
+      if invalid = element
+        return
+      end if
+
       for i = 0 to m.children.count() - 1
-        if m.children[i] = element
+        if m.children[i].id = element.id
           indexToRemove = i
           exit for
         end if
@@ -65,11 +70,13 @@ namespace BGE.UI
     ' @param {object} [canvas=invalid] The canvas this should draw to - if invalid, then will draw to the game canvas
     override sub setCanvas(canvas = invalid as object)
       super.setCanvas(canvas)
-      for each child in m.children
-        if child <> invalid
-          child.setCanvas(m.canvas)
-        end if
-      end for
+      if invalid <> m.children
+        for each child in m.children
+          if child <> invalid
+            child.setCanvas(m.canvas)
+          end if
+        end for
+      end if
     end sub
 
     ' Method called each frame to draw any images of this entity

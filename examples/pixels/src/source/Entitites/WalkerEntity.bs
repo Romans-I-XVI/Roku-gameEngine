@@ -1,0 +1,66 @@
+class WalkerEntity extends BGE.GameEntity
+
+  walker as BGE.Sprite
+
+  animationFrameRate as integer = 20
+
+  direction = "right"
+  action = "stand"
+
+  movement = {x: 0, y: 0}
+  speed = 120
+
+
+
+  function new(game) as void
+    super(game)
+    m.name = "Walker"
+  end function
+
+
+  override function onCreate(args) as void
+    m.y = args.y
+    m.x = args.x
+    m.zIndex = 1
+    m.walker = m.addSprite("walkingsprite", m.game.getBitmap("walkingsprite"), 144, 180)
+    m.walker.setScale(args.scale)
+    m.walker.applyPreTranslation(-72, -180)
+    m.walker.addAnimation("stand_right", {startFrame: 0, frameCount: 1}, m.animationFrameRate, "forward")
+    m.walker.addAnimation("stand_left", {startFrame: 17, frameCount: 1}, m.animationFrameRate, "forward")
+    m.walker.addAnimation("stand_down", {startFrame: 18, frameCount: 1}, m.animationFrameRate, "forward")
+    m.walker.addAnimation("stand_up", {startFrame: 27, frameCount: 1}, m.animationFrameRate, "forward")
+
+    m.walker.addAnimation("walk_right", {startFrame: 1, frameCount: 8}, m.animationFrameRate, "loop")
+    m.walker.addAnimation("walk_left", {startFrame: 9, frameCount: 8}, m.animationFrameRate, "loop")
+    m.walker.addAnimation("walk_down", {startFrame: 19, frameCount: 8}, m.animationFrameRate, "loop")
+    m.walker.addAnimation("walk_up", {startFrame: 28, frameCount: 8}, m.animationFrameRate, "loop")
+    m.walker.color = m.getRandomColor()
+  end function
+
+  override function onUpdate(dt as float) as void
+    m.xspeed = m.movement.x * dt * m.speed
+    m.yspeed = m.movement.y * dt * m.speed
+
+    m.walker.playAnimation(m.action + "_" + m.direction)
+  end function
+
+  function getRandomColor() as integer
+    color% = rnd(256 * 256 * 256)
+    return color%
+  end function
+
+
+
+  override function onInput(input as BGE.GameInput)
+    m.movement.x = input.x
+    m.movement.y = input.y
+    if input.isDirectionalArrow()
+      m.direction = input.button
+      m.action = "walk"
+    end if
+    if not input.held
+      m.action = "stand"
+    end if
+  end function
+
+end class

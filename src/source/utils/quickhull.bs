@@ -29,13 +29,13 @@ namespace BGE.QuickHull
   ' Implementation of the QuickHull algorithm for finding convex hull of a set of points
   ' Modified from: https://github.com/claytongulick/quickhull
   ' Original author Clay Gulick
-  ' @param {object} points - array of {x,y} objects
+  ' @param {object} pointsArray - array of {x,y} objects
   ' @return the minimal set of points for a convex hull
   function QuickHull(pointsArray = [] as object)
     hull = []
     'if there are only three points, this is a triangle, which by definition is already a hull
     if pointsArray.count() = 3
-      return points
+      return pointsArray
     end if
     baseline = getMinMaxPoints(pointsArray)
     addSegments(hull, baseline, pointsArray)
@@ -48,22 +48,22 @@ namespace BGE.QuickHull
   ' @param {Array} pointsArray - An array of {x,y} objects
   ' @return {object} array [ {x,y}, {x,y} ]
   function getMinMaxPoints(pointsArray = [] as object, vertical = false as boolean) as object
-    minPoint = points[0]
-    maxPoint = points[0]
+    minPoint = pointsArray[0]
+    maxPoint = pointsArray[0]
 
     for i = 1 to pointsArray.count() - 1
       if not vertical
-        if points[i].x < minPoint.x
+        if pointsArray[i].x < minPoint.x
           minPoint = pointsArray[i]
         end if
-        if points[i].x > maxPoint.x
+        if pointsArray[i].x > maxPoint.x
           maxPoint = pointsArray[i]
         end if
       else
         if pointsArray[i].y < minPoint.y
-          minPoint = points[i]
+          minPoint = pointsArray[i]
         end if
-        if points[i].y > maxPoint.y
+        if pointsArray[i].y > maxPoint.y
           maxPoint = pointsArray[i]
         end if
       end if

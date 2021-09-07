@@ -1,11 +1,15 @@
 sub Main()
   game = new BGE.Game(1280, 720, true) ' This initializes the game engine
+
+  game.loadBitmap("walkingsprite", "pkg:/sprites/walkingsprite.png")
   polyRoom = new PolygonRoom(game)
   rectRoom = new RectangleRoom(game)
+  spriteExampleRoom = new SpriteRoom(game)
   game.defineRoom(polyRoom)
   game.defineRoom(rectRoom)
+  game.defineRoom(spriteExampleRoom)
 
-  game.changeRoom(rectRoom.name)
+  game.changeRoom(spriteExampleRoom.name)
   game.getDebugUI().addChild(new BGE.Debug.FpsDisplay(game))
   game.getDebugUI().addChild(new BGE.Debug.InputDisplay(game))
 

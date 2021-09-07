@@ -13,17 +13,18 @@ class PolygonRoom extends BGE.Room
   function new(game) as void
     super(game)
     m.name = "PolygonRoom"
+    m.polygonsLabel = new BGE.UI.Label(m.game)
+    m.drawModeLabel = new BGE.UI.Label(m.game)
+
   end function
 
   override function onCreate(args)
     m.getRandomPolygons()
-    m.polygonsLabel = new BGE.UI.Label(m.game)
     m.polygonsLabel.customPosition = true
     m.polygonsLabel.customX = m.game.canvas.getWidth() / 2
     m.polygonsLabel.customY = 100
     m.polygonsLabel.drawableText.alignment = "center"
     m.game.gameUi.addChild(m.polygonsLabel)
-    m.drawModeLabel = new BGE.UI.Label(m.game)
     m.drawModeLabel.customPosition = true
     m.drawModeLabel.customX = m.game.canvas.getWidth() / 2
     m.drawModeLabel.customY = m.game.canvas.getHeight() - 200
@@ -45,6 +46,8 @@ class PolygonRoom extends BGE.Room
       m.totalEntities++
       poly.setDrawMode(m.drawMode)
     end for
+    m.polygonsLabel.setText(`Polygons: ${m.polygonEntities.count()}`)
+    m.drawModeLabel.setText(`DrawMode: ${m.drawMode}`)
   end sub
 
   sub changeDrawMode()
@@ -55,6 +58,7 @@ class PolygonRoom extends BGE.Room
     for each polygon in m.polygonEntities
       polygon.setDrawMode(m.drawMode)
     end for
+    m.drawModeLabel.setText(`DrawMode: ${m.drawMode}`)
   end sub
 
   override sub onInput(input)
@@ -76,7 +80,7 @@ class PolygonRoom extends BGE.Room
       m.polygonCount = int(m.polygonCount / 1.2)
       m.getRandomPolygons()
     else if input.isButton("fastforward")
-      m.game.changeRoom("RectangleRoom")
+      m.game.changeRoom("SpriteRoom")
     end if
   end sub
 
@@ -84,9 +88,10 @@ class PolygonRoom extends BGE.Room
 
   end function
 
-  override function onDrawEnd(canvas)
-    ' m.polygonsLabel.setText(`Polygons: ${m.polygonEntities.count()}`)
-    'm.drawModeLabel.setText(`DrawMode: ${m.drawMode}`)
+
+  override function onChangeRoom(newRoom as BGE.Room) as void
+    m.game.gameUi.removeChild(m.drawModeLabel)
+    m.game.gameUi.removeChild(m.polygonsLabel)
   end function
 
 

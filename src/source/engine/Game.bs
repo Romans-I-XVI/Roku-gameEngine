@@ -82,6 +82,9 @@ namespace BGE
     private nextGameEntityId as integer = 0
     private secondsBetweenGarbageCollection = 1
     private lastGarbageCollection as object = invalid
+    private roomChangedThisFrame as boolean = false
+    private roomChangeDetails as object = {}
+
     ' ****END - For Internal Use, Do Not Manually Alter****
 
 
@@ -249,6 +252,7 @@ namespace BGE
       m.running = true
 
       while m.running
+        m.roomChangedThisFrame = false
 
         if m.inputEntityId <> invalid and m.getEntityByID(m.inputEntityId) = invalid
           m.inputEntityId = invalid
@@ -344,6 +348,10 @@ namespace BGE
           m.garbageCollectionTimer.mark()
         end if
 
+        if m.roomChangedThisFrame
+          m.handleRoomChange()
+        end if
+
       end while
 
     end function
@@ -359,8 +367,14 @@ namespace BGE
       started_paused = m.paused
 
       ' Process all Entity Updates
-      for i = m.sortedEntities.Count() - 1 to 0 step -1
-        entity = m.sortedEntities[i]
+      for i = m.sortedEntities.Count() to 0 step -1
+        entity = invalid
+        if i = m.sortedEntities.Count()
+          ' magic to process current room first
+          entity = m.currentRoom
+        else
+          entity = m.sortedEntities[i]
+        end if
         if not m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
           processEntity = false
         else
@@ -604,6 +618,9 @@ namespace BGE
     '
     ' @return {void}
     private function drawEntities() as void
+      if invalid <> m.currentRoom
+        m.processEntityDraw(m.currentRoom)
+      end if
       m.sortedEntities.sortBy("zIndex")
       for each entity in m.sortedEntities
         m.processEntityDraw(entity)
@@ -654,9 +671,9 @@ namespace BGE
       if not m.paused
         m.paused = true
 
-        for each object_key in m.Entities
-          for each entity_key in m.Entities[object_key]
-            entity = m.Entities[object_key][entity_key]
+        for each objectKey in m.Entities
+          for each entityKey in m.Entities[objectKey]
+            entity = m.Entities[objectKey][entityKey]
             if entity <> invalid and entity.id <> invalid and entity.onPause <> invalid
               entity.onPause()
             end if
@@ -676,9 +693,9 @@ namespace BGE
         m.paused = false
         paused_time = m.pauseTimer.TotalMilliseconds()
 
-        for each object_key in m.Entities
-          for each entity_key in m.Entities[object_key]
-            entity = m.Entities[object_key][entity_key]
+        for each objectKey in m.Entities
+          for each entityKey in m.Entities[objectKey]
+            entity = m.Entities[objectKey][entityKey]
             for each image in entity.images
               if image.DoesExist("onResume") and image.onResume <> invalid
                 image.onResume(paused_time)
@@ -766,9 +783,9 @@ namespace BGE
         m.canvas.bitmap = m.screen
 
         ' This is so all entities that have images that draw to the screen get updated with the new screen.
-        for each object_key in m.Entities
-          for each entity_key in m.Entities[object_key]
-            entity = m.Entities[object_key][entity_key]
+        for each objectKey in m.Entities
+          for each entityKey in m.Entities[objectKey]
+            entity = m.Entities[objectKey][entityKey]
             if entity <> invalid and entity.id <> invalid and entity.DoesExist("images")
               for each image in entity.images
                 if type(image.drawTo) = "roScreen"
@@ -868,9 +885,9 @@ namespace BGE
       m.processUiUpdate(m.debugUi, universalControlEvents, music_msg, ecp_msg, url_msg)
 
       if m.debugging.show_debug_ui and m.isValidEntity(m.debugUi) and invalid <> m.debugUi.draw
-        if m.debugging.draw_debugUi_to_screen
+        if m.debugging.draw_debugUi_to_screen and m.debugUi.drawTo <> m.screen
           m.debugUi.setCanvas(m.screen)
-        else
+        else if not m.debugging.draw_debugUi_to_screen and m.debugUi.drawTo <> m.getCanvas()
           m.debugUi.setCanvas(m.getCanvas())
         end if
         m.debugUi.draw()
@@ -1114,8 +1131,8 @@ namespace BGE
     function getAllEntities(objectName as string) as object
       array = []
       if invalid <> objectName and m.Entities.DoesExist(objectName)
-        for each entity_key in m.Entities[objectName]
-          array.Push(m.Entities[objectName][entity_key])
+        for each entityKey in m.Entities[objectName]
+          array.Push(m.Entities[objectName][entityKey])
         end for
       end if
       return []
@@ -1211,11 +1228,12 @@ namespace BGE
       m.Rooms[roomName] = room
       m.Entities[roomName] = {}
       m.Statics[roomName] = {}
-
-      'TODO - this is wrong ! need to find way to set active room better
-      m.sortedEntities.Push(room)
     end function
 
+
+    function isRoomChanging() as boolean
+      return m.roomChangedThisFrame
+    end function
 
 
     ' Changes the active room to the one with the given name
@@ -1227,13 +1245,31 @@ namespace BGE
     ' @return {boolean} true if room change was successful
     function changeRoom(roomName as string, args = {} as object) as boolean
       if m.Rooms[roomName] <> invalid
-        room = m.Rooms[roomName]
 
+        m.roomChangedThisFrame = true
+        m.roomChangeDetails = {room: m.Rooms[roomName], args: args}
+        if invalid = m.currentRoom or not m.running
+          m.handleRoomChange()
+        end if
+        return true
+      else
+        print "changeRoom() - A room named " + room_name + " hasn't been defined"
+        return false
+      end if
+    end function
+
+    private sub handleRoomChange()
+      if m.roomChangedThisFrame and m.roomChangeDetails <> invalid and m.roomChangeDetails.room <> invalid
+        room = m.roomChangeDetails.room
+        args = {}
+        if m.roomChangeDetails.args <> invalid
+          args = m.roomChangeDetails.args
+        end if
 
         ' TODO: may be more efficient way of doing this
         for each objectKey in m.Entities
           for each entityKey in m.Entities[objectKey]
-            entity = m.Entities[object_key][entityKey]
+            entity = m.Entities[objectKey][entityKey]
             if m.isValidEntity(entity) and entity.onChangeRoom <> invalid
               entity.onChangeRoom(room)
             end if
@@ -1247,18 +1283,17 @@ namespace BGE
             end if
           end for
         end for
-        if m.currentRoom <> invalid and m.currentRoom.id <> invalid
-          m.destroyEntity(m.currentRoom, false)
+
+        if m.isValidEntity(m.currentRoom) and m.currentRoom.onChangeRoom <> invalid
+          m.currentRoom.onChangeRoom(room)
         end if
+
         m.currentRoom = room
         m.currentRoomArgs = args
         m.currentRoom.onCreate(args)
-        return true
-      else
-        print "changeRoom() - A room named " + room_name + " hasn't been defined"
-        return false
+        m.roomChangedThisFrame = false
       end if
-    end function
+    end sub
 
 
 
@@ -1548,11 +1583,11 @@ namespace BGE
     ' @param {object} [data={}] - any data that needs to be be passed with the event
     ' @return {void}
     function postGameEvent(eventName as string, data = {} as object) as void
-      object_keys = m.Entities.Keys()
-      for each object_key in object_keys
-        entity_keys = m.Entities[object_key].Keys()
-        for each entity_key in entity_keys
-          entity = m.Entities[object_key][entity_key]
+      objectKeys = m.Entities.Keys()
+      for each objectKey in objectKeys
+        entityKeys = m.Entities[objectKey].Keys()
+        for each entityKey in entityKeys
+          entity = m.Entities[objectKey][entityKey]
           if m.isValidEntity(entity) and entity.onGameEvent <> invalid
             entity.onGameEvent(eventName, data)
           end if

@@ -37,7 +37,7 @@ namespace BGE
       if m.drawLevels < 1
         m.drawLevels = 1
       end if
-      if not m.enabled
+      if not m.enabled or invalid = m.points
         return
       end if
 
