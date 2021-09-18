@@ -13,6 +13,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			limit_frame_rate: 0
 		}
 		canvas_is_screen: false
+		resolution_scale: 1
 		background_color: &h000000FF
 		running: true
 		paused: false
@@ -639,8 +640,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 			image_object.Draw = function()
 				if m.enabled
-					x = m.owner.x + m.offset_x
-					y = m.owner.y + m.offset_y
+					x = m.owner.x * m.owner.game.resolution_scale + m.offset_x * m.owner.game.resolution_scale
+					y = m.owner.y * m.owner.game.resolution_scale + m.offset_y * m.owner.game.resolution_scale
 					rgba = (m.color << 8) + int(m.alpha)
 					if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
 						m.draw_to.DrawObject(x, y, m.region, rgba)
@@ -695,8 +696,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 					end if
 
 					region = m.regions[m.index]
-					x = m.owner.x + m.offset_x
-					y = m.owner.y + m.offset_y
+					x = m.owner.x * m.owner.game.resolution_scale + m.offset_x * m.owner.game.resolution_scale
+					y = m.owner.y * m.owner.game.resolution_scale + m.offset_y * m.owner.game.resolution_scale
 					rgba = (m.color << 8) + int(m.alpha)
 					if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
 						m.draw_to.DrawObject(x, y, region, rgba)
