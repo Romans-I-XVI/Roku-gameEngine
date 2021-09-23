@@ -827,16 +827,23 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		for each collider_key in instance.colliders
 			collider = instance.colliders[collider_key]
 			if collider.enabled then
+				x = instance.x * m.resolution_scale
+				y = instance.y * m.resolution_scale
+				offset_x = collider.offset_x * m.resolution_scale
+				offset_y = collider.offset_y * m.resolution_scale
 				if collider.type = "circle" then
 					' This function is slow as I'm making draw calls for every section of the line.
 					' It's for debugging purposes only!
-					DrawCircle(m.canvas.bitmap, 100, instance.x+collider.offset_x, instance.y+collider.offset_y, collider.radius, color)
+					radius = collider.radius * m.resolution_scale
+					DrawCircle(m.canvas.bitmap, 100, x + offset_x, y + offset_y, radius, color)
 				end if
 				if collider.type = "rectangle" then
-					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, 1, collider.height, color)
-					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x+collider.width-1, instance.y+collider.offset_y, 1, collider.height, color)
-					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y, collider.width, 1, color)
-					m.canvas.bitmap.DrawRect(instance.x+collider.offset_x, instance.y+collider.offset_y+collider.height-1, collider.width, 1, color)
+					width = collider.width * m.resolution_scale
+					height = collider.height * m.resolution_scale
+					m.canvas.bitmap.DrawRect(x + offset_x, y + offset_y, 1, height, color)
+					m.canvas.bitmap.DrawRect(x + offset_x + width - 1, y + offset_y, 1, height, color)
+					m.canvas.bitmap.DrawRect(x + offset_x, y + offset_y, width, 1, color)
+					m.canvas.bitmap.DrawRect(x + offset_x, y + offset_y + height - 1, width, 1, color)
 				end if
 			end if
 		end for
