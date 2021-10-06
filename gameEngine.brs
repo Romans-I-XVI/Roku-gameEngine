@@ -575,6 +575,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			else
 				print "addColliderCircle() - Collider Name Already Exists: " + collider_name
 			end if
+
+			return collider
 		end function
 
 		new_object.addColliderRectangle = function(collider_name, offset_x, offset_y, width, height, enabled = true)
@@ -601,6 +603,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			else
 				print "addColliderRectangle() - Collider Name Already Exists: " + collider_name
 			end if
+
+			return collider
 		end function
 
 		new_object.getCollider = function(collider_name)
