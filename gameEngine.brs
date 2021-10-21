@@ -18,6 +18,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		running: true
 		paused: false
 		sorted_instances: []
+		game_event_instances: []
 		buttonHeld: -1
 		buttonHeldTime: 0
 		input_instance: invalid
@@ -1038,6 +1039,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			new_instance = m.newEmptyObject(object_name)
 			m.Objects[object_name](new_instance)
 			new_instance.onCreate(args)
+			if new_instance.onGameEvent <> invalid
+				m.game_event_instances.Push(new_instance)
+			end if
 			return new_instance
 		else
 			return invalid
@@ -1125,6 +1129,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				instance.Clear()
 				instance.id = invalid
 			end if
+			for i = m.game_event_instances.Count() - 1 to 0 step -1
+				if m.game_event_instances[i].id = invalid
+					m.game_event_instances.Delete(i)
+				end if
+			end for
 		end if
 	end function
 	' ############### destroyInstance() function - End ###############
@@ -1187,6 +1196,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			m.Rooms[room_name](m.currentRoom)
 			m.currentRoomArgs = args
 			m.currentRoom.onCreate(args)
+			if m.currentRoom.onGameEvent <> invalid
+				m.game_event_instances.Push(m.currentRoom)
+			end if
 			return true
 		else
 			print "changeRoom() - A room named " + room_name + " hasn't been defined"
@@ -1469,8 +1481,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### postGameEvent() function - Begin ###############
 	game.postGameEvent = function(event as string, data = {} as object) as void
-		for i = 0 to m.sorted_instances.Count() - 1
-			instance = m.sorted_instances[i]
+		for i = 0 to m.game_event_instances.Count() - 1
+			instance = m.game_event_instances[i]
 			if instance <> invalid and instance.id <> invalid and instance.onGameEvent <> invalid
 				instance.onGameEvent(event, data)
 			end if
