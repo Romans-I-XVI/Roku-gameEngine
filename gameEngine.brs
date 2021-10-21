@@ -1469,7 +1469,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### postGameEvent() function - Begin ###############
 	game.postGameEvent = function(event as string, data = {} as object) as void
-		for each instance in m.sorted_instances
+		for i = 0 to m.sorted_instances.Count() - 1
+			instance = m.sorted_instances[i]
 			if instance <> invalid and instance.id <> invalid and instance.onGameEvent <> invalid
 				instance.onGameEvent(event, data)
 			end if
