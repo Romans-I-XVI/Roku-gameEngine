@@ -718,8 +718,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				frame_count = m.regions.Count()
 				current_time = m.animation_timer.TotalMilliseconds()
 				if current_time > m.animation_speed
-					current_time -= m.animation_speed
-					m.animation_timer.RemoveTime(m.animation_speed)
+					time_to_remove = int(current_time / m.animation_speed) * m.animation_speed
+					current_time -= time_to_remove
+					m.animation_timer.RemoveTime(time_to_remove)
 				end if
 				m.index = m._tweens_reference[m.animation_tween](0, frame_count, current_time, m.animation_speed)
 				if m.index > frame_count - 1
