@@ -9,8 +9,8 @@
     "rootDir": "src"
   },
   "devDependencies": {
-    "brighterscript": "^0.40.0",
+    "brighterscript": "^0.45.3",
     "rimraf": "^3.0.2",
-    "ropm": "^0.9.1"
+    "ropm": "^0.10.4"
   }
 }

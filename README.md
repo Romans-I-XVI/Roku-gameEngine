@@ -37,6 +37,14 @@ You will need to "install" the brighterscript-game-engine in the examples direct
 npm run prepare-examples
 ```
 
+You can manually build the examples from the command line and manually add the zip files to your Roku:
+
+```
+npm run build-examples
+```
+
+The above command will generate example .zip files like `./examples/asteroids/out/asteroids.zip`
+
 Open the Workspace in VS Code:
 
 ```
