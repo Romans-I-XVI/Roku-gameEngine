@@ -407,6 +407,13 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				end for
 			end if
 
+			' Drop any local references before continuing, this makes sure textures are not accidentally held between loops
+			instance = invalid
+			collider = invalid
+			other_collider = invalid
+			multiple_collisions = invalid
+			image = invalid
+
 			' -------------------Draw everything to the screen----------------------------
 			if not m.canvas_is_screen
 				m.screen.DrawScaledObject(m.canvas.offset_x, m.canvas.offset_y, m.canvas.scale_x, m.canvas.scale_y, m.canvas.bitmap)
