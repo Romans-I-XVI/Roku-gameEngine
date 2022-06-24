@@ -991,10 +991,25 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ############### resetScreen() function - Begin ###############
 	game.resetScreen = function() as void
 		UIResolution = m.device.getUIResolution()
+		SupportedResolutions = m.device.GetSupportedGraphicsResolutions()
+		FHD_Supported = false
+		for i = 0 to SupportedResolutions.Count() - 1
+			if SupportedResolutions[i].name = "FHD"
+				FHD_Supported = true
+			end if
+		end for
+
 		if UIResolution.name = "SD"
 			m.screen = CreateObject("roScreen", true, 854, 626)
 		else
-			m.screen = CreateObject("roScreen", true, 1280, 720)
+			canvas_width = m.canvas.bitmap.GetWidth()
+			if canvas_width <= 854
+				m.screen = CreateObject("roScreen", true, 854, 480)
+			else if canvas_width <= 1280 or not FHD_Supported
+				m.screen = CreateObject("roScreen", true, 1280, 720)
+			else
+				m.screen = CreateObject("roScreen", true, 1920, 1080)
+			end if
 		end if
 		m.compositor.SetDrawTo(m.screen, &h00000000)
 		m.screen.SetMessagePort(m.screen_port)
