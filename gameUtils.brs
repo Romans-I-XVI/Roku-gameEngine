@@ -70,6 +70,28 @@ function DrawText(draw2d as object, text as string, x as integer, y as integer, 
 	end if
 end function
 
+function DrawScaledText(draw2d as object, font as object, text as string, x as integer, y as integer, scale as float, alignment = "left" as string, color = &hEBEBEBFF as integer)
+	required_width = font.GetOneLineWidth(text, 10000)
+	required_height = font.GetOneLineHeight()
+	if m.text_canvas = invalid or (m.text_canvas.GetWidth() < required_width or m.text_canvas.GetHeight() < required_height)
+		m.text_canvas = invalid
+		m.text_canvas = CreateObject("roBitmap", { width: required_width, height: required_height, alphaenable: true })
+	end if
+
+	m.text_canvas.Clear(&h00000000)
+	m.text_canvas.DrawText(text, 0, 0, color, font)
+
+	text_region = CreateObject("roRegion", m.text_canvas, 0, 0, font.GetOneLineWidth(text, 10000), font.GetOneLineHeight())
+	if alignment = "right"
+		text_region.SetPretranslation(-text_region.GetWidth(), 0)
+	else if alignment = "center"
+		text_region.SetPretranslation(-text_region.GetWidth() / 2, 0)
+	end if
+
+	draw2d.DrawScaledObject(cint(x), cint(y), scale, scale, text_region)
+	text_region = invalid
+end function
+
 ' NOTE: This function is unsafe! It creates an roBitmap of the required size to be able to both scale and rotate the drawing, this action requires free video memory of the appropriate amount.
 function DrawScaledAndRotatedObject(draw2d as object, x as float, y as float, scale_x as float, scale_y as float, theta as float, drawable as object, color = &hFFFFFFFF as integer) as void
 	new_width = Abs(int(drawable.GetWidth() * scale_x))
