@@ -54,6 +54,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		' ****END - For Internal Use, Do Not Manually Alter****
 
 		' ****Variables****
+		previousRoomName: ""
 		currentRoom: invalid
 		currentRoomArgs: {}
 		Instances: {} ' This holds all of the game object instances
@@ -1213,6 +1214,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				end for
 			end for
 			if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
+				m.previousRoomName = m.currentRoom.name
 				m.destroyInstance(m.currentRoom, false)
 			end if
 			m.currentRoom = m.newEmptyObject(room_name)
