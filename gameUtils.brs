@@ -60,7 +60,7 @@ function registryRead(registry_section as string, key as string, default_value =
 	end if
 end function
 
-function DrawText(draw2d as object, text as string, x as integer, y as integer, font as object, alignment = "left" as string, color = &hEBEBEBFF as integer) as void
+function DrawText(draw2d as object, font as object, text as string, x as integer, y as integer, alignment = "left" as string, color = &hEBEBEBFF as integer) as void
 	if alignment = "left"
 		draw2d.DrawText(text, x, y, color, font)
 	else if alignment = "right"
