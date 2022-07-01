@@ -902,13 +902,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		if not m.paused then
 			m.paused = true
 
-			for each object_key in m.Instances
-				for each instance_key in m.Instances[object_key]
-					instance = m.Instances[object_key][instance_key]
-					if instance <> invalid and instance.id <> invalid and instance.onPause <> invalid
-						instance.onPause()
-					end if
-				end for
+			for i = 0 to m.sorted_instances.Count() - 1
+				instance = m.sorted_instances[i]
+				if instance <> invalid and instance.id <> invalid and instance.onPause <> invalid
+					instance.onPause()
+				end if
 			end for
 
 			m.pauseTimer.Mark()
@@ -924,18 +922,18 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			m.paused = false
 			paused_time = m.pauseTimer.TotalMilliseconds()
 
-			for each object_key in m.Instances
-				for each instance_key in m.Instances[object_key]
-					instance = m.Instances[object_key][instance_key]
+			for i = 0 to m.sorted_instances.Count() - 1
+				instance = m.sorted_instances[i]
+				if instance <> invalid and instance.id <> invalid
 					for each image in instance.images
 						if image.DoesExist("onResume") and image.onResume <> invalid
 							image.onResume(paused_time)
 						end if
 					end for
-					if instance <> invalid and instance.id <> invalid and instance.onResume <> invalid
+					if instance.onResume <> invalid
 						instance.onResume(paused_time)
 					end if
-				end for
+				end if
 			end for
 
 			return paused_time
@@ -1197,21 +1195,17 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ############### changeRoom() function - Begin ###############
 	game.changeRoom = function(room_name as string, args = {} as object) as boolean
 		if m.Rooms[room_name] <> invalid then
-			for each object_key in m.Instances
-				for each instance_key in m.Instances[object_key]
-					instance = m.Instances[object_key][instance_key]
-					if instance <> invalid and instance.id <> invalid and instance.onChangeRoom <> invalid then
-						instance.onChangeRoom(room_name)
-					end if
-				end for
+			for i = 0 to m.sorted_instances.Count() - 1
+				instance = m.sorted_instances[i]
+				if instance <> invalid and instance.id <> invalid and instance.onChangeRoom <> invalid then
+					instance.onChangeRoom(room_name)
+				end if
 			end for
-			for each object_key in m.Instances
-				for each instance_key in m.Instances[object_key]
-					instance = m.Instances[object_key][instance_key]
-					if instance.id <> invalid and not instance.persistent and instance.name <> m.currentRoom.name then
-						m.destroyInstance(instance, false)
-					end if
-				end for
+			for i = 0 to m.sorted_instances.Count() - 1
+				instance = m.sorted_instances[i]
+				if instance.id <> invalid and not instance.persistent and instance.name <> m.currentRoom.name then
+					m.destroyInstance(instance, false)
+				end if
 			end for
 			if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
 				m.previousRoomName = m.currentRoom.name
