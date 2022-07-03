@@ -60,17 +60,26 @@ function registryRead(registry_section as string, key as string, default_value =
 	end if
 end function
 
-function DrawText(draw2d as object, font as object, text as string, x as integer, y as integer, alignment = "left" as string, color = &hEBEBEBFF as integer) as void
-	if alignment = "left"
-		draw2d.DrawText(text, x, y, color, font)
-	else if alignment = "right"
-		draw2d.DrawText(text, x-font.GetOneLineWidth(text, 10000), y, color, font)
-	else if alignment = "center"
-		draw2d.DrawText(text, x-font.GetOneLineWidth(text, 10000)/2, y, color, font)
+function DrawText(draw2d as object, font as object, text as string, x as integer, y as integer, halign = "left" as string, valign = "top" as string, color = &hEBEBEBFF as integer) as void
+	draw_x = x
+	draw_y = y
+
+	if halign = "center"
+		draw_x -= font.GetOneLineWidth(text, 10000) / 2
+	else if halign = "right"
+		draw_x -= font.GetOneLineWidth(text, 10000)
 	end if
+
+	if valign = "center"
+		draw_y -= font.GetOneLineHeight() / 2
+	else if valign = "bottom"
+		draw_y -= font.GetOneLineHeight()
+	end if
+
+	draw2d.DrawText(text, cint(draw_x), cint(draw_y), color, font)
 end function
 
-function DrawScaledText(draw2d as object, font as object, text as string, x as integer, y as integer, scale as float, alignment = "left" as string, color = &hEBEBEBFF as integer)
+function DrawScaledText(draw2d as object, font as object, text as string, x as integer, y as integer, scale as float, halign = "left" as string, valign = "top" as string, color = &hEBEBEBFF as integer)
 	required_width = font.GetOneLineWidth(text, 10000)
 	required_height = font.GetOneLineHeight()
 	if m.text_canvas = invalid or (m.text_canvas.GetWidth() < required_width or m.text_canvas.GetHeight() < required_height)
@@ -82,11 +91,21 @@ function DrawScaledText(draw2d as object, font as object, text as string, x as i
 	m.text_canvas.DrawText(text, 0, 0, color, font)
 
 	text_region = CreateObject("roRegion", m.text_canvas, 0, 0, font.GetOneLineWidth(text, 10000), font.GetOneLineHeight())
-	if alignment = "right"
-		text_region.SetPretranslation(-text_region.GetWidth(), 0)
-	else if alignment = "center"
-		text_region.SetPretranslation(-text_region.GetWidth() / 2, 0)
+
+	pretranslation_x = 0
+	pretranslation_y = 0
+	if halign = "center"
+		pretranslation_x -= text_region.GetWidth() / 2
+	else if halign = "right"
+		pretranslation_x -= text_region.GetWidth()
 	end if
+	if valign = "center"
+		pretranslation_y -= text_region.GetHeight() / 2
+	else if valign = "bottom"
+		pretranslation_y -= text_region.GetHeight()
+	end if
+
+	text_region.SetPretranslation(pretranslation_x, pretranslation_y)
 
 	draw2d.DrawScaledObject(cint(x), cint(y), scale, scale, text_region)
 	text_region = invalid
