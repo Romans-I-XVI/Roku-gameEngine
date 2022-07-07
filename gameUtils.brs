@@ -79,7 +79,7 @@ function DrawText(draw2d as object, font as object, text as string, x as integer
 	draw2d.DrawText(text, cint(draw_x), cint(draw_y), color, font)
 end function
 
-function DrawScaledText(draw2d as object, font as object, text as string, x as integer, y as integer, scale as float, halign = "left" as string, valign = "top" as string, color = &hEBEBEBFF as integer)
+function DrawScaledText(draw2d as object, font as object, text as string, x as integer, y as integer, scale as float, halign = "left" as string, valign = "top" as string, color = &hEBEBEBFF as integer, scale_mode = 1 as integer)
 	required_width = font.GetOneLineWidth(text, 10000)
 	required_height = font.GetOneLineHeight()
 	if m.text_canvas = invalid or (m.text_canvas.GetWidth() < required_width or m.text_canvas.GetHeight() < required_height)
@@ -91,6 +91,7 @@ function DrawScaledText(draw2d as object, font as object, text as string, x as i
 	m.text_canvas.DrawText(text, 0, 0, color, font)
 
 	text_region = CreateObject("roRegion", m.text_canvas, 0, 0, font.GetOneLineWidth(text, 10000), font.GetOneLineHeight())
+	text_region.SetScaleMode(scale_mode)
 
 	pretranslation_x = 0
 	pretranslation_y = 0
