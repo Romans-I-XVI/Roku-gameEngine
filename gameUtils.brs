@@ -80,6 +80,11 @@ function DrawText(draw2d as object, font as object, text as string, x as integer
 end function
 
 function DrawScaledText(draw2d as object, font as object, text as string, x as integer, y as integer, scale as float, halign = "left" as string, valign = "top" as string, color = &hEBEBEBFF as integer, scale_mode = 1 as integer)
+	if scale = 1
+		DrawText(draw2d, font, text, x, y, halign, valign, color)
+		return invalid
+	end if
+
 	required_width = font.GetOneLineWidth(text, 10000)
 	required_height = font.GetOneLineHeight()
 	if m.text_canvas = invalid or (m.text_canvas.GetWidth() < required_width or m.text_canvas.GetHeight() < required_height)
