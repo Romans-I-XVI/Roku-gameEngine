@@ -1253,7 +1253,7 @@ namespace BGE
         end if
         return true
       else
-        print "changeRoom() - A room named " + room_name + " hasn't been defined"
+        print "changeRoom() - A room named " + roomName + " hasn't been defined"
         return false
       end if
     end function
@@ -1532,7 +1532,7 @@ namespace BGE
         m.Sounds[soundName].trigger(volume)
         return true
       else
-        print "playSound() - No sound has been loaded under the name: " ; sound_name
+        print "playSound() - No sound has been loaded under the name: " ; soundName
         return false
       end if
     end function
