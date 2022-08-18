@@ -22,7 +22,7 @@ namespace BGE.Debug
       m.heldTimeSeconds = input.heldTimeMs / 1000
     end function
 
-    override function onUpdate(dt)
+    override function onUpdate(dt as float) as void
       buttonName = "none"
       heldTimeStr = "0"
       if invalid <> m.lastInputButton

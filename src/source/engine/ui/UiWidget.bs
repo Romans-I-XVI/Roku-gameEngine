@@ -73,7 +73,6 @@ namespace BGE.UI
     ' @param {object} [parent=invalid] - the parent of this Ui Element - will be an object with {x, y, width, height}
     ' @return {object} - x,y coordinates of where this widget should be positioned
     protected function getDrawPosition(parent = invalid as object) as object
-
       drawPosition = {x: 0, y: 0}
       parentPadding = new Offset()
       if invalid <> parent

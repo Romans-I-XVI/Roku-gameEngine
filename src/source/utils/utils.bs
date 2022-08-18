@@ -1,62 +1,7 @@
 ' @module BGE
 namespace BGE
 
-  function HSVtoRGBA(hPercent, sPercent, vPercent, a = invalid) as integer
-    ' Romans_I_XVI port (w/ a few tweaks) of: https://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
-    ' @see http://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
 
-    hPercent = hPercent MOD 360
-
-    rgb = [0, 0, 0]
-    if sPercent = 0
-      rgb = [vPercent / 100, vPercent / 100, vPercent / 100]
-    else
-      s = sPercent / 100 : v = vPercent / 100 : h = hPercent / 60 : i = int(h)
-
-      data = [v * (1 - s), v * (1 - s * (h - i)), v * (1 - s * (1 - (h - i)))]
-
-      if i = 0
-        rgb = [v, data[2], data[0]]
-      else if i = 1
-        rgb = [data[1], v, data[0]]
-      else if i = 2
-        rgb = [data[0], v, data[2]]
-      else if i = 3
-        rgb = [data[0], data[1], v]
-      else if i = 4
-        rgb = [data[2], data[0], v]
-      else
-        rgb = [v, data[0], data[1]]
-      end if
-    end if
-
-    for c = 0 to rgb.count() - 1
-      rgb[c] = int(rgb[c] * 255)
-    end for
-    if a <> invalid
-      color% = (rgb[0] << 24) + (rgb[1] << 16) + (rgb[2] << 8) + a
-    else
-      color% = (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]
-    end if
-
-    return color%
-  end function
-
-  function RGBAtoRGBA(red as integer, green as integer, blue as integer, alpha = 1 as float) as integer
-    red% = cint((BGE.Math_Clamp(red, 0, 255))) and &hFF
-    green% = cint((BGE.Math_Clamp(green, 0, 255))) and &hFF
-    blue% = cint((BGE.Math_Clamp(blue, 0, 255))) and &hFF
-    if 0 > alpha
-      alpha = 0
-    else if 1 < alpha
-      alpha = 1
-    end if
-    alphaInt% = cint(BGE.Math_Clamp(cint(alpha * &hFF), 0, 255))and &hFF
-
-    color% = (red% << 24) + (green% << 16) + (blue% << 8) + alphaInt%
-
-    return color%
-  end function
 
 
 
@@ -95,20 +40,19 @@ namespace BGE
       pretranslation_y = drawable.GetPretranslationY()
       newPreX = pretranslation_x * scale_x
       if scale_x < 0
-        newPreX = - newPreX
+        newPreX = -newPreX
       end if
       newPreY = pretranslation_y * scale_y
       if scale_y < 0
-        newPreY = - newPreY
+        newPreY = -newPreY
       end if
-      scaledRegion.setPretranslation(- Abs(newPreX), - Abs(newPreY))
+      scaledRegion.setPretranslation(-Abs(newPreX), -Abs(newPreY))
       scaled_draw_x = Abs(newPreX)
       scaled_draw_y = Abs(newPreY)
 
       scaledRegion.DrawScaledObject(scaled_draw_x, scaled_draw_y, scale_x, scale_y, drawable)
 
       draw2d.ifDraw2D.DrawRotatedObject(x, y, theta, scaledRegion, color)
-      new_drawable = invalid
     end if
   end function
 
@@ -138,7 +82,7 @@ namespace BGE
 
   ' -----------------------Utilities Used By Game Engine---------------------------
 
-  function ArrayInsert(array as object, index as integer, value as dynamic)
+  function ArrayInsert(array as object, index as integer, value as dynamic) as object
     for i = array.Count() to index + 1 step -1
       array[i] = array[i - 1]
     end for

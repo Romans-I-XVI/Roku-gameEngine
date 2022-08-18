@@ -6,5 +6,12 @@
   "retainStagingFolder": true,
   //this flag tells BrighterScript that for every xml file, try to import a .bs file with the same name and location
   "autoImportComponentScript": true,
-  "emitDefinitions": true
+  "emitDefinitions": true,
+  "plugins": ["@rokucommunity/bslint"],
+  "diagnosticFilters": [
+    {
+      "src": "source/**/*.bs",
+      "codes": ["LINT1001"]
+    }
+  ]
 }

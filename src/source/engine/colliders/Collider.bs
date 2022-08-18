@@ -70,7 +70,7 @@ namespace BGE
     ' @param {float} x
     ' @param {float} y
     function adjustCompositorObject(x as float, y as float) as void
-      if m.enabled then
+      if m.enabled
         m.compositorObject.SetMemberFlags(m.memberFlags)
         m.compositorObject.SetCollidableFlags(m.collidableFlags)
         m.refreshColliderRegion()

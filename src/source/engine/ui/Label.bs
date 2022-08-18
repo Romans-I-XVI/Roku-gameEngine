@@ -25,7 +25,7 @@ namespace BGE.UI
     end sub
 
     override function draw(parent = invalid as object) as void
-      drawPosition = m.getDrawPosition(parent)
+      ' drawPosition = m.getDrawPosition(parent)
       if invalid <> m.drawableText
         m.drawableText.draw()
         size = m.drawableText.getDrawnSize()

@@ -17,7 +17,7 @@ namespace BGE.Debug
       m.addChild(m.memoryLabel)
     end function
 
-    override function onUpdate(dt)
+    override function onUpdate(dt as float) as void
       level = m.device.GetGeneralMemoryLevel()
 
       m.memoryLabel.setText(`Memory: ${level}`)

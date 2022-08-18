@@ -81,6 +81,7 @@ namespace BGE
       if invalid <> m.bitmap
         return m.bitmap.getWidth()
       end if
+      return -1
     end function
 
     ' Gets the height of the underlying bitmap
@@ -90,6 +91,7 @@ namespace BGE
       if invalid <> m.bitmap
         return m.bitmap.getHeight()
       end if
+      return -1
     end function
 
   end class

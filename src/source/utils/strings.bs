@@ -1,6 +1,11 @@
 ' @module BGE
 namespace BGE
 
+
+  ' Gets the number of lines in a string by counting the newlines
+  '
+  ' @param {string} text
+  ' @return {integer}
   function getNumberOfLinesInAString(text as string) as integer
     lines = 1
     newLine = Chr(10)
@@ -17,7 +22,11 @@ namespace BGE
   end function
 
 
-
+  ' Finds the index of the last time a substring appears in a string
+  '
+  ' @param {string} text
+  ' @param {string} substring
+  ' @return {integer}
   function lastInStr(text as string, substring as string) as integer
     nextLastIndex = text.inStr(0, substring)
     lastIndex = nextLastIndex
@@ -29,12 +38,16 @@ namespace BGE
   end function
 
 
-
+  ' Given a float number, returns the number with a fixed numbers of decimals as a string
+  '
+  ' @param {float} num
+  ' @param {integer} precision
+  ' @return {string}
   function NumberToFixed(num as float, precision as integer) as string
-    rounded = Math_Round(num, precision)
+    rounded = BGE.Math.Round(num, precision)
     numStr = rounded.toStr().trim()
     decimalIndex = lastInStr(numStr, ".")
-    if - 1 = decimalIndex
+    if -1 = decimalIndex
       numStr += "." + string(precision, "0")
       return numStr
     end if

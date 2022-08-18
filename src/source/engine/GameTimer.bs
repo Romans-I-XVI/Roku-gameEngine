@@ -21,19 +21,19 @@ namespace BGE
       return m.internal_roku_timer.TotalMilliseconds() + m.total_milliseconds_modifier
     end function
 
-    function totalSeconds()as integer
+    function totalSeconds() as integer
       return m.internal_roku_timer.TotalSeconds() + cint(m.total_milliseconds_modifier / 1000)
     end function
 
-    function getSecondsToISO8601Date(date as string)as integer
+    function getSecondsToISO8601Date(date as string) as integer
       return m.internal_roku_timer.GetSecondsToISO8601Date(date)
     end function
 
-    function addTime(milliseconds as integer)as void
+    function addTime(milliseconds as integer) as void
       m.total_milliseconds_modifier += milliseconds
     end function
 
-    function removeTime(milliseconds as integer)as void
+    function removeTime(milliseconds as integer) as void
       m.total_milliseconds_modifier -= milliseconds
     end function
 

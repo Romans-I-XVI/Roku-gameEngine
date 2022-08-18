@@ -12,7 +12,7 @@ namespace BGE.QuickHull
       return []
     end if
     if hull
-      pointsArray = BGE.QuickHull.QuickHull(pointsArray)
+      pointsArray = QuickHull(pointsArray)
     end if
     apex = pointsArray[0]
     for i = 1 to pointsArray.count() - 2
@@ -30,8 +30,8 @@ namespace BGE.QuickHull
   ' Modified from: https://github.com/claytongulick/quickhull
   ' Original author Clay Gulick
   ' @param {object} pointsArray - array of {x,y} objects
-  ' @return the minimal set of points for a convex hull
-  function QuickHull(pointsArray = [] as object)
+  ' @return {object} the minimal set of points for a convex hull
+  function QuickHull(pointsArray = [] as object) as object
     hull = []
     'if there are only three points, this is a triangle, which by definition is already a hull
     if pointsArray.count() = 3
@@ -81,7 +81,7 @@ namespace BGE.QuickHull
     if pointsArray.count() < 1
       return invalid
     end if
-    minMax = BGE.QuickHull.getMinMaxPoints(pointsArray)
+    minMax = getMinMaxPoints(pointsArray)
     return {width: minMax[1].x - minMax[0].x, offset: minMax[0].x}
   end function
 
@@ -94,7 +94,7 @@ namespace BGE.QuickHull
     if pointsArray.count() < 1
       return invalid
     end if
-    minMax = BGE.QuickHull.getMinMaxPoints(pointsArray, true)
+    minMax = getMinMaxPoints(pointsArray, true)
     return {height: minMax[1].y - minMax[0].y, offset: minMax[0].y}
   end function
 
@@ -115,7 +115,7 @@ namespace BGE.QuickHull
   ' Returns: {points: [ [x1, y1], ... ], max: [x,y] ]
   ' @param points
   ' @param line
-  function distalPoints(line, points)
+  function distalPoints(line as object, points as object) as object
     outerPoints = []
     point = points[0]
     distalPoint = invalid
@@ -141,10 +141,11 @@ namespace BGE.QuickHull
   ' @param line
   ' @param points
   '
-  function addSegments(hull, line, points)
+  function addSegments(hull as object, line as object, points as object) as void
     distal = distalPoints(line, points)
     if invalid = distal.max
-      return hull.push(line[0])
+      hull.push(line[0])
+      return
     end if
     addSegments(hull, [line[0], distal.max], distal.points)
     addSegments(hull, [distal.max, line[1]], distal.points)

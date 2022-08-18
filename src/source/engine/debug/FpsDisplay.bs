@@ -18,7 +18,7 @@ namespace BGE.Debug
       m.addChild(m.fpsLabel)
     end function
 
-    override function onUpdate(dt)
+    override function onUpdate(dt as float) as void
       m.frameTimeCounter += dt
       if m.frameTimeCounter > 1.0
         m.fps = m.framesInLastSecond

@@ -17,7 +17,7 @@ class Bullet extends BGE.GameEntity
 
 
     m.speed = args.speed
-    radRotation = BGE.Math_DegreesToRadians(m.rotation)
+    radRotation = BGE.Math.DegreesToRadians(m.rotation)
     m.xspeed = m.speed * cos(radRotation)
     m.yspeed = m.speed * sin(radRotation)
 

@@ -118,14 +118,14 @@ namespace BGE
     ' @param {object} [tri=[]] an array with 3 {x,y} points
     ' @param {integer} [levelOfDetail=1] LOD of the triangle - how filled in it should be
     ' @param {integer} [levelOffset=0] which step of teh fill should be done (0-levelOfDetail)
-    protected sub fillTriangleWithRays(tri = [] as object, levelOfDetail = 1, levelOffset = 0)
+    protected sub fillTriangleWithRays(tri = [] as object, levelOfDetail = 1 as integer, levelOffset = 0 as integer)
       if invalid = m.tempCanvas
         return
       end if
 
-      len0 = BGE.Math_TotalDistance(tri[1], tri[2])
-      len1 = BGE.Math_TotalDistance(tri[0], tri[2])
-      len2 = BGE.Math_TotalDistance(tri[0], tri[1])
+      len0 = BGE.Math.TotalDistance(tri[1], tri[2])
+      len1 = BGE.Math.TotalDistance(tri[0], tri[2])
+      len2 = BGE.Math.TotalDistance(tri[0], tri[1])
       apexIndex = 0
       shortLength = 0
 
@@ -146,8 +146,8 @@ namespace BGE
       if shortLength > 0
         rgba = m.getFillColorRGBA()
         for i = levelOffset to shortLength step levelOfDetail
-          x = BGE.LinearTween(startP.x, endP.x, i, shortLength)
-          y = BGE.LinearTween(startP.y, endP.y, i, shortLength)
+          x = BGE.Tweens.LinearTween(startP.x, endP.x, i, shortLength)
+          y = BGE.Tweens.LinearTween(startP.y, endP.y, i, shortLength)
           m.tempCanvas.drawLine(apex.x - m.offset_x, apex.y - m.offset_y, x - m.offset_x, y - m.offset_y, rgba)
         end for
       end if
@@ -198,7 +198,7 @@ namespace BGE
         nodes = 0
         j = nPoints - 1
         for i = 0 to (nPoints - 1)
-          if ((points[i].y < pixelY and points[j].y >= pixelY) or (points[j].y < pixelY and points[i].y >= pixelY))
+          if (points[i].y < pixelY and points[j].y >= pixelY) or (points[j].y < pixelY and points[i].y >= pixelY)
             if (points[j].y - points[i].y) = 0
               nodeX[nodes] = points[i].x
             else
@@ -211,7 +211,7 @@ namespace BGE
 
         nodeX.sort()
         for i = 0 to (nodes - 1) step precision
-          if (nodeX[i] > maxX)
+          if nodeX[i] > maxX
             exit for
           end if
           pixelX = nodeX[i]
@@ -220,9 +220,9 @@ namespace BGE
               pixelX = nodeX[i + precision]
             end if
           end if
-          rectX = BGE.Math_Max(0, x1 + pixelX - 2 * m.offset_x)
-          rectY = BGE.Math_Max(0, y1 + pixelY - 2 * m.offset_y - precision / 2)
-          endX = BGE.Math_Min(cint(i + precision / 2 + 1), nodes - 1)
+          rectX = BGE.Math.Max(0, x1 + pixelX - 2 * m.offset_x)
+          rectY = BGE.Math.Max(0, y1 + pixelY - 2 * m.offset_y - precision / 2)
+          endX = BGE.Math.Min(cint(i + precision / 2 + 1), nodes - 1)
           width = nodeX[endX] - pixelX
 
           m.tempCanvas.DrawRect(rectX, rectY, width, precision, rgba)

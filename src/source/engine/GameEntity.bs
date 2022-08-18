@@ -217,7 +217,7 @@ namespace BGE
     ' @param {float} [offset_y=0] - vertical offset from entity position of top left point of rectangle
     ' @param {boolean} [enabled=true] - is this collider enabled?
     ' @return {object}  - the collider that was added, or `invalid` if it could not be added
-    function addRectangleCollider(colliderName as string, width as float, height as float, offset_x = 0 as float, offset_y = 0as float, enabled = true as boolean) as object
+    function addRectangleCollider(colliderName as string, width as float, height as float, offset_x = 0 as float, offset_y = 0 as float, enabled = true as boolean) as object
       collider = new RectangleCollider(colliderName, {
         enabled: enabled,
         offset_x: offset_x,
@@ -400,7 +400,7 @@ namespace BGE
     ' @param {string} staticVariableName
     ' @param {dynamic} staticVariableValue
     function setStaticVariable(staticVariableName as string, staticVariableValue as dynamic) as void
-      if m.game.Statics.DoesExist(m.name)
+      if m.game.Statics.doesExist(m.name)
         m.game.Statics[m.name][staticVariableName] = staticVariableValue
       end if
     end function
@@ -421,7 +421,7 @@ namespace BGE
     ' @param {string} interfaceName
     ' @return {boolean}
     function hasInterface(interfaceName as string) as boolean
-      return (m.DoesExist(interfaceName) and m[interfaceName] <> invalid)
+      return (m.doesExist(interfaceName) and m[interfaceName] <> invalid)
     end function
 
   end class

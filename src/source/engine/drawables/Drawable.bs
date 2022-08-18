@@ -117,9 +117,9 @@ namespace BGE
       else if totalRotation = 0
         m.drawTo.DrawScaledObject(x, y, m.scale_x, m.scale_y, draw2d, rgba)
       else if m.scale_x = 1 and m.scale_y = 1
-        m.drawTo.DrawRotatedObject(x, y, - totalRotation, draw2d, rgba)
+        m.drawTo.DrawRotatedObject(x, y, -totalRotation, draw2d, rgba)
       else
-        BGE.DrawScaledAndRotatedObject(m.drawTo, x, y, m.scale_x, m.scale_y, - totalRotation, draw2d, rgba)
+        BGE.DrawScaledAndRotatedObject(m.drawTo, x, y, m.scale_x, m.scale_y, -totalRotation, draw2d, rgba)
       end if
     end function
   end class

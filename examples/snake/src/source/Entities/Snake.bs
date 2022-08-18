@@ -43,18 +43,18 @@ class Snake extends GridEntity
 
     if other_entity.name = "MainRoom"
       m.die()
-      return void
+      return
     end if
   end function
 
   override function onUpdate(dt as float)
     if m.dead
-      return void
+      return
     end if
 
     m.timeCount += dt
     if m.timeCount < m.secondsPerFrame
-      return void
+      return
     end if
     m.timeCount = m.timecount - m.secondsPerFrame
     m.snakeHeadCollider.enabled = true
@@ -77,7 +77,7 @@ class Snake extends GridEntity
     ' if the snake goes out of bounds
     if m.checkPositionForSnake(m.gridX, m.gridY, true)
       m.die()
-      return void
+      return
     end if
   end function
 

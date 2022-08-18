@@ -9,7 +9,7 @@ class MainRoom extends BGE.Room
 
   gridHeight = 0
   gridWidth = 0
-  wallWidth = 2 * m.grid
+  wallWidth = 2 * 40
   screenW = 0
   screenH = 0
 

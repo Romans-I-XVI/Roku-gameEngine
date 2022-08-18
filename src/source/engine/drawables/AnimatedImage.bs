@@ -18,7 +18,7 @@ namespace BGE
     ' These values should never need to be manually changed.
     protected regions as object = invalid
     private animationTimer = new GameTimer()
-    private tweensReference = GetTweens()
+    private tweensReference = BGE.Tweens.GetTweens()
 
     function new(owner as GameEntity, canvasBitmap as object, regions as object, args = {} as object)
       super(owner, canvasBitmap, invalid, args)
@@ -35,7 +35,7 @@ namespace BGE
         totalRotation = additionalRotation + m.rotation
         if m.index >= 0 and m.index < m.regions.Count()
           m.region = m.regions[m.index]
-          m.drawRegionToCanvas(m.region, additionalRotation)
+          m.drawRegionToCanvas(m.region, totalRotation)
           m.width = m.region.getWidth()
           m.height = m.region.getHeight()
         end if
@@ -55,6 +55,7 @@ namespace BGE
       else if m.index < 0
         index = 0
       end if
+      return index
     end function
 
     override function onResume(pausedTime as integer)

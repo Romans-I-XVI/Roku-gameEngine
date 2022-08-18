@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "named-function-style": "off",
+    "inline-if-style": "never",
+    "type-annotations": "all"
+  }
+}

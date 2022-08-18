@@ -20,5 +20,4 @@ namespace BGE
     end if
   end function
 
-
 end namespace

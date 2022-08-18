@@ -38,7 +38,7 @@ class Rock extends SpaceEntity
     if m.rotationalThrust = 0
       m.rotationalThrust = -1
     end if
-    m.rotationalThrust = BGE.Math_Clamp(m.rotationalThrust, -0.5, 0.5)
+    m.rotationalThrust = BGE.Math.Clamp(m.rotationalThrust, -0.5, 0.5)
     m.level = 1
     if invalid <> args.level
       m.level = args.level
@@ -53,7 +53,7 @@ class Rock extends SpaceEntity
       m.repositionable = args.repositionable
     end if
 
-    radRotation = BGE.Math_DegreesToRadians(m.rotation)
+    radRotation = BGE.Math.DegreesToRadians(m.rotation)
     m.xspeed = m.speed * cos(radRotation)
     m.yspeed = m.speed * sin(radRotation)
 
@@ -61,14 +61,14 @@ class Rock extends SpaceEntity
     rockWidth = rockBitmap.GetWidth()
     rockHeight = rockBitmap.GetHeight()
     m.scale = 1 / (m.level * 2)
-    size = BGE.Math_Min(rockWidth, rockHeight) * m.scale
+    size = BGE.Math.Min(rockWidth, rockHeight) * m.scale
 
     m.width = rockWidth
     m.height = rockHeight
     m.rockCollider = m.addCircleCollider("rock", size / 2)
 
     region = CreateObject("roRegion", rockBitmap, 0, 0, rockWidth, rockHeight)
-    region.SetPreTranslation(- rockWidth / 2, - rockHeight / 2)
+    region.SetPreTranslation(-rockWidth / 2, -rockHeight / 2)
     m.rockImage = m.addImage("rock", region, {})
     ?"Setting rock scale to "; m.scale
     m.rockImage.scale_x = m.scale
@@ -80,7 +80,7 @@ class Rock extends SpaceEntity
     super.onUpdate(dt)
     m.totalAliveTime += dt
     newScaleX = sin(m.totalAliveTime) * (m.rotXFlavor) + m.scale
-    newScaleY = - sin(m.totalAliveTime) * (m.rotYFlavor) + m.scale
+    newScaleY = -sin(m.totalAliveTime) * (m.rotYFlavor) + m.scale
     m.rockImage.scale_x = newScaleX
     m.rockImage.scale_y = newScaleY
     if m.totalAliveTime > m.maxLifeSeconds

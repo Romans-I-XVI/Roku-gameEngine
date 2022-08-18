@@ -9,7 +9,7 @@
     "rootDir": "src"
   },
   "devDependencies": {
-    "brighterscript": "^0.45.3",
+    "brighterscript": "^0..55.2",
     "rimraf": "^3.0.2",
     "ropm": "^0.10.4"
   }

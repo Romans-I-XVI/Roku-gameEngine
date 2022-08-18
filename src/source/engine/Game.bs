@@ -34,13 +34,13 @@ namespace BGE
 
     ' ****BEGIN - For Internal Use, Do Not Manually Alter****
     private debugging = {
-      draw_colliders: false
-      draw_safe_zones: false
-      colliders_color: BGE.RGBAtoRGBA(&hFF, 0, 0, 0.8)
-      safe_action_zone_color: BGE.RGBAtoRGBA(0, &hFF, 0, 0.2)
-      safe_title_zone_color: BGE.RGBAtoRGBA(0, 0, &hFF, 0.2)
-      limit_frame_rate: 0
-      show_debug_ui: false
+      draw_colliders: false,
+      draw_safe_zones: false,
+      colliders_color: BGE.RGBAtoRGBA(&hFF, 0, 0, 0.8),
+      safe_action_zone_color: BGE.RGBAtoRGBA(0, &hFF, 0, 0.2),
+      safe_title_zone_color: BGE.RGBAtoRGBA(0, 0, &hFF, 0.2),
+      limit_frame_rate: 0,
+      show_debug_ui: false,
       draw_debugUi_to_screen: false
 
     }
@@ -147,9 +147,9 @@ namespace BGE
     '
     ' @param {integer} canvas_width
     ' @param {integer} canvas_height
-    ' @param {} [canvas_as_screen_if_possible=false]
+    ' @param {boolean} [canvas_as_screen_if_possible=false]
     ' @return {void}
-    private function setUpScreen(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false) as void
+    private function setUpScreen(canvas_width as integer, canvas_height as integer, canvas_as_screen_if_possible = false as boolean) as void
       UIResolution = m.device.getUIResolution()
       SupportedResolutions = m.device.GetSupportedGraphicsResolutions()
       FHD_Supported = false
@@ -376,7 +376,7 @@ namespace BGE
           entity = m.sortedEntities[i]
         end if
         if not m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
-          processEntity = false
+          ' no need to process this entity
         else
 
           ' --------------------First process the onInput() function--------------------
@@ -418,7 +418,7 @@ namespace BGE
       for i = m.sortedEntities.Count() - 1 to 0 step -1
         entity = m.sortedEntities[i]
         if not m.isValidEntity(entity) or not entity.enabled or (started_paused and entity.pauseable)
-          processEntity = false
+          ' no need to process this entity
         else
 
           ' ---------------- Give a space for any processing to happen just before collision checking occurs ------------
@@ -837,7 +837,7 @@ namespace BGE
     ' @param {object} ecp_msg  - input event in last frame
     ' @param {object} url_msg - url event in last frame
 
-    private function processUiUpdate(uiEntity as BGE.Ui.UiWidget, universalControlEvents as object, music_msg, ecp_msg, url_msg) as void
+    private function processUiUpdate(uiEntity as BGE.Ui.UiWidget, universalControlEvents as object, music_msg as object, ecp_msg as object, url_msg as object) as void
       ' --------------------First process the onInput() function--------------------
       if m.isValidEntity(uiEntity)
         m.processEntityOnInput(uiEntity, universalControlEvents)
@@ -1189,9 +1189,9 @@ namespace BGE
     ' Destroys all entities with a given name
     '
     ' @param {string} objectName
-    ' @param {dynamic} [callOnDestroy=true]
+    ' @param {boolean} [callOnDestroy=true]
     ' @return {void}
-    function destroyAllEntities(objectName as string, callOnDestroy = true) as void
+    function destroyAllEntities(objectName as string, callOnDestroy = true as boolean) as void
       if invalid <> m.Entities[objectName]
         for each entityKey in m.Entities[objectName]
           m.destroyEntity(m.Entities[objectName][entityKey], callOnDestroy)
@@ -1528,7 +1528,7 @@ namespace BGE
     ' @return {boolean}
     function playSound(soundName as string, volume = 100 as integer) as boolean
       if invalid <> soundName and m.Sounds.DoesExist(soundName)
-        volume = cint(BGE.Math_Clamp(volume, 0, 100))
+        volume = cint(BGE.Math.Clamp(volume, 0, 100))
         m.Sounds[soundName].trigger(volume)
         return true
       else
@@ -1600,7 +1600,6 @@ namespace BGE
       if invalid <> m.ui
       end if
     end function
-
 
   end class
 end namespace
