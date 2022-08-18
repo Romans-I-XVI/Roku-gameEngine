@@ -13,7 +13,6 @@ class RectangleEntity extends BGE.GameEntity
 
   end function
 
-
   override function onCreate(args)
     m.y = args.y
     m.x = args.x

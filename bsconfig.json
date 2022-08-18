@@ -10,7 +10,7 @@
   "plugins": ["@rokucommunity/bslint"],
   "diagnosticFilters": [
     {
-      "src": "source/**/*.bs",
+      "src": "**/source/**/*.bs",
       "codes": ["LINT1001"]
     }
   ]

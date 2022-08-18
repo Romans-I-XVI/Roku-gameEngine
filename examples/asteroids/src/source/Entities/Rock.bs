@@ -92,7 +92,6 @@ class Rock extends SpaceEntity
     end if
   end function
 
-
   override function onCollision(colliderName as string, other_colliderName as string, other_entity as object)
     if other_entity.name = "Bullet"
 
@@ -109,6 +108,5 @@ class Rock extends SpaceEntity
       other_entity.bounceTimeOut = 2
     end if
   end function
-
 
 end class

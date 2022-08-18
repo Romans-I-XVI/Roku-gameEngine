@@ -5,12 +5,12 @@ class Ball extends BGE.GameEntity
   dead = false
   bounds = {top: 50, bottom: 720 - 50}
 
-  function new(game) as void
+  function new(game as BGE.Game) as void
     super(game)
     m.name = "Ball"
   end function
 
-  override function onCreate(args)
+  override function onCreate(args as object)
     m.direction = args.direction
     m.x = 1280 / 2
     m.y = 720 / 2
@@ -44,12 +44,12 @@ class Ball extends BGE.GameEntity
     end if
 
     ' If colliding with the front or bottom of the either paddle
-    if (other_entity.name = "Player" or other_entity.name = "Computer")
-      if other_colliderName = "top" then
+    if other_entity.name = "Player" or other_entity.name = "Computer"
+      if other_colliderName = "top"
         m.yspeed = Abs(m.yspeed) * -1
         need_to_play_hit_sound = true
       end if
-      if other_colliderName = "bottom" then
+      if other_colliderName = "bottom"
         m.yspeed = Abs(m.yspeed)
         need_to_play_hit_sound = true
       end if
@@ -60,12 +60,12 @@ class Ball extends BGE.GameEntity
     end if
   end function
 
-  override function onUpdate(dt as float)
+  override function onUpdate(dt as float) as void
     image = m.getImage("main")
     collider = m.getCollider("ball_collider")
 
     ' Increase alpha until full if not at full
-    if image.alpha < 255 then
+    if image.alpha < 255
       image.alpha += 3
     end if
 

@@ -22,7 +22,7 @@ class PauseHandler extends BGE.GameEntity
   end function
 
   override function onDrawBegin(canvas as object)
-    if m.game.isPaused() then
+    if m.game.isPaused()
       BGE.DrawText(canvas, "Paused", canvas.GetWidth() / 2, canvas.GetHeight() / 2 - 20, m.game.getFont("default"), "center")
     end if
   end function

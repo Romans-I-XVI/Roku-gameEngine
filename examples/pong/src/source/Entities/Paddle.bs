@@ -14,17 +14,17 @@ class Paddle extends BGE.GameEntity
     bm_paddle = m.game.getBitmap("paddle")
     m.width = bm_paddle.GetWidth()
     m.height = bm_paddle.GetHeight()
-    m.addRectangleCollider("front", 1, m.height, m.getFrontColliderXOffset(), - m.height / 2)
-    m.addRectangleCollider("top", m.width - 2, 1, - m.width / 2, - m.height / 2)
-    m.addRectangleCollider("bottom", m.width - 2, 1, - m.width / 2, m.height / 2)
+    m.addRectangleCollider("front", 1, m.height, m.getFrontColliderXOffset(), -m.height / 2)
+    m.addRectangleCollider("top", m.width - 2, 1, -m.width / 2, -m.height / 2)
+    m.addRectangleCollider("bottom", m.width - 2, 1, -m.width / 2, m.height / 2)
 
     region = CreateObject("roRegion", bm_paddle, 0, 0, m.width, m.height)
-    region.SetPreTranslation(- m.width / 2, - m.height / 2)
+    region.SetPreTranslation(-m.width / 2, -m.height / 2)
     m.addImage("main", region, {})
   end function
 
   function getFrontColliderXOffset() as float
-    return - m.width / 2
+    return -m.width / 2
   end function
 
 end class

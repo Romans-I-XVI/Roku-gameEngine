@@ -12,10 +12,10 @@ class PolygonEntity extends BGE.GameEntity
     m.rotSpeed = rnd(10) + 1
   end function
 
-  override function onUpdate(deltaTime as float)
+  override function onUpdate(deltaTime as float) as void
     m.rotation += m.clockWise * deltaTime * BGE.Math.PI() * m.rotSpeed
     if invalid = m.sizeConfig or not m.sizeConfig.change
-      return invalid
+      return
     end if
     changedPoints = []
     i = 0
@@ -40,9 +40,9 @@ class PolygonEntity extends BGE.GameEntity
     m.sizeConfig = args.sizeConfig
     m.polygonDrawable = new BGE.DrawablePolygon(m, m.game.getCanvas(), m.getRandomPolygon(7))
     m.addImageObject("polygon", m.polygonDrawable)
-    m.polygonDrawable.color = m.getRandomColor()
+    m.polygonDrawable.color = BGE.getRandomColorRGB()
     m.polygonDrawable.drawModeMask = 3
-    m.polygonDrawable.outlineRGBA = m.getRandomColor()
+    m.polygonDrawable.outlineRGBA = BGE.getRandomColorRGB()
   end function
 
   function getRandomPolygon(points as integer) as object
@@ -50,8 +50,7 @@ class PolygonEntity extends BGE.GameEntity
     points = rnd(points * 2) + 2
     maxSize = m.sizeConfig.size
     for i = 0 to points - 1
-      poly.push({x: rnd(maxSize)
-      y: rnd(maxSize)})
+      poly.push({x: rnd(maxSize), y: rnd(maxSize)})
     end for
 
     return poly
@@ -71,12 +70,6 @@ class PolygonEntity extends BGE.GameEntity
     end for
 
     return poly
-  end function
-
-
-  function getRandomColor() as integer
-    color% = rnd(256 * 256 * 256)
-    return color%
   end function
 
 end class

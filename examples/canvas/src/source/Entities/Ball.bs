@@ -5,12 +5,12 @@ class Ball extends BGE.GameEntity
   dead = false
   bounds = {top: 0, left: 0, right: 1280, bottom: 720}
 
-  function new(game) as void
+  function new(game as BGE.Game) as void
     super(game)
     m.name = "Ball"
   end function
 
-  override function onCreate(args)
+  override function onCreate(args as object)
     m.direction = args.direction
 
     w = m.game.canvas.getWidth()
@@ -29,9 +29,9 @@ class Ball extends BGE.GameEntity
     bm_ball = m.game.getBitmap("ball")
     ' bs:disable-next-line
     region = CreateObject("roRegion", bm_ball, 0, 0, bm_ball.GetWidth(), bm_ball.GetHeight())
-    region.SetPreTranslation(- bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2)
+    region.SetPreTranslation(-bm_ball.GetWidth() / 2, -bm_ball.GetHeight() / 2)
     m.addImage("main", region, {color: &hffffff, alpha: 0})
-    m.addRectangleCollider("ball_collider", bm_ball.GetWidth(), bm_ball.GetHeight(), - bm_ball.GetWidth() / 2, - bm_ball.GetHeight() / 2)
+    m.addRectangleCollider("ball_collider", bm_ball.GetWidth(), bm_ball.GetHeight(), -bm_ball.GetWidth() / 2, -bm_ball.GetHeight() / 2)
     m.depth = -1
   end function
 
@@ -41,7 +41,7 @@ class Ball extends BGE.GameEntity
     collider = m.getCollider("ball_collider")
 
     ' Increase alpha until full if not at full
-    if image.alpha < 255 then
+    if image.alpha < 255
       image.alpha += 3
     end if
 

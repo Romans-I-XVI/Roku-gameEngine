@@ -33,7 +33,7 @@ class Snake extends GridEntity
 
 
 
-  override function onCollision(colliderName as string, other_colliderName as string, other_entity as BGE.GameEntity)
+  override function onCollision(colliderName as string, other_colliderName as string, other_entity as BGE.GameEntity) as void
     if other_entity.name = "apple"
       m.maxCells++
       m.game.postGameEvent("score")
@@ -47,7 +47,7 @@ class Snake extends GridEntity
     end if
   end function
 
-  override function onUpdate(dt as float)
+  override function onUpdate(dt as float) as void
     if m.dead
       return
     end if
@@ -71,8 +71,6 @@ class Snake extends GridEntity
     if m.segments.count() > m.maxCells
       m.segments.pop()
     end if
-
-
 
     ' if the snake goes out of bounds
     if m.checkPositionForSnake(m.gridX, m.gridY, true)
@@ -110,7 +108,6 @@ class Snake extends GridEntity
 
 
   function checkPositionForSnake(gridX, gridY, ignoreHead = false) as boolean
-    hitSnake = false
     i = 0
     for each segment in m.segments
       if gridX = segment.x and gridY = segment.y

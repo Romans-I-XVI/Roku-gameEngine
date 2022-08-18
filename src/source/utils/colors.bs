@@ -132,4 +132,9 @@ namespace BGE
   end function
 
 
+  function getRandomColorRGB() as integer
+    color% = rnd(256 * 256 * 256)
+    return color%
+  end function
+
 end namespace

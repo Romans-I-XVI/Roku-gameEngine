@@ -10,6 +10,8 @@ class ScoreHandler extends BGE.GameEntity
   override function onGameEvent(event as string, data as object)
     if event = "score"
       m.score++
+    else if event = "game_start"
+      m.score = 0
     end if
   end function
 

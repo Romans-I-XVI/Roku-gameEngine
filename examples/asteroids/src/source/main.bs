@@ -27,5 +27,4 @@ sub Main()
   game.Play()
 
   ' vscode_rale_tracker_entry
-
 end sub

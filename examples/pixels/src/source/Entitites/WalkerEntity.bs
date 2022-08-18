@@ -10,13 +10,10 @@ class WalkerEntity extends BGE.GameEntity
   movement = {x: 0, y: 0}
   speed = 120
 
-
-
   function new(game) as void
     super(game)
     m.name = "Walker"
   end function
-
 
   override function onCreate(args) as void
     m.y = args.y
@@ -34,7 +31,7 @@ class WalkerEntity extends BGE.GameEntity
     m.walker.addAnimation("walk_left", {startFrame: 9, frameCount: 8}, m.animationFrameRate, "loop")
     m.walker.addAnimation("walk_down", {startFrame: 19, frameCount: 8}, m.animationFrameRate, "loop")
     m.walker.addAnimation("walk_up", {startFrame: 28, frameCount: 8}, m.animationFrameRate, "loop")
-    m.walker.color = m.getRandomColor()
+    m.walker.color = BGE.getRandomColorRGB()
   end function
 
   override function onUpdate(dt as float) as void
@@ -43,13 +40,6 @@ class WalkerEntity extends BGE.GameEntity
 
     m.walker.playAnimation(m.action + "_" + m.direction)
   end function
-
-  function getRandomColor() as integer
-    color% = rnd(256 * 256 * 256)
-    return color%
-  end function
-
-
 
   override function onInput(input as BGE.GameInput)
     m.movement.x = input.x

@@ -1,20 +1,20 @@
 class MainRoom extends BGE.Room
   ball = invalid
 
-  function new(game) as void
+  function new(game as BGE.Game) as void
     super(game)
     m.name = "MainRoom"
 
   end function
 
-  override function onUpdate(params)
+  override function onUpdate(dt as float)
     if not BGE.isValidEntity(m.ball)
       m.ball = m.game.addEntity(new Ball(m.game), {direction: -1})
     end if
   end function
 
 
-  override function onDrawBegin(canvas)
+  override function onDrawBegin(canvas as object)
     w = canvas.GetWidth()
     h = canvas.GetHeight()
     white = BGE.Colors().White
@@ -29,7 +29,7 @@ class MainRoom extends BGE.Room
     BGE.DrawText(canvas, "Center with play/pause", w / 2, 300, m.game.getFont("default"), "center", white)
   end function
 
-  override function onInput(input)
+  override function onInput(input as BGE.GameInput)
     canvasOffset = m.game.canvas.getOffset()
     canvasScale = m.game.canvas.getScale()
 

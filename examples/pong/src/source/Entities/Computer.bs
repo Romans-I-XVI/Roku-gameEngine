@@ -11,7 +11,7 @@ class Computer extends Paddle
 
 
   override function getFrontColliderXOffset() as float
-    return - m.width / 2
+    return -m.width / 2
   end function
 
 

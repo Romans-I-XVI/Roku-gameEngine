@@ -1,12 +1,10 @@
 {
+  "extends": "../../bsconfig.json",
   "rootDir": "src",
   "files": [
     "**/*",
     { "src": "../../../src/**/*", "dest": "source/roku_modules" }
   ],
-  "sourceMap": true,
-  "stagingFolderPath": "dist",
-  "retainStagingFolder": true,
-  //this flag tells BrighterScript that for every xml file, try to import a .bs file with the same name and location
-  "autoImportComponentScript": true
+  "emitDefinitions": false,
+  "diagnosticFilters": ["../../../src/**/*"]
 }

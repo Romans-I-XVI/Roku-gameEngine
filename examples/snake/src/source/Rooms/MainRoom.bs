@@ -4,6 +4,7 @@ class MainRoom extends BGE.Room
 
   snake = invalid
   apple = invalid
+  scoreHandler = invalid
 
   grid = 40
 
@@ -79,6 +80,7 @@ class MainRoom extends BGE.Room
     if not m.game_started and input.isButton("ok")
       m.game_started = true
       m.game.destroyEntity(m.snake)
+      m.game.postGameEvent("game_start")
     end if
   end function
 

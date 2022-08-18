@@ -79,6 +79,4 @@ class RectangleRoom extends BGE.Room
     m.game.gameUi.removeChild(m.rectanglesLabel)
   end function
 
-
-
 end class

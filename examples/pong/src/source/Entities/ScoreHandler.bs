@@ -1,7 +1,7 @@
 class ScoreHandler extends BGE.GameEntity
 
   scores = {
-    player: 0
+    player: 0,
     computer: 0
   }
 

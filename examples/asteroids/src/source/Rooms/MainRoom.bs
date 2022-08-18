@@ -108,7 +108,7 @@ class MainRoom extends BGE.Room
       x: rockToDie.x,
       y: rockToDie.y,
       scale: scale,
-      rotation: rockToDie.rotation
+      rotation: rockToDie.rotation,
       soundName: soundName
     })
   end function
@@ -147,6 +147,5 @@ class MainRoom extends BGE.Room
       m.game.destroyEntity(data.bullet)
     end if
   end function
-
 
 end class
