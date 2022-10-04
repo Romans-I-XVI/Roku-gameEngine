@@ -179,6 +179,7 @@ function TexturePacker_GetRegions(atlas as dynamic, bitmap as object) as object
 	for each key in atlas.frames
 		item = atlas.frames[key]
 		region = CreateObject("roRegion", bitmap, item.frame.x, item.frame.y, item.frame.w, item.frame.h)
+		region.SetScaleMode(1)
 
 		if item.DoesExist("pivot")
 			translation_x = item.spriteSourceSize.x - item.sourceSize.w * item.pivot.x
