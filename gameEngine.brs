@@ -554,7 +554,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		' new_object.onGameEvent = function(event, data)
 		' end function
 
-		' new_object.onChangeRoom = function(new_room)
+		' new_object.onChangeRoom = function(new_room, args)
 		' end function
 
 		' new_object.onDestroy = function()
@@ -1198,7 +1198,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			for i = 0 to m.sorted_instances.Count() - 1
 				instance = m.sorted_instances[i]
 				if instance <> invalid and instance.id <> invalid and instance.onChangeRoom <> invalid then
-					instance.onChangeRoom(room_name)
+					instance.onChangeRoom(room_name, args)
 				end if
 			end for
 			for i = 0 to m.sorted_instances.Count() - 1
