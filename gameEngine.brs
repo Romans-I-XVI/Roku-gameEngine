@@ -988,7 +988,10 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 
 	' ############### resetScreen() function - Begin ###############
-	game.resetScreen = function() as void
+	game.resetScreen = function(canvas_width, canvas_height, canvas_as_screen_if_possible = false) as void
+		m.canvas.bitmap = invalid
+		m.canvas.bitmap = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
+
 		UIResolution = m.device.getUIResolution()
 		SupportedResolutions = m.device.GetSupportedGraphicsResolutions()
 		FHD_Supported = false
@@ -1001,7 +1004,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		if UIResolution.name = "SD"
 			m.screen = CreateObject("roScreen", true, 854, 626)
 		else
-			canvas_width = m.canvas.bitmap.GetWidth()
 			if canvas_width <= 854
 				m.screen = CreateObject("roScreen", true, 854, 480)
 			else if canvas_width <= 1280 or not FHD_Supported
@@ -1013,6 +1015,14 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		m.compositor.SetDrawTo(m.screen, &h00000000)
 		m.screen.SetMessagePort(m.screen_port)
 		m.screen.SetAlphaEnable(true)
+
+		if canvas_as_screen_if_possible
+			if m.screen.GetWidth() = m.canvas.bitmap.GetWidth() and m.screen.GetHeight() = m.canvas.bitmap.GetHeight()
+				m.canvas.bitmap = m.screen
+				m.canvas_is_screen = true
+			end if
+		end if
+
 		if m.canvas_is_screen
 			m.canvas.bitmap = m.screen
 
