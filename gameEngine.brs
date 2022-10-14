@@ -991,6 +991,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	game.resetScreen = function(canvas_width, canvas_height, canvas_as_screen_if_possible = false) as void
 		m.canvas.bitmap = invalid
 		m.canvas.bitmap = CreateObject("roBitmap", {width: canvas_width, height: canvas_height, AlphaEnable: true})
+		m.canvas_is_screen = false
 
 		UIResolution = m.device.getUIResolution()
 		SupportedResolutions = m.device.GetSupportedGraphicsResolutions()
