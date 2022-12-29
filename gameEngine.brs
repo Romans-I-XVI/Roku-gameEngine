@@ -15,6 +15,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		canvas_is_screen: false
 		resolution_scale: 1
 		background_color: &h000000FF
+		max_sound_channels: 1
+		current_sound_channel: 1
 		running: true
 		paused: false
 		sorted_instances: []
@@ -148,6 +150,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			game.canvas_is_screen = true
 		end if
 	end if
+
+	' Set up the audio channels
+	sound = CreateObject("roAudioResource", "select")
+	game.max_sound_channels = sound.MaxSimulStreams()
+	sound = invalid
 
 	' Set up the audioplayer
 	game.audioplayer.SetMessagePort(game.music_port)
@@ -1461,7 +1468,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ############### playSound() function - Begin ###############
 	game.playSound = function(sound_name as string, volume = 100 as integer) as boolean
 		if m.Sounds.DoesExist(sound_name) then
-			m.Sounds[sound_name].trigger(volume)
+			m.Sounds[sound_name].trigger(volume, m.current_sound_channel - 1)
+			m.current_sound_channel++
+			if m.current_sound_channel > m.max_sound_channels
+				m.current_sound_channel = 1
+			end if
 			return true
 		else
 			print "playSound() - No sound has been loaded under the name: " ; sound_name
