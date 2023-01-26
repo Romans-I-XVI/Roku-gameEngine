@@ -1416,7 +1416,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ############### musicPlay() function - Begin ###############
 	game.musicPlay = function(path as string, loop = false as boolean, start_position = invalid as dynamic) as boolean
 		if m.filesystem.Exists(path) then
-			m.audioplayer.stop()
 			m.audioplayer.ClearContent()
 			song = {}
 			song.url = path
