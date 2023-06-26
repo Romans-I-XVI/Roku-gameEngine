@@ -14,6 +14,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		}
 		canvas_is_screen: false
 		background_color: &h000000FF
+		max_sound_channels: 1
+		current_sound_channel: 1
 		running: true
 		paused: false
 		sorted_instances: []
@@ -28,7 +30,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		buttonHeldTimer: CreateObject("roTimespan")
 		currentID: 0
 		shouldUseIntegerMovement: false
-		enableAudioGuideSuppression: true
 		empty_bitmap: CreateObject("roBitmap", {width: 1, height: 1, AlphaEnable: false})
 		device: CreateObject("roDeviceInfo")
 		urltransfers: {}
@@ -117,12 +118,20 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' Set up the screen
 	UIResolution = game.device.getUIResolution()
+	SupportedResolutions = game.device.GetSupportedGraphicsResolutions()
+	FHD_Supported = false
+	for i = 0 to SupportedResolutions.Count() - 1
+		if SupportedResolutions[i].name = "FHD"
+			FHD_Supported = true
+		end if
+	end for
+
 	if UIResolution.name = "SD"
 		game.screen = CreateObject("roScreen", true, 854, 626)
 	else
 		if canvas_width <= 854
 			game.screen = CreateObject("roScreen", true, 854, 480)
-		else if canvas_width <= 1280
+		else if canvas_width <= 1280 or not FHD_Supported
 			game.screen = CreateObject("roScreen", true, 1280, 720)
 		else
 			game.screen = CreateObject("roScreen", true, 1920, 1080)
@@ -138,6 +147,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			game.canvas_is_screen = true
 		end if
 	end if
+
+	' Set up the audio channels
+	sound = CreateObject("roAudioResource", "select")
+	game.max_sound_channels = sound.MaxSimulStreams()
+	sound = invalid
 
 	' Set up the audioplayer
 	game.audioplayer.SetMessagePort(game.music_port)
@@ -167,10 +181,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ################################################################ Play() function - Begin #####################################################################################################
 	game.Play = function() as void
 
-		audio_guide_suppression_roURLTransfer = CreateObject("roURLTransfer")
-		audio_guide_suppression_roURLTransfer.SetUrl("http://localhost:8060/keydown/Backspace")
-		audio_guide_suppression_ticker = 0
-
 		m.running = true
 
 		while m.running
@@ -198,17 +208,6 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 						m.buttonHeldTimer.Mark()
 					else
 						m.buttonHeld = -1
-						if m.enableAudioGuideSuppression
-							if screen_msg.GetInt() = 110
-								audio_guide_suppression_ticker++
-								if audio_guide_suppression_ticker = 3
-									audio_guide_suppression_roURLTransfer.AsyncPostFromString("")
-									audio_guide_suppression_ticker = 0
-								end if
-							else
-								audio_guide_suppression_ticker = 0
-							end if
-						end if
 						m.buttonHeldTime = m.buttonHeldTimer.TotalMilliseconds()
 					end if
 				end if
@@ -704,8 +703,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				frame_count = m.regions.Count()
 				current_time = m.animation_timer.TotalMilliseconds()
 				if current_time > m.animation_speed
-					current_time -= m.animation_speed
-					m.animation_timer.RemoveTime(m.animation_speed)
+					time_to_remove = int(current_time / m.animation_speed) * m.animation_speed
+					current_time -= time_to_remove
+					m.animation_timer.RemoveTime(time_to_remove)
 				end if
 				m.index = m._tweens_reference[m.animation_tween](0, frame_count, current_time, m.animation_speed)
 				if m.index > frame_count - 1
@@ -872,13 +872,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		if not m.paused then
 			m.paused = true
 
-			for each object_key in m.Instances
-				for each instance_key in m.Instances[object_key]
-					instance = m.Instances[object_key][instance_key]
-					if instance <> invalid and instance.id <> invalid and instance.onPause <> invalid
-						instance.onPause()
-					end if
-				end for
+			for i = 0 to m.sorted_instances.Count() - 1
+				instance = m.sorted_instances[i]
+				if instance <> invalid and instance.id <> invalid and instance.onPause <> invalid
+					instance.onPause()
+				end if
 			end for
 
 			m.pauseTimer.Mark()
@@ -894,18 +892,18 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			m.paused = false
 			paused_time = m.pauseTimer.TotalMilliseconds()
 
-			for each object_key in m.Instances
-				for each instance_key in m.Instances[object_key]
-					instance = m.Instances[object_key][instance_key]
+			for i = 0 to m.sorted_instances.Count() - 1
+				instance = m.sorted_instances[i]
+				if instance <> invalid and instance.id <> invalid
 					for each image in instance.images
 						if image.DoesExist("onResume") and image.onResume <> invalid
 							image.onResume(paused_time)
 						end if
 					end for
-					if instance <> invalid and instance.id <> invalid and instance.onResume <> invalid
+					if instance.onResume <> invalid
 						instance.onResume(paused_time)
 					end if
-				end for
+				end if
 			end for
 
 			return paused_time
@@ -962,10 +960,25 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ############### resetScreen() function - Begin ###############
 	game.resetScreen = function() as void
 		UIResolution = m.device.getUIResolution()
+		SupportedResolutions = m.device.GetSupportedGraphicsResolutions()
+		FHD_Supported = false
+		for i = 0 to SupportedResolutions.Count() - 1
+			if SupportedResolutions[i].name = "FHD"
+				FHD_Supported = true
+			end if
+		end for
+
 		if UIResolution.name = "SD"
 			m.screen = CreateObject("roScreen", true, 854, 626)
 		else
-			m.screen = CreateObject("roScreen", true, 1280, 720)
+			canvas_width = m.canvas.bitmap.GetWidth()
+			if canvas_width <= 854
+				m.screen = CreateObject("roScreen", true, 854, 480)
+			else if canvas_width <= 1280 or not FHD_Supported
+				m.screen = CreateObject("roScreen", true, 1280, 720)
+			else
+				m.screen = CreateObject("roScreen", true, 1920, 1080)
+			end if
 		end if
 		m.compositor.SetDrawTo(m.screen, &h00000000)
 		m.screen.SetMessagePort(m.screen_port)
@@ -1144,21 +1157,17 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ############### changeRoom() function - Begin ###############
 	game.changeRoom = function(room_name as string, args = {} as object) as boolean
 		if m.Rooms[room_name] <> invalid then
-			for each object_key in m.Instances
-				for each instance_key in m.Instances[object_key]
-					instance = m.Instances[object_key][instance_key]
-					if instance <> invalid and instance.id <> invalid and instance.onChangeRoom <> invalid then
-						instance.onChangeRoom(room_name)
-					end if
-				end for
+			for i = 0 to m.sorted_instances.Count() - 1
+				instance = m.sorted_instances[i]
+				if instance <> invalid and instance.id <> invalid and instance.onChangeRoom <> invalid then
+					instance.onChangeRoom(room_name)
+				end if
 			end for
-			for each object_key in m.Instances
-				for each instance_key in m.Instances[object_key]
-					instance = m.Instances[object_key][instance_key]
-					if instance.id <> invalid and not instance.persistent and instance.name <> m.currentRoom.name then
-						m.destroyInstance(instance, false)
-					end if
-				end for
+			for i = 0 to m.sorted_instances.Count() - 1
+				instance = m.sorted_instances[i]
+				if instance.id <> invalid and not instance.persistent and instance.name <> m.currentRoom.name then
+					m.destroyInstance(instance, false)
+				end if
 			end for
 			if m.currentRoom <> invalid and m.currentRoom.id <> invalid then
 				m.destroyInstance(m.currentRoom, false)
@@ -1361,7 +1370,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 
 	' ############### musicPlay() function - Begin ###############
-	game.musicPlay = function(path as string, loop = false as boolean) as boolean
+	game.musicPlay = function(path as string, loop = false as boolean, start_position = invalid as dynamic) as boolean
 		if m.filesystem.Exists(path) then
 			m.audioplayer.stop()
 			m.audioplayer.ClearContent()
@@ -1369,6 +1378,9 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			song.url = path
 			m.audioplayer.AddContent(song)
 			m.audioplayer.SetLoop(loop)
+			if start_position <> invalid
+				m.audioplayer.Seek(start_position)
+			end if
 			m.audioPlayer.play()
 			return true
 		else
@@ -1415,7 +1427,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' ############### playSound() function - Begin ###############
 	game.playSound = function(sound_name as string, volume = 100 as integer) as boolean
 		if m.Sounds.DoesExist(sound_name) then
-			m.Sounds[sound_name].trigger(volume)
+			m.Sounds[sound_name].trigger(volume, m.current_sound_channel - 1)
+			m.current_sound_channel++
+			if m.current_sound_channel > m.max_sound_channels
+				m.current_sound_channel = 1
+			end if
 			return true
 		else
 			print "playSound() - No sound has been loaded under the name: " ; sound_name
@@ -1449,15 +1465,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 
 	' ############### postGameEvent() function - Begin ###############
 	game.postGameEvent = function(event as string, data = {} as object) as void
-		object_keys = m.Instances.Keys()
-		for each object_key in object_keys
-			instance_keys = m.Instances[object_key].Keys()
-			for each instance_key in instance_keys
-				instance = m.Instances[object_key][instance_key]
-				if instance <> invalid and instance.id <> invalid and instance.onGameEvent <> invalid
-					instance.onGameEvent(event, data)
-				end if
-			end for
+		for i = 0 to m.sorted_instances.Count() - 1
+			instance = m.sorted_instances[i]
+			if instance <> invalid and instance.id <> invalid and instance.onGameEvent <> invalid
+				instance.onGameEvent(event, data)
+			end if
 		end for
 	end function
 	' ############### postGameEvent() function - End ###############
