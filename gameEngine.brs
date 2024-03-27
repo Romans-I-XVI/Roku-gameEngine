@@ -1209,11 +1209,11 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 		else if m.filesystem.Exists(path) then
 			path_object = CreateObject("roPath", path)
 			parts = path_object.Split()
-			if parts.extension = ".png" or parts.extension = ".jpg" then
+			if parts.extension = ".png" or parts.extension = ".jpg" or parts.extension = ".webp" then
 				m.Bitmaps[bitmap_name] = CreateObject("roBitmap", path)
 				return true
 			else
-				print "loadBitmap() - Bitmap not loaded, file must be of type .png or .jpg"
+				print "loadBitmap() - Bitmap not loaded, file must be of type .png/.jpg/.webp"
 				return false
 			end if
 		else
