@@ -25,7 +25,7 @@ sub game_defineRoomFunctions(game as object)
 			if m.currentRoom <> invalid and m.currentRoom.id <> invalid
 				m.destroyInstance(m.currentRoom, false)
 			end if
-			m.currentRoom = m.newEmptyObject(room_name)
+			m.currentRoom = new_emptyGameObject(m, room_name)
 			m.Rooms[room_name](m.currentRoom)
 			m.currentRoomArgs = args
 			m.currentRoom.onCreate(args)

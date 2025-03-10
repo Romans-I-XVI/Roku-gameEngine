@@ -1,4 +1,4 @@
-sub game_defineMainPlayFunction(game as object)
+sub game_defineMainLoopFunction(game as object)
     game.Play = sub()
 
         m.running = true
