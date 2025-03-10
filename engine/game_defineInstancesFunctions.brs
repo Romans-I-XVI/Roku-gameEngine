@@ -6,7 +6,7 @@ sub game_defineInstancesFunctions(game as object)
 
 	game.createInstance = function(object_name as string, args = {} as object) as dynamic
 		if m.Objects.DoesExist(object_name)
-			new_instance = m.newEmptyObject(object_name)
+			new_instance = new_emptyGameObject(m, object_name)
 			m.Objects[object_name](new_instance)
 			new_instance.onCreate(args)
 			return new_instance
@@ -97,7 +97,7 @@ sub game_defineInstancesFunctions(game as object)
 	end sub
 
 	game.postGameEvent = sub(event as string, data = {} as object)
-		print "[EVENT] " event' " - " FormatJson(data)
+		print "[EVENT] - " event' " - " FormatJson(data)
 		for i = 0 to m.sorted_instances.Count() - 1
 			instance = m.sorted_instances[i]
 			if instance <> invalid and instance.id <> invalid and instance.onGameEvent <> invalid

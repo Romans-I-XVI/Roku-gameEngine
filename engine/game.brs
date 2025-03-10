@@ -2,10 +2,9 @@
 
 function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = false)
 	game = game_getMainObject(canvas_width, canvas_height)
-	game_defineMainPlayFunction(game)
+	game_defineMainLoopFunction(game)
 	game_defineResourcesFunctions(game)
 	game_defineRoomFunctions(game)
-	game_defineObjectCreationFunction(game)
 	game_defineInstancesFunctions(game)
 	game_defineCanvasFunctions(game)
 	game_defineMediaFunctions(game)
