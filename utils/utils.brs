@@ -1,20 +1,28 @@
+function asin(x as float) as float
+	if x < -1.0 or x > 1.0
+		print "Error: Input to asin must be in the range [-1, 1]"
+		return 0
+	end if
+	return 2.0 * atn(x / (1.0 + Sqr(1.0 - x * x)))
+end function
+
 function atan2(y, x)
 	return Math_Atan2(y, x)
 end function
 
-function HSVtoRGB(h%,s%,v%,a = invalid) as integer
+function HSVtoRGB(h%, s%, v%, a = invalid) as integer
 	' Romans_I_XVI port (w/ a few tweaks) of:
 	' http://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
 
-	h% = h% MOD 360
+	h% = h% mod 360
 
-	rgb = [ 0, 0, 0 ]
+	rgb = [0, 0, 0]
 	if s% = 0 then
-		rgb = [v%/100, v%/100, v%/100]
+		rgb = [v% / 100, v% / 100, v% / 100]
 	else
-		s = s%/100 : v = v%/100 : h = h%/60 : i = int(h)
+		s = s% / 100 : v = v% / 100 : h = h% / 60 : i = int(h)
 
-		data = [v*(1-s), v*(1-s*(h-i)), v*(1-s*(1-(h-i)))]
+		data = [v * (1 - s), v * (1 - s * (h - i)), v * (1 - s * (1 - (h - i)))]
 
 		if i = 0 then
 			rgb = [v, data[2], data[0]]
@@ -31,7 +39,7 @@ function HSVtoRGB(h%,s%,v%,a = invalid) as integer
 		end if
 	end if
 
-	for c = 0 to rgb.count()-1 : rgb[c] = int(rgb[c] * 255) : end for
+	for c = 0 to rgb.count() - 1 : rgb[c] = int(rgb[c] * 255) : end for
 	if a <> invalid then
 		color% = (rgb[0] << 24) + (rgb[1] << 16) + (rgb[2] << 8) + a
 	else
@@ -60,22 +68,12 @@ function registryRead(registry_section as string, key as string, default_value =
 	end if
 end function
 
-function DrawText(draw2d as object, text as string, x as integer, y as integer, font as object, alignment = "left" as string, color = &hEBEBEBFF as integer) as void
-	if alignment = "left"
-		draw2d.DrawText(text, x, y, color, font)
-	else if alignment = "right"
-		draw2d.DrawText(text, x-font.GetOneLineWidth(text, 10000), y, color, font)
-	else if alignment = "center"
-		draw2d.DrawText(text, x-font.GetOneLineWidth(text, 10000)/2, y, color, font)
-	end if
-end function
-
 ' NOTE: This function is unsafe! It creates an roBitmap of the required size to be able to both scale and rotate the drawing, this action requires free video memory of the appropriate amount.
 function DrawScaledAndRotatedObject(draw2d as object, x as float, y as float, scale_x as float, scale_y as float, theta as float, drawable as object, color = &hFFFFFFFF as integer) as void
 	new_width = Abs(int(drawable.GetWidth() * scale_x))
 	new_height = Abs(int(drawable.GetHeight() * scale_y))
 	if new_width <> 0 and new_height <> 0
-		new_drawable = CreateObject("roBitmap", {width: new_width, height: new_height, AlphaEnable: true})
+		new_drawable = CreateObject("roBitmap", { width: new_width, height: new_height, AlphaEnable: true })
 		scaled_draw_x = 0
 		scaled_draw_y = 0
 		if scale_x < 0
@@ -123,24 +121,65 @@ function CreateObject_GameTimeSpan() as object
 	return timer
 end function
 
-function TexturePacker_GetRegions(atlas as dynamic, bitmap as object) as object
-	if type(atlas) = "String" or type(atlas) = "roString"
+function textureParker_getRegionsConfigFromAtlas(atlas as dynamic) as object
+	if isString(atlas)
 		atlas = ParseJson(atlas)
+	else
+		print_error("texturePacker - invalid atlas")
+		return invalid
 	end if
 
-	regions = {}
+	res = {}
 	for each key in atlas.frames
 		item = atlas.frames[key]
-		region = CreateObject("roRegion", bitmap, item.frame.x, item.frame.y, item.frame.w, item.frame.h)
-
-		if item.DoesExist("pivot")
-			translation_x = item.spriteSourceSize.x - item.sourceSize.w * item.pivot.x
-			translation_y = item.spriteSourceSize.y - item.sourceSize.h * item.pivot.y
-			region.SetPretranslation(translation_x, translation_y)
-		end if
-
-		regions[key] = region
+		regionName = key.split(".")[0]
+		res[regionName] = item
 	end for
 
-	return regions
+	return res
+end function
+
+function ifElse(condition as boolean, ifTrueResult as dynamic, ifFalseResult as dynamic) as dynamic
+	if condition
+		return ifTrueResult
+	else
+		return ifFalseResult
+	end if
+end function
+
+' Generate random string
+function GetRandomHexString(length as integer) as string
+	hexChars = "0123456789ABCDEF"
+	hexString = ""
+	for i = 1 to length
+		hexString = hexString + hexChars.Mid(Rnd(16) - 1, 1)
+	next
+	return hexString
+end function
+
+function wrapTextByMaxWidth(font as object, text as string, maxWidth = 100, newLineChr = "\n") as string
+	words = text.split(" ")
+	result = ""
+	line = ""
+
+	for i = 0 to words.count() - 1
+		word = words[i]
+		testLine = line + word + " "
+		lineWidth = font.GetOneLineWidth(testLine, 10000)
+
+		if lineWidth < maxWidth
+			line = testLine
+		else
+			result += line.trim() + newLineChr
+			line = word + " "
+		end if
+	end for
+
+	if line.len() > 0 then result += line.trim()
+
+	return result
+end function
+
+function addOpacityToHEXColor(hexColor, opacity)
+	return (hexColor << 8) + int(opacity * 255)
 end function
