@@ -24,7 +24,7 @@ sub game_defineObjectCreationFunction(game as object)
 
 		newObject.onCreate = sub(args) : end sub
 
-		newObject.addNoNameImage = function(config as object) as dynamic
+		newObject.addRandomNameImage = function(config as object) as dynamic
 			imageName = m.name + "_" + GetRandomHexString(10)
 			return m.addImage(imageName, config)
 		end function
