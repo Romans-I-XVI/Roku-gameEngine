@@ -7,7 +7,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' Create the main game engine object
 	game = {
 		' ****BEGIN - For Internal Use, Do Not Manually Alter****
-		version: "1.1.1"
+		version: "1.1.2"
 		debugging: {
 			draw_colliders: false
 			draw_safe_zones: false
@@ -630,18 +630,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 			}
 
 			image_object.Draw = function()
-				if m.enabled
-					x = m.owner.x + m.offset_x
-					y = m.owner.y + m.offset_y
-					rgba = (m.color << 8) + int(m.alpha)
-					if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
-						m.draw_to.DrawObject(x, y, m.region, rgba)
-					else if m.rotation = 0
-						m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, m.region, rgba)
-					else
-						m.draw_to.DrawRotatedObject(x, y, -m.rotation, m.region, rgba)
-					end if
-				end if
+				DrawImage(m)
 			end function
 
 			image_object.Append(args)
@@ -676,6 +665,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 				' -------------Never To Be Manually Changed-----------------
 				' These values should never need to be manually changed.
 				owner: m
+				region: regions[0]
 				animation_timer: CreateObject_GameTimeSpan()
 				_tweens_reference: GetTweens()
 			}
@@ -686,17 +676,8 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 						m.Animate()
 					end if
 
-					region = m.regions[m.index]
-					x = m.owner.x + m.offset_x
-					y = m.owner.y + m.offset_y
-					rgba = (m.color << 8) + int(m.alpha)
-					if m.scale_x = 1 and m.scale_y = 1 and m.rotation = 0
-						m.draw_to.DrawObject(x, y, region, rgba)
-					else if m.rotation = 0
-						m.draw_to.DrawScaledObject(x, y, m.scale_x, m.scale_y, region, rgba)
-					else
-						m.draw_to.DrawRotatedObject(x, y, -m.rotation, region, rgba)
-					end if
+					m.region = m.regions[m.index]
+					DrawImage(m)
 				end if
 			end function
 
