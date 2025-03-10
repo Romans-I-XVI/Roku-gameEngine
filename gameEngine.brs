@@ -7,6 +7,7 @@ function new_game(canvas_width, canvas_height, canvas_as_screen_if_possible = fa
 	' Create the main game engine object
 	game = {
 		' ****BEGIN - For Internal Use, Do Not Manually Alter****
+		version: "1.1.1"
 		debugging: {
 			draw_colliders: false
 			draw_safe_zones: false
