@@ -577,7 +577,7 @@ Function ElasticEaseIn(start, finish, currentTime, duration, amplitude = invalid
     If amplitude = invalid Or amplitude < Abs(change) Then
         amplitude = change
     Else    
-        speed = period / (2 * pi) * Asin(change / amplitude)
+        speed = period / (2 * pi) * Math_Asin(change / amplitude)
     End If
     time = time - 1
     Return -(amplitude * (2 ^ (10 * time)) * Sin((time * duration - speed) * (2 * pi) / period)) + start
@@ -606,7 +606,7 @@ Function ElasticEaseOut(start, finish, currentTime, duration, amplitude = invali
     If amplitude = invalid Or amplitude < Abs(change) Then
         amplitude = change
     Else    
-        speed = period / (2 * pi) * Asin(change / amplitude)
+        speed = period / (2 * pi) * Math_Asin(change / amplitude)
     End If
     Return (amplitude * (2 ^ (-10 * time)) * Sin((time * duration - speed) * (2 * pi) / period) + change + start)
 End Function
@@ -635,7 +635,7 @@ Function ElasticEaseInOut(start, finish, currentTime, duration, amplitude = inva
     If amplitude = invalid Or amplitude < Abs(change) Then
         amplitude = change
     Else    
-        speed = period / (2 * pi) * Asin(change / amplitude)
+        speed = period / (2 * pi) * Math_Asin(change / amplitude)
     End If
     time = time - 1
     If time < 0 Then
