@@ -30,6 +30,16 @@ function Math_Atan2(y as float, x as float)
 	return angle
 end function
 
+function Math_Asin(x)
+	if x <= -1
+		return -0.5 * Math_PI()
+	else if x >= 1
+		return 0.5 * Math_PI()
+	else
+		return Atn(x / Sqr(1 - (x * x)))
+	end if
+end function
+
 function Math_IsIntegerEven(number as integer) as boolean
 	return (number MOD 2 = 0)
 end function
